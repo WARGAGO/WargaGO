@@ -1,3 +1,17 @@
+// ============================================================================
+// LOGIN PAGE (CLEAN CODE VERSION)
+// ============================================================================
+// Halaman login untuk admin
+//
+// Clean Code Principles Applied:
+// ✅ Fokus ke tampilan & interaksi user (logic di AuthProvider)
+// ✅ Pecah jadi widget kecil yang focused
+// ✅ Pakai widget reusable (AuthTextField, AuthPrimaryButton, dll)
+// ✅ Nama variabel & widget yang jelas dan deskriptif
+// ✅ Responsif dengan LayoutBuilder & SingleChildScrollView
+// ✅ Tidak panggil API langsung - pakai AuthProvider
+// ============================================================================
+
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -6,9 +20,17 @@ import 'package:provider/provider.dart';
 import 'package:jawara/features/dashboard/dashboard_page.dart';
 import 'package:jawara/features/auth/register_page.dart';
 import 'package:jawara/core/providers/auth_provider.dart';
+import 'widgets/auth_constants.dart';
+import 'widgets/auth_widgets.dart';
 
-const Color _kLoginAccent = Color(0xFF2F80ED);
-
+/// Login Page - Halaman login untuk admin
+///
+/// Fitur:
+/// - Animated background dengan blob shapes
+/// - Form validation
+/// - Integration dengan Firebase Auth via AuthProvider
+/// - Auto-check user status (pending/rejected)
+/// - Default credentials info untuk testing
 class LoginPage extends StatefulWidget {
   const LoginPage({
     super.key,
@@ -117,33 +139,16 @@ class _LoginBody extends StatelessWidget {
   }
 }
 
+// ============================================================================
+// LOGIN HEADER WIDGET
+// ============================================================================
+/// Header dengan logo Jawara
 class _LoginHeader extends StatelessWidget {
   const _LoginHeader();
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Image.asset(
-          'assets/icons/icon.png',
-          height: 54,
-          width: 54,
-          errorBuilder: (_, __, ___) =>
-              const Icon(Icons.fingerprint, size: 54, color: _kLoginAccent),
-        ),
-        const SizedBox(width: 12),
-        Text(
-          'Jawara',
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-            color: _kLoginAccent,
-          ),
-        ),
-      ],
-    );
+    return const AuthLogo(showText: true);
   }
 }
 
@@ -173,6 +178,10 @@ class _LoginIllustration extends StatelessWidget {
   }
 }
 
+// ============================================================================
+// LOGIN INTRO WIDGET
+// ============================================================================
+/// Intro text dengan info kredensial default
 class _LoginIntro extends StatelessWidget {
   const _LoginIntro();
 
@@ -187,75 +196,30 @@ class _LoginIntro extends StatelessWidget {
             fontSize: 24,
             fontWeight: FontWeight.w800,
             letterSpacing: 1,
-            color: _kLoginAccent,
+            color: AuthColors.primary,
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: AuthSpacing.md),
         Text(
           'Silakan login terlebih dahulu sebagai admin untuk mengakses seluruh fitur dalam aplikasi.',
           style: GoogleFonts.poppins(
             fontSize: 13,
             height: 1.6,
-            color: const Color(0xFF777C8E),
+            color: AuthColors.textTertiary,
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AuthSpacing.lg),
         // Default credentials info
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF0F7FF),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: _kLoginAccent.withValues(alpha: 0.2),
-              width: 1,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.info_outline,
-                    size: 16,
-                    color: _kLoginAccent,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Kredensial Default:',
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: _kLoginAccent,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Email: admin@jawara.com',
-                style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  color: const Color(0xFF555555),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Password: admin123',
-                style: GoogleFonts.poppins(
-                  fontSize: 11,
-                  color: const Color(0xFF555555),
-                ),
-              ),
-            ],
-          ),
-        ),
+        const DefaultCredentialsInfo(),
       ],
     );
   }
 }
 
+// ============================================================================
+// LOGIN FIELDS WIDGET
+// ============================================================================
+/// Form login dengan email & password fields
 class _LoginFields extends StatefulWidget {
   const _LoginFields();
 
@@ -277,10 +241,9 @@ class _LoginFieldsState extends State<_LoginFields> {
     super.dispose();
   }
 
+  /// Handle login process
   Future<void> _handleLogin() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
@@ -292,7 +255,6 @@ class _LoginFieldsState extends State<_LoginFields> {
     );
 
     if (!mounted) return;
-
     setState(() => _isLoading = false);
 
     if (success) {
@@ -300,87 +262,49 @@ class _LoginFieldsState extends State<_LoginFields> {
       final user = authProvider.userModel;
 
       if (user?.status == 'pending') {
-        _showErrorDialog(
+        AuthDialogs.showError(
+          context,
           'Menunggu Persetujuan',
-          'Akun Anda masih menunggu persetujuan dari admin. Silakan hubungi admin untuk informasi lebih lanjut.',
+          'Akun Anda masih menunggu persetujuan dari admin.',
         );
         await authProvider.signOut();
         return;
       }
 
       if (user?.status == 'rejected') {
-        _showErrorDialog(
+        AuthDialogs.showError(
+          context,
           'Akun Ditolak',
-          'Akun Anda ditolak oleh admin. Silakan hubungi admin untuk informasi lebih lanjut.',
+          'Akun Anda ditolak oleh admin.',
         );
         await authProvider.signOut();
         return;
       }
 
-      // Login success
+      // Login success - navigate to dashboard
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const DashboardPage()),
         (route) => false,
       );
     } else {
       // Show error
-      _showErrorDialog(
+      AuthDialogs.showError(
+        context,
         'Login Gagal',
         authProvider.errorMessage ?? 'Terjadi kesalahan saat login',
       );
     }
   }
 
-  void _showErrorDialog(String title, String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          title,
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-        ),
+  /// Handle forgot password
+  void _handleForgotPassword() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
         content: Text(
-          message,
+          'Fitur lupa password belum tersedia',
           style: GoogleFonts.poppins(),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'OK',
-              style: GoogleFonts.poppins(color: _kLoginAccent),
-            ),
-          ),
-        ],
       ),
-    );
-  }
-
-  InputDecoration _decoration(String label, {Widget? suffixIcon}) {
-    return InputDecoration(
-      hintText: label,
-      hintStyle: GoogleFonts.poppins(
-        fontSize: 13,
-        color: const Color(0xFFB0B3C0),
-      ),
-      suffixIcon: suffixIcon,
-      floatingLabelBehavior: FloatingLabelBehavior.never,
-      enabledBorder: const UnderlineInputBorder(
-        borderSide: BorderSide(color: Color(0xFFE2E4EC), width: 1.4),
-      ),
-      focusedBorder: const UnderlineInputBorder(
-        borderSide: BorderSide(color: _kLoginAccent, width: 1.6),
-      ),
-      errorBorder: const UnderlineInputBorder(
-        borderSide: BorderSide(color: Colors.red, width: 1.4),
-      ),
-      focusedErrorBorder: const UnderlineInputBorder(
-        borderSide: BorderSide(color: Colors.red, width: 1.6),
-      ),
-      border: const UnderlineInputBorder(
-        borderSide: BorderSide(color: Color(0xFFE2E4EC)),
-      ),
-      isDense: true,
     );
   }
 
@@ -391,12 +315,12 @@ class _LoginFieldsState extends State<_LoginFields> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          TextFormField(
+          // Email field
+          AuthTextField(
             controller: _emailController,
+            hintText: 'Email',
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.next,
-            decoration: _decoration('Email'),
-            style: GoogleFonts.poppins(fontSize: 14),
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Email tidak boleh kosong';
@@ -407,24 +331,17 @@ class _LoginFieldsState extends State<_LoginFields> {
               return null;
             },
           ),
-          const SizedBox(height: 24),
-          TextFormField(
+          const SizedBox(height: AuthSpacing.xl),
+
+          // Password field
+          AuthTextField(
             controller: _passwordController,
+            hintText: 'Password',
             obscureText: _obscurePassword,
-            decoration: _decoration(
-              'Password',
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                  color: const Color(0xFFB0B3C0),
-                  size: 20,
-                ),
-                onPressed: () {
-                  setState(() => _obscurePassword = !_obscurePassword);
-                },
-              ),
+            suffixIcon: PasswordVisibilityToggle(
+              isObscure: _obscurePassword,
+              onToggle: () => setState(() => _obscurePassword = !_obscurePassword),
             ),
-            style: GoogleFonts.poppins(fontSize: 14),
             validator: (value) {
               if (value == null || value.isEmpty) {
                 return 'Password tidak boleh kosong';
@@ -435,21 +352,13 @@ class _LoginFieldsState extends State<_LoginFields> {
               return null;
             },
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: AuthSpacing.md),
+
+          // Forgot password
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
-              onPressed: () {
-                // TODO: Implement forgot password
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Fitur lupa password belum tersedia',
-                      style: GoogleFonts.poppins(),
-                    ),
-                  ),
-                );
-              },
+              onPressed: _handleForgotPassword,
               style: TextButton.styleFrom(
                 padding: EdgeInsets.zero,
                 minimumSize: Size.zero,
@@ -460,46 +369,30 @@ class _LoginFieldsState extends State<_LoginFields> {
                 style: GoogleFonts.poppins(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
-                  color: _kLoginAccent,
+                  color: AuthColors.primary,
                 ),
               ),
             ),
           ),
           const SizedBox(height: 18),
-          SizedBox(
-            height: 52,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _kLoginAccent,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(26),
-                ),
-                textStyle: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              onPressed: _isLoading ? null : _handleLogin,
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : const Text('Login'),
-            ),
+
+          // Login button
+          AuthPrimaryButton(
+            text: 'Login',
+            onPressed: _handleLogin,
+            isLoading: _isLoading,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AuthSpacing.xl),
         ],
       ),
     );
   }
 }
 
+// ============================================================================
+// SIGNUP PROMPT WIDGET
+// ============================================================================
+/// Prompt untuk register akun baru
 class _SignupPrompt extends StatelessWidget {
   const _SignupPrompt();
 
@@ -511,7 +404,7 @@ class _SignupPrompt extends StatelessWidget {
           text: 'Admin baru? ',
           style: GoogleFonts.poppins(
             fontSize: 13,
-            color: const Color(0xFF828696),
+            color: AuthColors.textSecondary,
           ),
           children: [
             WidgetSpan(
@@ -530,7 +423,7 @@ class _SignupPrompt extends StatelessWidget {
                   padding: EdgeInsets.zero,
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  foregroundColor: _kLoginAccent,
+                  foregroundColor: AuthColors.primary,
                   textStyle: GoogleFonts.poppins(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -546,6 +439,10 @@ class _SignupPrompt extends StatelessWidget {
   }
 }
 
+// ============================================================================
+// DECORATIVE BACKGROUND WIDGET
+// ============================================================================
+/// Animated blob background untuk visual appeal
 class _DecorBackground extends StatelessWidget {
   const _DecorBackground({required this.progress});
 
@@ -557,8 +454,8 @@ class _DecorBackground extends StatelessWidget {
       child: SizedBox.expand(
         child: CustomPaint(
           painter: _BlobPainter(
-            baseColor: _kLoginAccent.withValues(alpha: 0.12),
-            accentColor: _kLoginAccent.withValues(alpha: 0.35),
+            baseColor: AuthColors.backgroundBlob,
+            accentColor: AuthColors.backgroundBlobAccent,
             progress: progress,
           ),
         ),
@@ -567,6 +464,7 @@ class _DecorBackground extends StatelessWidget {
   }
 }
 
+/// Custom painter untuk blob shapes
 class _BlobPainter extends CustomPainter {
   _BlobPainter({
     required this.baseColor,
