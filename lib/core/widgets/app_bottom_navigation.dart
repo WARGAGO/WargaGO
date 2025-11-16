@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../features/dashboard/dashboard_page.dart';
 import '../../features/data_warga/data_warga_main_page.dart';
 import '../../features/keuangan/keuangan_page.dart';
-import '../../features/agenda/kegiatan/kegiatan_page.dart';
+import '../../features/kelola_lapak/kelola_lapak_page.dart';
 
 /// Unified Bottom Navigation Bar untuk semua halaman
 /// Menggunakan desain modern dengan gradient pada active state
@@ -89,14 +89,14 @@ class AppBottomNavigation extends StatelessWidget {
                 },
               ),
               _BottomNavItem(
-                icon: Icons.event_note_outlined,
-                label: 'Agenda',
+                icon: Icons.store_rounded,
+                label: 'Kelola Lapak',
                 isActive: currentIndex == 3,
                 onTap: () {
                   if (currentIndex != 3) {
                     Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(
-                        builder: (context) => const AgendaPage(),
+                        builder: (context) => const KelolaLapakPage(),
                       ),
                       (route) => false,
                     );

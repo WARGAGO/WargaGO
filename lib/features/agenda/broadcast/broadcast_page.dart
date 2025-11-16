@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:jawara/features/data_warga/data_penduduk/data_penduduk_page.dart';
-import '../../dashboard/dashboard_page.dart';
 import '../kegiatan/kegiatan_page.dart';
 import 'edit_broadcast_page.dart';
 import 'tambah_broadcast_page.dart';
@@ -14,63 +12,100 @@ class BroadcastPage extends StatefulWidget {
 }
 
 class _BroadcastPageState extends State<BroadcastPage> {
-  int _currentIndex = 3;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF2F80ED),
+      backgroundColor: const Color(0xFF2988EA),
       body: SafeArea(
         child: Column(
           children: [
+            // HEADER dengan gradient modern
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF2988EA), Color(0xFF2563EB)],
+                ),
+              ),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    "Lihat dan atur Agenda",
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    "Atur dan pantau agenda warga secara efisien dalam satu sistem terpadu.",
-                    style: GoogleFonts.poppins(
-                      color: Colors.white.withOpacity(0.9),
-                      fontSize: 13,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
+                  // Back button dengan container modern
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: IconButton(
+                          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 22),
+                          onPressed: () => Navigator.pop(context),
+                          padding: const EdgeInsets.all(8),
+                          constraints: const BoxConstraints(),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Kelola Agenda",
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontSize: 28,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              "Kelola kegiatan & broadcast warga",
+                              style: GoogleFonts.poppins(
+                                color: Colors.white.withValues(alpha: 0.85),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  // Tab Cards dengan design modern
+                  Row(
                     children: [
                       Expanded(
-                        child: _HeaderKegiatanCard(
+                        child: _ModernTabCard(
                           title: "Kegiatan",
-                          icon: Icons.event_note_outlined,
-                          subtitle: "100 Data",
+                          icon: Icons.event_note_rounded,
+                          count: "100",
                           isActive: false,
                           onTap: () {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => AgendaPage(),
+                                builder: (context) => const AgendaPage(),
                               ),
                             );
                           },
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 14),
                       Expanded(
-                        child: _HeaderKegiatanCard(
+                        child: _ModernTabCard(
                           title: "Broadcast",
-                          icon: Icons.campaign_outlined,
-                          subtitle: "100 Data",
+                          icon: Icons.campaign_rounded,
+                          count: "100",
                           isActive: true,
                           onTap: () {
                             // Sudah di halaman ini
@@ -82,100 +117,148 @@ class _BroadcastPageState extends State<BroadcastPage> {
                 ],
               ),
             ),
+            // List content
             const Expanded(child: DaftarBroadcastList()),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => TambahBroadcastPage()),
-          );
-        },
-        backgroundColor: const Color(0xFF2F80ED),
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-      bottomNavigationBar: _BottomNavigation(
-        currentIndex: _currentIndex,
-        onTap: (i) {
-          if (i == 0) {
-            Navigator.pushReplacement(
+      // FAB dengan gradient modern
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF2988EA).withValues(alpha: 0.4),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+              spreadRadius: 2,
+            ),
+          ],
+        ),
+        child: FloatingActionButton.extended(
+          onPressed: () {
+            Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const DashboardPage()),
+              MaterialPageRoute(builder: (context) => const TambahBroadcastPage()),
             );
-          } else if (i == 1) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const DataWargaPage()),
-            );
-          } else if (i == 3) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => AgendaPage()),
-            );
-          } else {
-            setState(() => _currentIndex = i);
-          }
-        },
+          },
+          backgroundColor: const Color(0xFF2988EA),
+          elevation: 0,
+          icon: const Icon(Icons.add_rounded, color: Colors.white, size: 24),
+          label: Text(
+            'Tambah',
+            style: GoogleFonts.poppins(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
+        ),
       ),
     );
   }
 }
 
-// Kartu header untuk navigasi antar halaman agenda/broadcast
-class _HeaderKegiatanCard extends StatelessWidget {
+// Modern Tab Card untuk Kegiatan & Broadcast
+class _ModernTabCard extends StatelessWidget {
   final String title;
   final IconData icon;
-  final String subtitle;
+  final String count;
   final bool isActive;
   final VoidCallback onTap;
 
-  const _HeaderKegiatanCard({
+  const _ModernTabCard({
     required this.title,
     required this.icon,
-    required this.subtitle,
+    required this.count,
     required this.onTap,
     this.isActive = false,
-    super.key,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: isActive ? const Color(0xFFE4EBFE) : Colors.white,
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, color: const Color(0xFF2F80ED), size: 28),
-              const SizedBox(height: 12),
-              Text(
-                title,
-                textAlign: TextAlign.left,
-                style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF1F1F1F),
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                textAlign: TextAlign.left,
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  color: const Color(0x7F1D4ED8),
-                ),
-              ),
-            ],
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          gradient: isActive
+              ? const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Colors.white, Color(0xFFF8F9FF)],
+                )
+              : null,
+          color: isActive ? null : Colors.white.withValues(alpha: 0.2),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isActive
+                ? Colors.white.withValues(alpha: 0.8)
+                : Colors.white.withValues(alpha: 0.3),
+            width: isActive ? 1.5 : 1,
           ),
+          boxShadow: isActive
+              ? [
+                  BoxShadow(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Icon dengan container
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: isActive
+                    ? const Color(0xFF2988EA).withValues(alpha: 0.1)
+                    : Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                color: isActive ? const Color(0xFF2988EA) : Colors.white,
+                size: 24,
+              ),
+            ),
+            const SizedBox(height: 14),
+            // Title
+            Text(
+              title,
+              style: GoogleFonts.poppins(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: isActive ? const Color(0xFF1F2937) : Colors.white,
+                letterSpacing: 0.2,
+              ),
+            ),
+            const SizedBox(height: 4),
+            // Count
+            Row(
+              children: [
+                Text(
+                  count,
+                  style: GoogleFonts.poppins(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: isActive ? const Color(0xFF2988EA) : Colors.white.withValues(alpha: 0.9),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'Data',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: isActive ? const Color(0xFF6B7280) : Colors.white.withValues(alpha: 0.7),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../core/widgets/app_bottom_navigation.dart';
 import '../dashboard/dashboard_page.dart';
 import '../data_warga/data_penduduk/data_penduduk_page.dart';
+import '../agenda/kegiatan/kegiatan_page.dart';
 import 'kelola_pemasukan/kelola_pemasukan_page.dart';
 import 'kelola_pengeluaran/kelola_pengeluaran_page.dart';
 import 'daftar_metode_page.dart';
@@ -749,37 +750,63 @@ class _KeuanganPageState extends State<KeuanganPage> {
   }
 
   Widget _buildKelolaButtons() {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: _buildKelolaButton(
-            icon: Icons.account_balance_wallet,
-            label: 'Kelola\nPemasukan',
-            iconColor: const Color(0xFF4ADE80), // Green icon
-            backgroundColor1: const Color(0xFF2988EA), // Biru
-            backgroundColor2: const Color(0xFF2988EA), // Biru
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const KelolaPemasukanPage()),
-              );
-            },
-          ),
+        // Row pertama: Kelola Pemasukan & Pengeluaran
+        Row(
+          children: [
+            Expanded(
+              child: _buildKelolaButton(
+                icon: Icons.account_balance_wallet,
+                label: 'Kelola\nPemasukan',
+                iconColor: const Color(0xFF4ADE80), // Green icon
+                backgroundColor1: const Color(0xFF2988EA), // Biru
+                backgroundColor2: const Color(0xFF2988EA), // Biru
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const KelolaPemasukanPage()),
+                  );
+                },
+                height: 130,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _buildKelolaButton(
+                icon: Icons.account_balance_wallet_outlined,
+                label: 'Kelola\nPengeluaran',
+                iconColor: const Color(0xFFEF4444), // Red icon
+                backgroundColor1: const Color(0xFF2988EA), // Biru
+                backgroundColor2: const Color(0xFF2988EA), // Biru
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const KelolaPengeluaranPage()),
+                  );
+                },
+                height: 130,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 16),
-        Expanded(
+        const SizedBox(height: 16),
+        // Row kedua: Kelola Agenda (FULL WIDTH dari kiri ke kanan)
+        SizedBox(
+          width: double.infinity, // Memastikan card lebar penuh
           child: _buildKelolaButton(
-            icon: Icons.account_balance_wallet_outlined,
-            label: 'Kelola\nPengeluaran',
-            iconColor: const Color(0xFFEF4444), // Red icon
+            icon: Icons.event_note_rounded,
+            label: 'Kelola Agenda',
+            iconColor: const Color(0xFFFBBF24), // Yellow/Amber icon
             backgroundColor1: const Color(0xFF2988EA), // Biru
             backgroundColor2: const Color(0xFF2988EA), // Biru
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const KelolaPengeluaranPage()),
+                MaterialPageRoute(builder: (context) => const AgendaPage()),
               );
             },
+            height: 130, // SAMA TINGGI dengan card Pemasukan & Pengeluaran
           ),
         ),
       ],
@@ -793,6 +820,7 @@ class _KeuanganPageState extends State<KeuanganPage> {
     required Color backgroundColor1,
     required Color backgroundColor2,
     required VoidCallback onTap,
+    double height = 130, // Default height 130, bisa diubah
   }) {
     // Tentukan apakah ini tombol pemasukan atau pengeluaran berdasarkan iconColor
     final isPemasukan = iconColor == const Color(0xFF4ADE80);
@@ -800,7 +828,7 @@ class _KeuanganPageState extends State<KeuanganPage> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 130,
+        height: height, // Gunakan parameter height
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
           gradient: LinearGradient(
