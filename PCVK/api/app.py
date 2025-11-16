@@ -5,6 +5,7 @@ Main FastAPI application
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+import gradio as gr
 
 from api.config import (
     API_TITLE,
@@ -17,6 +18,7 @@ from api.config import (
     DEVICE
 )
 from api.routes import router
+from api.gradio_interface import create_gradio_interface
 from api.model_loader import model_manager
 
 
@@ -71,8 +73,12 @@ def create_app() -> FastAPI:
         allow_headers=CORS_HEADERS,
     )
     
-    # Include routes
-    app.include_router(router)
+    # Create and mount Gradio app at root
+    gradio_app = create_gradio_interface()
+    app = gr.mount_gradio_app(app, gradio_app, path="/")
+    
+    # Include API routes with /api prefix
+    app.include_router(router, prefix="/api")
     
     return app
 

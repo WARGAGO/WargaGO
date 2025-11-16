@@ -31,16 +31,6 @@ from api.inference import predict_image
 router = APIRouter()
 
 
-@router.get("/")
-async def root():
-    """Root endpoint"""
-    return {
-        "message": "Vegetable Classification API",
-        "docs": "/docs",
-        "health": "/health"
-    }
-
-
 @router.get("/health", response_model=HealthResponse)
 async def health_check():
     """Health check endpoint"""
