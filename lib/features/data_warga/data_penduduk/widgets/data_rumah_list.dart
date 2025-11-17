@@ -40,13 +40,13 @@ class DataRumahList extends StatelessWidget {
   }
 
   List<Map<String, dynamic>> _getDummyData() {
-    return List.generate(
-      6,
-      (index) => {
+    // Changed from List.generate to single entry to avoid duplicate display
+    return [
+      {
         'alamat': 'Jl. Merbabu',
-        'status': index % 2 == 0 ? 'Tersedia' : 'Terisi',
+        'status': 'Tersedia',
       },
-    );
+    ];
   }
 }
 

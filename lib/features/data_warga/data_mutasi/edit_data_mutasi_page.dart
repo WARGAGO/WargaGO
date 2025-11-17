@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'models/mutasi_model.dart';
+
+/// Edit Data Mutasi Page
 class EditDataMutasiPage extends StatefulWidget {
-  const EditDataMutasiPage({super.key});
+  final MutasiModel mutasiData;
+
+  const EditDataMutasiPage({super.key, required this.mutasiData});
 
   @override
   State<EditDataMutasiPage> createState() => _EditDataMutasiPageState();
@@ -11,25 +16,27 @@ class EditDataMutasiPage extends StatefulWidget {
 class _EditDataMutasiPageState extends State<EditDataMutasiPage> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controller untuk field teks
-  final TextEditingController _namaController = TextEditingController(
-    text: "Rendha Putra Rahmadya",
-  );
-  final TextEditingController _nikController = TextEditingController(
-    text: "3505111512040002",
-  );
-  final TextEditingController _alamatController = TextEditingController(
-    text: "Surabaya",
-  );
-  final TextEditingController _nomorSuratController = TextEditingController(
-    text: "123/RT/X/2023",
-  );
-  final TextEditingController _keteranganController = TextEditingController(
-    text: "Mutasi karena pindah tempat kerja ke Malang",
-  );
-  final TextEditingController _tanggalController = TextEditingController(
-    text: "21/10/2023",
-  );
+  // Controller untuk field teks - akan diisi di initState
+  late final TextEditingController _namaController;
+  late final TextEditingController _nikController;
+  late final TextEditingController _alamatController;
+  late final TextEditingController _nomorSuratController;
+  late final TextEditingController _keteranganController;
+  late final TextEditingController _tanggalController;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize controllers with mutasiData values
+    _namaController = TextEditingController(text: widget.mutasiData.nama);
+    _nikController = TextEditingController(text: widget.mutasiData.nik);
+    _alamatController = TextEditingController(text: widget.mutasiData.alamatTujuan);
+    _nomorSuratController = TextEditingController(text: "");
+    _keteranganController = TextEditingController(text: widget.mutasiData.alasanMutasi);
+    _tanggalController = TextEditingController(
+      text: "${widget.mutasiData.tanggalMutasi.day.toString().padLeft(2, '0')}/${widget.mutasiData.tanggalMutasi.month.toString().padLeft(2, '0')}/${widget.mutasiData.tanggalMutasi.year}",
+    );
+  }
 
   // Variabel dropdown
   String? _jenisMutasi;

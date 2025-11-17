@@ -1,5 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+import 'models/mutasi_model.dart';
+import 'repositories/mutasi_repository.dart';
+import '../../../core/models/keluarga_model.dart';
+import '../../../core/repositories/keluarga_repository.dart';
+import '../../../core/models/rumah_model.dart';
+import '../../../core/repositories/rumah_repository.dart';
 
 class TambahDataMutasiPage extends StatefulWidget {
   const TambahDataMutasiPage({super.key});
@@ -10,75 +19,152 @@ class TambahDataMutasiPage extends StatefulWidget {
 
 class _TambahDataMutasiPageState extends State<TambahDataMutasiPage> {
   final _formKey = GlobalKey<FormState>();
+  final MutasiRepository _mutasiRepo = MutasiRepository();
+  final KeluargaRepository _keluargaRepo = KeluargaRepository();
+  final RumahRepository _rumahRepo = RumahRepository();
 
   // Controllers
-  final TextEditingController _rumahSekarangController = TextEditingController();
-  final TextEditingController _rumahBaruController = TextEditingController();
   final TextEditingController _alasanMutasiController = TextEditingController();
+  final TextEditingController _alamatTujuanController = TextEditingController();
 
-  // Dropdowns
+  // Selected data
   String? _selectedJenisMutasi;
-  String? _selectedKeluarga;
+  String? _selectedKeluargaNomorKK; // Changed to String (nomorKK)
+  String? _selectedRumahSekarangId; // Changed to String (id)
+  String? _selectedRumahBaruId; // Changed to String (id)
   DateTime? _selectedTanggalMutasi;
+
+  bool _isLoading = false;
 
   // List data untuk dropdown
   final List<String> _jenisMutasiList = [
+    'Mutasi Masuk',
     'Keluar Perumahan',
     'Pindah Rumah',
   ];
 
-  final List<String> _keluargaList = [
-    'Keluarga Rusdi',
-    'Keluarga Habibie Ed Dien',
-    'Keluarga Budi Santoso',
-    'Keluarga Ahmad Dahlan',
-    'Keluarga Siti Nurhaliza',
-  ];
 
   @override
   void dispose() {
-    _rumahSekarangController.dispose();
-    _rumahBaruController.dispose();
     _alasanMutasiController.dispose();
+    _alamatTujuanController.dispose();
     super.dispose();
   }
 
-  void _submitData() {
-    if (_formKey.currentState!.validate()) {
-      // TODO: Implement data submission logic
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Text(
-            'Berhasil',
-            style: GoogleFonts.poppins(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          content: Text(
-            'Data mutasi keluarga berhasil ditambahkan.',
-            style: GoogleFonts.poppins(),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.pop(context);
-              },
-              child: Text(
-                'OK',
-                style: GoogleFonts.poppins(
-                  color: const Color(0xFF2988EA),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        ),
+  Future<void> _submitData() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    if (_selectedJenisMutasi == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pilih jenis mutasi terlebih dahulu')),
       );
+      return;
+    }
+
+    if (_selectedKeluargaNomorKK == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pilih keluarga terlebih dahulu')),
+      );
+      return;
+    }
+
+    if (_selectedTanggalMutasi == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Pilih tanggal mutasi terlebih dahulu')),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      // Fetch keluarga data by nomorKK
+      final keluarga = await _keluargaRepo.getKeluargaByNomorKK(_selectedKeluargaNomorKK!);
+      if (keluarga == null) {
+        throw Exception('Data keluarga tidak ditemukan');
+      }
+
+      // Fetch rumah data by ID if selected
+      RumahModel? rumahSekarang;
+      RumahModel? rumahBaru;
+
+      if (_selectedRumahSekarangId != null) {
+        rumahSekarang = await _rumahRepo.getRumahById(_selectedRumahSekarangId!);
+      }
+
+      if (_selectedRumahBaruId != null) {
+        rumahBaru = await _rumahRepo.getRumahById(_selectedRumahBaruId!);
+      }
+
+      // Tentukan alamat asal dan tujuan berdasarkan jenis mutasi
+      String alamatAsal;
+      String alamatTujuan;
+
+      if (_selectedJenisMutasi == 'Mutasi Masuk') {
+        // Mutasi Masuk: dari alamat tujuan input ke rumah yang dipilih
+        alamatAsal = _alamatTujuanController.text;
+        alamatTujuan = rumahSekarang != null
+            ? '${rumahSekarang.alamat}, RT ${rumahSekarang.rt} RW ${rumahSekarang.rw}'
+            : 'Alamat di perumahan';
+      } else if (_selectedJenisMutasi == 'Pindah Rumah') {
+        // Pindah Rumah: dari rumah sekarang ke rumah baru
+        alamatAsal = rumahSekarang != null
+            ? '${rumahSekarang.alamat}, RT ${rumahSekarang.rt} RW ${rumahSekarang.rw}'
+            : 'Rumah lama';
+        alamatTujuan = rumahBaru != null
+            ? '${rumahBaru.alamat}, RT ${rumahBaru.rt} RW ${rumahBaru.rw}'
+            : 'Rumah baru';
+      } else {
+        // Keluar Perumahan: dari rumah sekarang ke alamat tujuan input
+        alamatAsal = rumahSekarang != null
+            ? '${rumahSekarang.alamat}, RT ${rumahSekarang.rt} RW ${rumahSekarang.rw}'
+            : 'Rumah di perumahan';
+        alamatTujuan = _alamatTujuanController.text;
+      }
+
+      // Get kepala keluarga info
+      final kepalaKeluargaNama = keluarga.namaKepalaKeluarga;
+      final kepalaKeluargaNik = keluarga.nomorKK; // Use nomorKK as NIK placeholder
+
+      final mutasi = MutasiModel(
+        nama: kepalaKeluargaNama,
+        nik: kepalaKeluargaNik,
+        jenisMutasi: _selectedJenisMutasi!,
+        tanggalMutasi: _selectedTanggalMutasi!,
+        alamatAsal: alamatAsal,
+        alamatTujuan: alamatTujuan,
+        alasanMutasi: _alasanMutasiController.text,
+        keluargaId: keluarga.nomorKK, // Use nomorKK as keluargaId
+        rumahId: rumahSekarang?.id,
+        createdBy: 'admin', // TODO: Get from auth
+      );
+
+      final result = await _mutasiRepo.createMutasi(mutasi);
+
+      if (result != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Data mutasi berhasil ditambahkan'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context, true);
+      } else if (mounted) {
+        throw Exception('Gagal menyimpan data');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -117,45 +203,63 @@ class _TambahDataMutasiPageState extends State<TambahDataMutasiPage> {
                     // Jenis Mutasi
                     _buildDropdownField(
                       label: 'Jenis Mutasi',
-                      hint: 'Keluar Perumahan',
+                      hint: 'Pilih jenis mutasi',
                       value: _selectedJenisMutasi,
                       items: _jenisMutasiList,
                       onChanged: (value) {
                         setState(() {
                           _selectedJenisMutasi = value;
+                          // Reset related fields
+                          _selectedRumahSekarangId = null;
+                          _selectedRumahBaruId = null;
+                          _alamatTujuanController.clear();
                         });
                       },
                     ),
                     const SizedBox(height: 16),
 
-                    // Keluarga
-                    _buildDropdownField(
-                      label: 'Keluarga',
-                      hint: 'Keluarga Rusdi',
-                      value: _selectedKeluarga,
-                      items: _keluargaList,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedKeluarga = value;
-                        });
-                      },
-                    ),
+                    // Keluarga - StreamBuilder
+                    _buildKeluargaDropdown(),
                     const SizedBox(height: 16),
 
-                    // Rumah Sekarang
-                    _buildTextField(
-                      controller: _rumahSekarangController,
-                      label: 'Rumah Sekarang',
-                      hint: 'Rumah sekarang',
-                    ),
-                    const SizedBox(height: 16),
+                    // Rumah Sekarang (untuk semua jenis mutasi) - StreamBuilder
+                    if (_selectedJenisMutasi != null && _selectedJenisMutasi != 'Mutasi Masuk') ...[
+                      _buildRumahDropdown(
+                        label: 'Rumah Sekarang',
+                        hint: 'Pilih rumah sekarang',
+                        selectedRumahId: _selectedRumahSekarangId,
+                        onChanged: (rumahId) {
+                          setState(() {
+                            _selectedRumahSekarangId = rumahId;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                    ],
 
-                    // Tampilkan field Rumah Baru jika jenis mutasi adalah Pindah Rumah
+                    // Rumah Baru (khusus untuk Pindah Rumah) - StreamBuilder
                     if (_selectedJenisMutasi == 'Pindah Rumah') ...[
-                      _buildTextField(
-                        controller: _rumahBaruController,
+                      _buildRumahDropdown(
                         label: 'Rumah Baru',
-                        hint: 'Masukkan alamat rumah baru',
+                        hint: 'Pilih rumah tujuan',
+                        selectedRumahId: _selectedRumahBaruId,
+                        onChanged: (rumahId) {
+                          setState(() {
+                            _selectedRumahBaruId = rumahId;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
+                    // Alamat Tujuan (untuk Mutasi Masuk dan Keluar Perumahan)
+                    if (_selectedJenisMutasi == 'Mutasi Masuk' || _selectedJenisMutasi == 'Keluar Perumahan') ...[
+                      _buildTextField(
+                        controller: _alamatTujuanController,
+                        label: _selectedJenisMutasi == 'Mutasi Masuk' ? 'Alamat Asal' : 'Alamat Tujuan',
+                        hint: _selectedJenisMutasi == 'Mutasi Masuk'
+                            ? 'Masukkan alamat asal sebelum pindah'
+                            : 'Masukkan alamat tujuan',
                       ),
                       const SizedBox(height: 16),
                     ],
@@ -456,6 +560,201 @@ class _TambahDataMutasiPageState extends State<TambahDataMutasiPage> {
           },
         ),
       ],
+    );
+  }
+
+  // NEW: Keluarga Dropdown with StreamBuilder
+  Widget _buildKeluargaDropdown() {
+    return StreamBuilder<List<KeluargaModel>>(
+      stream: _keluargaRepo.getAllKeluarga(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Keluarga',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF1F1F1F),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8F9FC),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE8EAF2)),
+                ),
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+            ],
+          );
+        }
+
+        final keluargaList = snapshot.data ?? [];
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Keluarga',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF1F1F1F),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFE0E0E0), width: 1),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: _selectedKeluargaNomorKK,
+                  hint: Text(
+                    'Pilih keluarga',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: const Color(0xFF9E9E9E),
+                    ),
+                  ),
+                  icon: const Icon(
+                    Icons.keyboard_arrow_down,
+                    color: Color(0xFF757575),
+                    size: 24,
+                  ),
+                  isExpanded: true,
+                  dropdownColor: Colors.white,
+                  menuMaxHeight: 300,
+                  items: keluargaList.map((KeluargaModel keluarga) {
+                    return DropdownMenuItem<String>(
+                      value: keluarga.nomorKK,
+                      child: Text(
+                        keluarga.namaKepalaKeluarga,
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          color: const Color(0xFF1F1F1F),
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (String? value) {
+                    setState(() {
+                      _selectedKeluargaNomorKK = value;
+                    });
+                  },
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // NEW: Rumah Dropdown with StreamBuilder
+  Widget _buildRumahDropdown({
+    required String label,
+    required String hint,
+    required String? selectedRumahId,
+    required Function(String?) onChanged,
+  }) {
+    return StreamBuilder<List<RumahModel>>(
+      stream: _rumahRepo.getAllRumah(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF1F1F1F),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8F9FC),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE8EAF2)),
+                ),
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+            ],
+          );
+        }
+
+        final rumahList = snapshot.data ?? [];
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF1F1F1F),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFE0E0E0), width: 1),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: selectedRumahId,
+                  hint: Text(
+                    hint,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: const Color(0xFF9E9E9E),
+                    ),
+                  ),
+                  icon: const Icon(
+                    Icons.keyboard_arrow_down,
+                    color: Color(0xFF757575),
+                    size: 24,
+                  ),
+                  isExpanded: true,
+                  dropdownColor: Colors.white,
+                  menuMaxHeight: 300,
+                  items: rumahList.map((RumahModel rumah) {
+                    return DropdownMenuItem<String>(
+                      value: rumah.id,
+                      child: Text(
+                        '${rumah.alamat} - RT ${rumah.rt} RW ${rumah.rw}',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          color: const Color(0xFF1F1F1F),
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: onChanged,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

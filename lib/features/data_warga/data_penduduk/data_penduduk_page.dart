@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../core/widgets/app_bottom_navigation.dart';
 import 'tambah_data_warga_page.dart';
 import 'tambah_data_rumah_page.dart';
+import 'debug_keluarga_page.dart';
 import 'widgets/custom_data_penduduk_tab_bar.dart';
 import 'widgets/custom_gradient_fab.dart';
 import 'widgets/data_warga_list.dart';
@@ -82,6 +83,22 @@ class _DataWargaPageState extends State<DataWargaPage>
           fontWeight: FontWeight.w700,
         ),
       ),
+      actions: [
+        // Debug button - only show on Keluarga tab
+        if (_tabController.index == 1)
+          IconButton(
+            icon: const Icon(Icons.bug_report, color: Color(0xFF2F80ED)),
+            tooltip: 'Debug Keluarga Data',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DebugKeluargaPage(),
+                ),
+              );
+            },
+          ),
+      ],
     );
   }
 

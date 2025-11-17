@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 
+import 'models/mutasi_model.dart';
 import 'edit_data_mutasi_page.dart';
 
+/// Detail Data Mutasi Page
 class DetailDataMutasiPage extends StatelessWidget {
-  final Map<String, dynamic>? mutasiData;
-  
-  const DetailDataMutasiPage({super.key, this.mutasiData});
+  final MutasiModel mutasiData;
+
+  const DetailDataMutasiPage({super.key, required this.mutasiData});
 
   @override
   Widget build(BuildContext context) {
+    final dateFormat = DateFormat('dd/MM/yyyy', 'id_ID');
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -33,7 +38,7 @@ class DetailDataMutasiPage extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const EditDataMutasiPage(),
+                  builder: (context) => EditDataMutasiPage(mutasiData: mutasiData),
                 ),
               );
             },
@@ -45,13 +50,13 @@ class DetailDataMutasiPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildDetailField("Nama Lengkap", mutasiData?['nama'] ?? "Rendha Putra Rahmadya"),
-            _buildDetailField("NIK", mutasiData?['nik'] ?? "3505111512040002"),
-            _buildDetailField("Jenis Mutasi", mutasiData?['jenis'] ?? "Mutasi Masuk"),
-            _buildDetailField("Tanggal Mutasi", mutasiData?['tanggal'] ?? "21/10/2023"),
-            _buildDetailField("Alamat Asal", mutasiData?['alamatAsal'] ?? "Jakarta"),
-            _buildDetailField("Alamat Tujuan", mutasiData?['alamatTujuan'] ?? "Surabaya"),
-            _buildDetailField("Alasan Mutasi", mutasiData?['alasan'] ?? "Pindah Kerja"),
+            _buildDetailField("Nama Lengkap", mutasiData.nama),
+            _buildDetailField("NIK", mutasiData.nik),
+            _buildDetailField("Jenis Mutasi", mutasiData.jenisMutasi),
+            _buildDetailField("Tanggal Mutasi", dateFormat.format(mutasiData.tanggalMutasi)),
+            _buildDetailField("Alamat Asal", mutasiData.alamatAsal),
+            _buildDetailField("Alamat Tujuan", mutasiData.alamatTujuan),
+            _buildDetailField("Alasan Mutasi", mutasiData.alasanMutasi),
           ],
         ),
       ),

@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:crypto/crypto.dart';
+import 'dart:convert';
 
 // ============================================================================
 // ADMIN SETUP SERVICE
@@ -73,6 +75,13 @@ class AdminSetupService {
   AdminSetupService({FirebaseFirestore? firestore})
       : _firestore = firestore ?? FirebaseFirestore.instance;
 
+  /// Hash password menggunakan SHA-256
+  String _hashPassword(String password) {
+    final bytes = utf8.encode(password);
+    final hash = sha256.convert(bytes);
+    return hash.toString();
+  }
+
   /// Cek apakah user dengan email tertentu sudah ada
   Future<bool> _isUserExists(String email) async {
     try {
@@ -92,9 +101,16 @@ class AdminSetupService {
   /// Buat admin user baru
   Future<bool> _createAdmin(AdminUserData adminData) async {
     try {
+      // Hash password sebelum disimpan
+      final hashedPassword = _hashPassword(adminData.password);
+
+      // Create admin data dengan password yang sudah di-hash
+      final adminDataMap = adminData.toFirestoreMap();
+      adminDataMap['password'] = hashedPassword;
+
       await _firestore
           .collection(AdminConstants.usersCollection)
-          .add(adminData.toFirestoreMap());
+          .add(adminDataMap);
 
       return true;
     } catch (e) {

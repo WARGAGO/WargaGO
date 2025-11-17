@@ -44,7 +44,7 @@ class KeuanganSummaryCard extends StatelessWidget {
           color: backgroundColor,
           borderRadius: BorderRadius.circular(KeuanganRadius.lg),
           border: Border.all(
-            color: color.withValues(alpha: 0.2),
+            color: color.withOpacity(0.2),
             width: 1,
           ),
         ),

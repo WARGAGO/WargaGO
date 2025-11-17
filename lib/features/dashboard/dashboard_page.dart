@@ -132,38 +132,46 @@ class _DashboardHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        _buildAvatar(),
-        const SizedBox(width: 16),
-        _buildWelcomeText(),
-        _buildSearchIcon(context),
-        const SizedBox(width: 12),
-        _buildNotificationIcon(context),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Responsive sizing based on available width
+        final isNarrow = constraints.maxWidth < 360;
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _buildAvatar(isNarrow: isNarrow),
+            SizedBox(width: isNarrow ? 8 : 12),
+            _buildWelcomeText(isNarrow: isNarrow),
+            SizedBox(width: isNarrow ? 6 : 8),
+            _buildSearchIcon(context, isNarrow: isNarrow),
+            SizedBox(width: isNarrow ? 6 : 8),
+            _buildNotificationIcon(context, isNarrow: isNarrow),
+          ],
+        );
+      },
     );
   }
 
   /// Build avatar dengan border dan shadow
-  Widget _buildAvatar() {
+  Widget _buildAvatar({bool isNarrow = false}) {
     return Container(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
           color: Colors.white.withValues(alpha: 0.3),
-          width: 3,
+          width: isNarrow ? 2 : 2.5,
         ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+            blurRadius: isNarrow ? 4 : 6,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: CircleAvatar(
-        radius: 30,
+        radius: isNarrow ? 22 : 26,
         backgroundImage: const AssetImage('assets/illustrations/LOGIN.png'),
         backgroundColor: Colors.grey.shade200,
       ),
@@ -171,7 +179,7 @@ class _DashboardHeader extends StatelessWidget {
   }
 
   /// Build welcome text dengan nama admin
-  Widget _buildWelcomeText() {
+  Widget _buildWelcomeText({bool isNarrow = false}) {
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -197,16 +205,17 @@ class _DashboardHeader extends StatelessWidget {
   }
 
   /// Build search icon button
-  Widget _buildSearchIcon(BuildContext context) {
+  Widget _buildSearchIcon(BuildContext context, {bool isNarrow = false}) {
     return _HeaderIcon(
       icon: Icons.search,
       backgroundColor: Colors.white.withValues(alpha: 0.2),
       iconColor: Colors.white,
+      isNarrow: isNarrow,
     );
   }
 
   /// Build notification icon button dengan badge
-  Widget _buildNotificationIcon(BuildContext context) {
+  Widget _buildNotificationIcon(BuildContext context, {bool isNarrow = false}) {
     return GestureDetector(
       onTap: () => _showNotificationPopup(context),
       child: Stack(
@@ -216,6 +225,7 @@ class _DashboardHeader extends StatelessWidget {
             icon: Icons.notifications_outlined,
             backgroundColor: Colors.white.withValues(alpha: 0.2),
             iconColor: Colors.white,
+            isNarrow: isNarrow,
           ),
           const Positioned(
             right: 2,
@@ -261,30 +271,35 @@ class _HeaderIcon extends StatelessWidget {
     required this.icon,
     this.backgroundColor,
     this.iconColor,
+    this.isNarrow = false,
   });
 
   final IconData icon;
   final Color? backgroundColor;
   final Color? iconColor;
+  final bool isNarrow;
 
   @override
   Widget build(BuildContext context) {
+    final size = isNarrow ? 40.0 : 44.0;
+    final iconSize = isNarrow ? 18.0 : 20.0;
+
     return Container(
-      height: 48,
-      width: 48,
+      height: size,
+      width: size,
       decoration: BoxDecoration(
         color: backgroundColor ?? Colors.white,
         borderRadius: DashboardStyles.smallCardRadius,
         border: Border.all(
           color: _getBorderColor(),
-          width: 1.5,
+          width: isNarrow ? 1.0 : 1.5,
         ),
         boxShadow: DashboardStyles.iconShadow(_getShadowColor()),
       ),
       child: Icon(
         icon,
         color: iconColor ?? DashboardColors.primaryBlue,
-        size: 22,
+        size: iconSize,
       ),
     );
   }
@@ -352,7 +367,7 @@ class _FinanceOverview extends StatelessWidget {
                 backgroundColor: DashboardColors.incomeBackground,
               ),
             ),
-            SizedBox(width: 16),
+            SizedBox(width: 12),
             Expanded(
               child: _FinanceCard(
                 title: 'Kas Keluar',
@@ -363,7 +378,7 @@ class _FinanceOverview extends StatelessWidget {
             ),
           ],
         ),
-        SizedBox(height: 16),
+        SizedBox(height: 12),
         // Card Total Transaksi (full width)
         _FinanceWideCard(
           title: 'Total Transaksi',
@@ -398,7 +413,7 @@ class _FinanceCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.all(18),
       decoration: _buildDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -639,32 +654,32 @@ class _FinanceWideCard extends StatelessWidget {
   /// Build value badge dengan gradient
   Widget _buildValueBadge() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: DashboardColors.primaryGradient,
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: DashboardColors.primaryBlue.withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: AutoSizeText(
         value,
         style: GoogleFonts.poppins(
-          fontSize: 22,
+          fontSize: 20,
           fontWeight: FontWeight.w700,
           color: Colors.white,
           letterSpacing: -0.5,
         ),
         maxLines: 1,
-        minFontSize: 16,
+        minFontSize: 14,
         overflow: TextOverflow.ellipsis,
       ),
     );
@@ -1312,174 +1327,195 @@ class _MonthlyActivityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFE8EAF2), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF2F80ED).withValues(alpha: 0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFFA755), Color(0xFFFF8C42)],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.bar_chart_rounded,
-                  color: Colors.white,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Kegiatan per Bulan (Tahun Ini)',
-                style: GoogleFonts.poppins(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF1F1F1F),
-                  letterSpacing: -0.3,
-                ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 360;
+
+        return Container(
+          padding: EdgeInsets.all(isNarrow ? 18 : 24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: const Color(0xFFE8EAF2), width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF2F80ED).withValues(alpha: 0.08),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            'Rekapan kegiatan per bulan untuk di tahun ini dengan data yang real',
-            style: GoogleFonts.poppins(
-              fontSize: 13,
-              color: const Color(0xFF9CA3AF),
-              height: 1.5,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 32),
-          // Y-axis labels and chart
-          SizedBox(
-            height: 220,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Y-axis labels
-                SizedBox(
-                  height: 200,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      _YAxisLabel('100'),
-                      _YAxisLabel('80'),
-                      _YAxisLabel('60'),
-                      _YAxisLabel('40'),
-                      _YAxisLabel('20'),
-                      _YAxisLabel('0'),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                // Chart bars
-                Expanded(
-                  child: SizedBox(
-                    height: 200,
-                    child: Stack(
-                      children: [
-                        // Grid lines
-                        Positioned.fill(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: List.generate(
-                              6,
-                              (index) => Container(
-                                height: 1,
-                                color: const Color(0xFFF3F4F6),
-                              ),
-                            ),
-                          ),
-                        ),
-                        // Bars
-                        Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              _ChartBar(height: 0, maxHeight: 200),
-                              const SizedBox(width: 12),
-                              _ChartBar(height: 0, maxHeight: 200),
-                              const SizedBox(width: 12),
-                              _ChartBar(height: 100, maxHeight: 200),
-                              const SizedBox(width: 12),
-                              _ChartBar(height: 0, maxHeight: 200),
-                              const SizedBox(width: 12),
-                              _ChartBar(height: 0, maxHeight: 200),
-                            ],
-                          ),
-                        ),
-                      ],
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(isNarrow ? 8 : 10),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFFFA755), Color(0xFFFF8C42)],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.bar_chart_rounded,
+                      color: Colors.white,
+                      size: isNarrow ? 18 : 20,
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                '12.07 - 25.07',
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  color: const Color(0xFF9CA3AF),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 14,
-                height: 14,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFFA755), Color(0xFFFF8C42)],
+                  SizedBox(width: isNarrow ? 8 : 12),
+                  Flexible(
+                    child: Text(
+                      'Kegiatan per Bulan (Tahun Ini)',
+                      style: GoogleFonts.poppins(
+                        fontSize: isNarrow ? 14 : 17,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFF1F1F1F),
+                        letterSpacing: -0.3,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  borderRadius: BorderRadius.circular(4),
+                ],
+              ),
+              SizedBox(height: isNarrow ? 8 : 12),
+              Text(
+                'Rekapan kegiatan per bulan untuk di tahun ini dengan data yang real',
+                style: GoogleFonts.poppins(
+                  fontSize: isNarrow ? 11 : 13,
+                  color: const Color(0xFF9CA3AF),
+                  height: 1.5,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              SizedBox(height: isNarrow ? 20 : 32),  // Responsive spacing
+              // Y-axis labels and chart
+              SizedBox(
+                height: isNarrow ? 180 : 220,  // Responsive height
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Y-axis labels
+                    SizedBox(
+                      height: isNarrow ? 160 : 200,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          _YAxisLabel('100'),
+                          _YAxisLabel('80'),
+                          _YAxisLabel('60'),
+                          _YAxisLabel('40'),
+                          _YAxisLabel('20'),
+                          _YAxisLabel('0'),
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: isNarrow ? 8 : 12),  // Responsive spacing
+                    // Chart bars with Flexible to prevent overflow
+                    Expanded(
+                      child: SizedBox(
+                        height: isNarrow ? 160 : 200,
+                        child: Stack(
+                          children: [
+                            // Grid lines
+                            Positioned.fill(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: List.generate(
+                                  6,
+                                  (index) => Container(
+                                    height: 1,
+                                    color: const Color(0xFFF3F4F6),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // Bars with FittedBox to scale down if needed
+                            Align(
+                              alignment: Alignment.bottomCenter,
+                              child: FittedBox(  // ⭐ Scale down jika perlu
+                                fit: BoxFit.scaleDown,
+                                alignment: Alignment.bottomCenter,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,  // ⭐ KEY: min size to fit content
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    _ChartBar(height: 0, maxHeight: isNarrow ? 160 : 200, isNarrow: isNarrow),
+                                    SizedBox(width: isNarrow ? 6 : 8),  // Reduced spacing
+                                    _ChartBar(height: 0, maxHeight: isNarrow ? 160 : 200, isNarrow: isNarrow),
+                                    SizedBox(width: isNarrow ? 6 : 8),
+                                    _ChartBar(height: isNarrow ? 80 : 100, maxHeight: isNarrow ? 160 : 200, isNarrow: isNarrow),
+                                    SizedBox(width: isNarrow ? 6 : 8),
+                                    _ChartBar(height: 0, maxHeight: isNarrow ? 160 : 200, isNarrow: isNarrow),
+                                    SizedBox(width: isNarrow ? 6 : 8),
+                                    _ChartBar(height: 0, maxHeight: isNarrow ? 160 : 200, isNarrow: isNarrow),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(width: 10),
-              Text(
-                'Kegiatan',
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  color: const Color(0xFF6B7280),
-                  fontWeight: FontWeight.w600,
-                ),
+              SizedBox(height: isNarrow ? 12 : 16),  // Responsive spacing
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Flexible(  // ⭐ Wrap text dengan Flexible
+                    child: Text(
+                      '12.07 - 25.07',
+                      style: GoogleFonts.poppins(
+                        fontSize: isNarrow ? 11 : 13,
+                        color: const Color(0xFF9CA3AF),
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: isNarrow ? 10 : 14),  // Responsive spacing
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: isNarrow ? 12 : 14,
+                    height: isNarrow ? 12 : 14,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFFFA755), Color(0xFFFF8C42)],
+                      ),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  SizedBox(width: isNarrow ? 6 : 10),
+                  Text(
+                    'Kegiatan',
+                    style: GoogleFonts.poppins(
+                      fontSize: isNarrow ? 11 : 13,
+                      color: const Color(0xFF6B7280),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
-      ),
-    );
+        );  // Close Container
+      },  // Close builder function
+    );  // Close LayoutBuilder
   }
-}
+}  // Close _MonthlyActivityCard
 
 class _YAxisLabel extends StatelessWidget {
   const _YAxisLabel(this.label);
@@ -1500,15 +1536,20 @@ class _YAxisLabel extends StatelessWidget {
 }
 
 class _ChartBar extends StatelessWidget {
-  const _ChartBar({required this.height, required this.maxHeight});
+  const _ChartBar({
+    required this.height,
+    required this.maxHeight,
+    this.isNarrow = false,
+  });
 
   final double height;
   final double maxHeight;
+  final bool isNarrow;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 48,
+      width: isNarrow ? 40 : 48,  // ⭐ Responsive width
       height: height > 0 ? height : 0,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
@@ -1576,143 +1617,157 @@ class _LogAktivitasCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: const Color(0xFFE8EAF2),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF2F80ED).withValues(alpha: 0.08),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 360;
+
+        return Container(
+          padding: EdgeInsets.all(isNarrow ? 18 : 24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: const Color(0xFFE8EAF2),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF2F80ED).withValues(alpha: 0.08),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xFF7C6FFF),
-                      Color(0xFF9D8FFF),
+              // Header
+              Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(isNarrow ? 10 : 12),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0xFF7C6FFF),
+                          Color(0xFF9D8FFF),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF7C6FFF).withValues(alpha: 0.25),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.history_rounded,
+                      color: Colors.white,
+                      size: isNarrow ? 20 : 22,
+                    ),
+                  ),
+                  SizedBox(width: isNarrow ? 10 : 14),
+                  Flexible(
+                    child: Text(
+                      'Log Aktivitas Terbaru',
+                      style: GoogleFonts.poppins(
+                        fontSize: isNarrow ? 15 : 18,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF1F1F1F),
+                        letterSpacing: -0.3,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: isNarrow ? 16 : 20),
+
+              // Activities List
+              ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _recentActivities.length,
+                separatorBuilder: (context, index) => SizedBox(height: isNarrow ? 8 : 10),
+                itemBuilder: (context, index) {
+                  final activity = _recentActivities[index];
+                  return _ActivityItem(
+                    deskripsi: activity['deskripsi'],
+                    aktor: activity['aktor'],
+                    waktu: activity['waktu'],
+                    icon: activity['icon'],
+                    color: activity['color'],
+                  );
+                },
+              ),
+
+              SizedBox(height: isNarrow ? 12 : 16),
+
+              // Lihat Semua Button
+              InkWell(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const LogAktivitasPage(),
+                    ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: EdgeInsets.symmetric(vertical: isNarrow ? 12 : 14),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        const Color(0xFF7C6FFF).withValues(alpha: 0.1),
+                        const Color(0xFF9D8FFF).withValues(alpha: 0.05),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: const Color(0xFF7C6FFF).withValues(alpha: 0.3),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Flexible(  // ⭐ Wrap dengan Flexible
+                        child: Text(
+                          'Lihat Semua Log Aktivitas',
+                          style: GoogleFonts.poppins(
+                            fontSize: isNarrow ? 12 : 14,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF7C6FFF),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      SizedBox(width: isNarrow ? 6 : 8),
+                      Icon(
+                        Icons.arrow_forward_rounded,
+                        color: const Color(0xFF7C6FFF),
+                        size: isNarrow ? 16 : 18,
+                      ),
                     ],
                   ),
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF7C6FFF).withValues(alpha: 0.25),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.history_rounded,
-                  color: Colors.white,
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Text(
-                'Log Aktivitas Terbaru',
-                style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF1F1F1F),
-                  letterSpacing: -0.3,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 20),
-
-          // Activities List
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _recentActivities.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 10),
-            itemBuilder: (context, index) {
-              final activity = _recentActivities[index];
-              return _ActivityItem(
-                deskripsi: activity['deskripsi'],
-                aktor: activity['aktor'],
-                waktu: activity['waktu'],
-                icon: activity['icon'],
-                color: activity['color'],
-              );
-            },
-          ),
-
-          const SizedBox(height: 16),
-
-          // Lihat Semua Button
-          InkWell(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const LogAktivitasPage(),
-                ),
-              );
-            },
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    const Color(0xFF7C6FFF).withValues(alpha: 0.1),
-                    const Color(0xFF9D8FFF).withValues(alpha: 0.05),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(0xFF7C6FFF).withValues(alpha: 0.3),
-                  width: 1.5,
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Lihat Semua Log Aktivitas',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF7C6FFF),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  const Icon(
-                    Icons.arrow_forward_rounded,
-                    color: Color(0xFF7C6FFF),
-                    size: 18,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+        );  // Close Container
+      },  // Close builder function
+    );  // Close LayoutBuilder
   }
-}
+}  // Close _LogAktivitasCard
 
 class _ActivityItem extends StatelessWidget {
   const _ActivityItem({
@@ -1782,16 +1837,20 @@ class _ActivityItem extends StatelessWidget {
                       size: 12,
                       color: const Color(0xFF9CA3AF),
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      aktor,
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFF9CA3AF),
+                    const SizedBox(width: 3),
+                    Flexible(
+                      child: Text(
+                        aktor,
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFF9CA3AF),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     Text(
                       '•',
                       style: GoogleFonts.poppins(
@@ -1799,13 +1858,17 @@ class _ActivityItem extends StatelessWidget {
                         color: const Color(0xFF9CA3AF),
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      waktu,
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFF9CA3AF),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        waktu,
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          color: const Color(0xFF9CA3AF),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],

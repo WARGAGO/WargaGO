@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 
+// Data Mutasi imports
 import 'detail_data_mutasi_page.dart';
 import 'tambah_data_mutasi_page.dart';
+import 'models/mutasi_model.dart';
+import 'repositories/mutasi_repository.dart';
 
 class DataMutasiWargaPage extends StatefulWidget {
   const DataMutasiWargaPage({super.key});
@@ -12,8 +16,9 @@ class DataMutasiWargaPage extends StatefulWidget {
 }
 
 class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
+  final MutasiRepository _repository = MutasiRepository();
   String _selectedFilter = 'Semua';
-  final List<String> _filterOptions = ['Semua', 'Masuk', 'Keluar'];
+  final List<String> _filterOptions = ['Semua', 'Mutasi Masuk', 'Mutasi Keluar'];
 
   @override
   Widget build(BuildContext context) {
@@ -194,78 +199,118 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
   }
 
   Widget _buildMutasiList() {
-    // Data dummy untuk contoh
-    final List<Map<String, dynamic>> mutasiData = [
-      {
-        'nama': 'Budi Santoso',
-        'nik': '3201010101010001',
-        'jenis': 'Masuk',
-        'tanggal': '15 Jan 2025',
-        'alamatAsal': 'Jakarta Selatan',
-        'alamatTujuan': 'Komplek RW 05',
-        'alasan': 'Pindah kerja',
-      },
-      {
-        'nama': 'Siti Aminah',
-        'nik': '3201010101010002',
-        'jenis': 'Keluar',
-        'tanggal': '10 Jan 2025',
-        'alamatAsal': 'Komplek RW 03',
-        'alamatTujuan': 'Bandung',
-        'alasan': 'Ikut suami',
-      },
-      {
-        'nama': 'Ahmad Wijaya',
-        'nik': '3201010101010003',
-        'jenis': 'Masuk',
-        'tanggal': '08 Jan 2025',
-        'alamatAsal': 'Bogor',
-        'alamatTujuan': 'Komplek RW 02',
-        'alasan': 'Dekat tempat kerja',
-      },
-    ];
+    return StreamBuilder<List<MutasiModel>>(
+      stream: _repository.getAllMutasi(),
+      builder: (context, snapshot) {
+        // Loading state
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
 
-    // Filter data berdasarkan pilihan
-    final filteredData = _selectedFilter == 'Semua'
-        ? mutasiData
-        : mutasiData.where((item) => item['jenis'] == _selectedFilter).toList();
-
-    if (filteredData.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.inbox_outlined,
-              size: 80,
-              color: Colors.grey[300],
+        // Error state
+        if (snapshot.hasError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 80,
+                  color: Colors.red[300],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Terjadi kesalahan',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.red[400],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '${snapshot.error}',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            Text(
-              'Tidak ada data mutasi',
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[400],
-              ),
-            ),
-          ],
-        ),
-      );
-    }
+          );
+        }
 
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-      itemCount: filteredData.length,
-      itemBuilder: (context, index) {
-        final mutasi = filteredData[index];
-        return _buildMutasiCard(mutasi);
+        // No data
+        final allMutasi = snapshot.data ?? [];
+
+        // Filter data berdasarkan pilihan
+        List<MutasiModel> filteredData;
+        if (_selectedFilter == 'Semua') {
+          filteredData = allMutasi;
+        } else if (_selectedFilter == 'Mutasi Masuk') {
+          filteredData = allMutasi.where((item) => item.jenisMutasi == 'Mutasi Masuk').toList();
+        } else if (_selectedFilter == 'Mutasi Keluar') {
+          // Mutasi Keluar mencakup "Keluar Perumahan" dan "Pindah Rumah"
+          filteredData = allMutasi.where((item) =>
+            item.jenisMutasi == 'Keluar Perumahan' ||
+            item.jenisMutasi == 'Pindah Rumah'
+          ).toList();
+        } else {
+          filteredData = allMutasi;
+        }
+
+        if (filteredData.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.inbox_outlined,
+                  size: 80,
+                  color: Colors.grey[300],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Tidak ada data mutasi',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[400],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  _selectedFilter == 'Semua'
+                      ? 'Belum ada data mutasi'
+                      : 'Tidak ada data $_selectedFilter',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Colors.grey[500],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+          itemCount: filteredData.length,
+          itemBuilder: (context, index) {
+            final mutasi = filteredData[index];
+            return _buildMutasiCard(mutasi);
+          },
+        );
       },
     );
   }
 
-  Widget _buildMutasiCard(Map<String, dynamic> mutasi) {
-    final isMasuk = mutasi['jenis'] == 'Masuk';
+  Widget _buildMutasiCard(MutasiModel mutasi) {
+    final isMasuk = mutasi.jenisMutasi == 'Mutasi Masuk';
+    final dateFormat = DateFormat('dd MMM yyyy', 'id_ID');
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -318,7 +363,7 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            mutasi['jenis'],
+                            isMasuk ? 'Mutasi Masuk' : 'Mutasi Keluar',
                             style: GoogleFonts.poppins(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -339,7 +384,7 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          mutasi['tanggal'],
+                          dateFormat.format(mutasi.tanggalMutasi),
                           style: GoogleFonts.poppins(
                             fontSize: 12,
                             color: Colors.grey[600],
@@ -353,7 +398,7 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
                 const SizedBox(height: 12),
                 // Nama
                 Text(
-                  mutasi['nama'],
+                  mutasi.nama,
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
@@ -371,7 +416,7 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      mutasi['nik'],
+                      mutasi.nik,
                       style: GoogleFonts.poppins(
                         fontSize: 13,
                         color: Colors.grey[600],
@@ -393,7 +438,7 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
                       _buildAlamatRow(
                         icon: Icons.location_on_outlined,
                         label: 'Dari',
-                        value: mutasi['alamatAsal'],
+                        value: mutasi.alamatAsal,
                       ),
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -426,7 +471,7 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
                       _buildAlamatRow(
                         icon: Icons.location_on,
                         label: 'Ke',
-                        value: mutasi['alamatTujuan'],
+                        value: mutasi.alamatTujuan,
                       ),
                     ],
                   ),
@@ -443,7 +488,7 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        'Alasan: ${mutasi['alasan']}',
+                        'Alasan: ${mutasi.alasanMutasi}',
                         style: GoogleFonts.poppins(
                           fontSize: 12,
                           color: Colors.grey[600],

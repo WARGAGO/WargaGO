@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import '../../core/widgets/app_bottom_navigation.dart';
+import '../../core/providers/warga_provider.dart';
+import '../../core/providers/keluarga_provider.dart';
+import '../../core/providers/rumah_provider.dart';
 import 'data_penduduk/data_penduduk_page.dart';
 import 'data_mutasi/data_mutasi_warga_page.dart';
+import 'data_mutasi/repositories/mutasi_repository.dart';
+import 'terima_warga/repositories/pending_warga_repository.dart';
 import 'kelola_pengguna/kelola_pengguna_page.dart';
 import 'terima_warga/terima_warga_page.dart';
 
@@ -25,6 +31,9 @@ class _DataWargaMainPageState extends State<DataWargaMainPage>
   late AnimationController _pulseController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+
+  final MutasiRepository _mutasiRepo = MutasiRepository();
+  final PendingWargaRepository _pendingRepo = PendingWargaRepository();
 
   @override
   void initState() {
@@ -65,6 +74,13 @@ class _DataWargaMainPageState extends State<DataWargaMainPage>
     );
 
     _animationController.forward();
+
+    // Load data from Firebase
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<WargaProvider>().loadWarga();
+      context.read<KeluargaProvider>().fetchKeluarga();
+      context.read<RumahProvider>().loadRumah();
+    });
   }
 
   @override
@@ -76,154 +92,202 @@ class _DataWargaMainPageState extends State<DataWargaMainPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFF5F7FA),
-              Color(0xFFFFFFFF),
-            ],
-          ),
-        ),
-        child: Column(
-          children: [
-            // HEADER
-            _buildModernHeader(),
+    return Consumer3<WargaProvider, KeluargaProvider, RumahProvider>(
+      builder: (context, wargaProvider, keluargaProvider, rumahProvider, child) {
+        // Calculate statistics
+        final totalWarga = wargaProvider.totalWarga;
+        final totalKeluarga = keluargaProvider.totalKeluarga;
+        final totalRumah = rumahProvider.totalRumah;
+        final totalLakiLaki = wargaProvider.allWargaList
+            .where((w) => w.jenisKelamin.toLowerCase() == 'laki-laki')
+            .length;
+        final totalPerempuan = wargaProvider.allWargaList
+            .where((w) => w.jenisKelamin.toLowerCase() == 'perempuan')
+            .length;
 
-            // CONTENT
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: SlideTransition(
-                    position: _slideAnimation,
-                    child: Column(
-                      children: [
-                        // Row 1: Data Penduduk & Data Mutasi
-                        Row(
+        // Debug logging
+        print('=== DATA WARGA MAIN PAGE DEBUG ===');
+        print('Total Warga: $totalWarga');
+        print('Total Keluarga: $totalKeluarga');
+        print('Total Rumah: $totalRumah');
+        print('Total Laki-laki: $totalLakiLaki');
+        print('Total Perempuan: $totalPerempuan');
+        print('Is Loading: ${wargaProvider.isLoading}');
+        print('================================');
+
+        return Scaffold(
+          body: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFFF5F7FA),
+                  Color(0xFFFFFFFF),
+                ],
+              ),
+            ),
+            child: Column(
+              children: [
+                // HEADER
+                _buildModernHeader(),
+
+                // CONTENT
+                Expanded(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+                    child: FadeTransition(
+                      opacity: _fadeAnimation,
+                      child: SlideTransition(
+                        position: _slideAnimation,
+                        child: Column(
                           children: [
-                            Expanded(
-                              child: _buildHorizontalCard(
-                                context,
-                                title: 'Data Penduduk',
-                                subtitle: 'Kelola data warga',
-                                icon: Icons.groups_3_rounded,
-                                gradientColors: const [
-                                  Color(0xFF2F80ED),
-                                  Color(0xFF1E6FD9),
-                                ],
-                                total: '1,234',
-                                label: 'Total Warga',
-                                trend: '+12%',
-                                trendUp: true,
-                                delay: 0,
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const DataWargaPage(),
+                            // Row 1: Data Penduduk & Data Mutasi
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildHorizontalCard(
+                                    context,
+                                    title: 'Data Penduduk',
+                                    subtitle: 'Kelola data warga',
+                                    icon: Icons.groups_3_rounded,
+                                    gradientColors: const [
+                                      Color(0xFF2F80ED),
+                                      Color(0xFF1E6FD9),
+                                    ],
+                                    total: wargaProvider.isLoading ? '...' : totalWarga.toString(),
+                                    label: 'Total Warga',
+                                    trend: wargaProvider.isLoading ? '...' : 'Aktif: ${wargaProvider.totalAktif}',
+                                    trendUp: true,
+                                    delay: 0,
+                                    onTap: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const DataWargaPage(),
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
+                                const SizedBox(width: 16),
+                                // Data Mutasi Card with StreamBuilder
+                                Expanded(
+                                  child: StreamBuilder<List<dynamic>>(
+                                    stream: _mutasiRepo.getAllMutasi(),
+                                    builder: (context, snapshot) {
+                                      final totalMutasi = snapshot.hasData ? snapshot.data!.length : 0;
+                                      final totalStr = totalMutasi.toString();
+
+                                      return _buildHorizontalCard(
+                                        context,
+                                        title: 'Data Mutasi',
+                                        subtitle: 'Riwayat perpindahan',
+                                        icon: Icons.swap_horizontal_circle_rounded,
+                                        gradientColors: const [
+                                          Color(0xFF3B8FFF),
+                                          Color(0xFF2F80ED),
+                                        ],
+                                        total: totalStr,
+                                        label: 'Total Mutasi',
+                                        trend: totalMutasi > 0 ? '+${totalMutasi}' : '-',
+                                        trendUp: true,
+                                        delay: 100,
+                                        onTap: () => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => const DataMutasiWargaPage(),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildHorizontalCard(
-                                context,
-                                title: 'Data Mutasi',
-                                subtitle: 'Riwayat perpindahan',
-                                icon: Icons.swap_horizontal_circle_rounded,
-                                gradientColors: const [
-                                  Color(0xFF3B8FFF),
-                                  Color(0xFF2F80ED),
-                                ],
-                                total: '89',
-                                label: 'Total Mutasi',
-                                trend: '+5',
-                                trendUp: true,
-                                delay: 100,
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const DataMutasiWargaPage(),
+                            const SizedBox(height: 16),
+
+                            // Row 2: Kelola Pengguna & Terima Warga
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildHorizontalCard(
+                                    context,
+                                    title: 'Kelola Pengguna',
+                                    subtitle: 'Manajemen akun user',
+                                    icon: Icons.admin_panel_settings_rounded,
+                                    gradientColors: const [
+                                      Color(0xFF1E6FD9),
+                                      Color(0xFF0F5FCC),
+                                    ],
+                                    total: totalWarga.toString(), // Same as warga for now
+                                    label: 'Total User',
+                                    trend: '-',
+                                    trendUp: true,
+                                    delay: 200,
+                                    onTap: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const KelolaPenggunaPage(),
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
+                                const SizedBox(width: 16),
+                                // Terima Warga Card with StreamBuilder
+                                Expanded(
+                                  child: StreamBuilder<List<dynamic>>(
+                                    stream: _pendingRepo.getAllPendingWarga(),
+                                    builder: (context, snapshot) {
+                                      final totalPending = snapshot.hasData ? snapshot.data!.length : 0;
+                                      final totalStr = totalPending.toString();
+
+                                      return _buildHorizontalCard(
+                                        context,
+                                        title: 'Terima Warga',
+                                        subtitle: 'Persetujuan pendaftar',
+                                        icon: Icons.person_add_alt_1_rounded,
+                                        gradientColors: const [
+                                          Color(0xFF5BA3FF),
+                                          Color(0xFF3B8FFF),
+                                        ],
+                                        total: totalStr,
+                                        label: 'Menunggu',
+                                        trend: totalPending > 0 ? 'New' : '-',
+                                        trendUp: false,
+                                        delay: 300,
+                                        onTap: () => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => const TerimaWargaPage(),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 32),
+
+                            // STATISTIK
+                            _buildStatisticsSection(
+                              totalLakiLaki: totalLakiLaki,
+                              totalPerempuan: totalPerempuan,
+                              totalKeluarga: totalKeluarga,
+                              totalRumah: totalRumah,
                             ),
                           ],
                         ),
-                        const SizedBox(height: 16),
-
-                        // Row 2: Kelola Pengguna & Terima Warga
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildHorizontalCard(
-                                context,
-                                title: 'Kelola Pengguna',
-                                subtitle: 'Manajemen akun user',
-                                icon: Icons.admin_panel_settings_rounded,
-                                gradientColors: const [
-                                  Color(0xFF1E6FD9),
-                                  Color(0xFF0F5FCC),
-                                ],
-                                total: '156',
-                                label: 'Total User',
-                                trend: '+8',
-                                trendUp: true,
-                                delay: 200,
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const KelolaPenggunaPage(),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildHorizontalCard(
-                                context,
-                                title: 'Terima Warga',
-                                subtitle: 'Persetujuan pendaftar',
-                                icon: Icons.person_add_alt_1_rounded,
-                                gradientColors: const [
-                                  Color(0xFF5BA3FF),
-                                  Color(0xFF3B8FFF),
-                                ],
-                                total: '12',
-                                label: 'Menunggu',
-                                trend: 'New',
-                                trendUp: false,
-                                delay: 300,
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const TerimaWargaPage(),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 32),
-
-                        // STATISTIK
-                        _buildStatisticsSection(),
-                      ],
+                      ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: const AppBottomNavigation(currentIndex: 1),
+          ),
+          bottomNavigationBar: const AppBottomNavigation(currentIndex: 1),
+        );
+      },
     );
   }
 
@@ -367,7 +431,12 @@ class _DataWargaMainPageState extends State<DataWargaMainPage>
     );
   }
 
-  Widget _buildStatisticsSection() {
+  Widget _buildStatisticsSection({
+    required int totalLakiLaki,
+    required int totalPerempuan,
+    required int totalKeluarga,
+    required int totalRumah,
+  }) {
     return TweenAnimationBuilder<double>(
       duration: const Duration(milliseconds: 1000),
       tween: Tween(begin: 0.0, end: 1.0),
@@ -433,7 +502,7 @@ class _DataWargaMainPageState extends State<DataWargaMainPage>
                         ),
                       ),
                       Text(
-                        "Data demografi terkini",
+                        "Data demografi real-time dari Firebase",
                         style: GoogleFonts.poppins(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
@@ -451,7 +520,7 @@ class _DataWargaMainPageState extends State<DataWargaMainPage>
                 Expanded(
                   child: _buildStatItem(
                     icon: Icons.male_rounded,
-                    value: '654',
+                    value: totalLakiLaki.toString(),
                     label: 'Laki-laki',
                     color: const Color(0xFF3B82F6),
                   ),
@@ -460,7 +529,7 @@ class _DataWargaMainPageState extends State<DataWargaMainPage>
                 Expanded(
                   child: _buildStatItem(
                     icon: Icons.female_rounded,
-                    value: '580',
+                    value: totalPerempuan.toString(),
                     label: 'Perempuan',
                     color: const Color(0xFFEC4899),
                   ),
@@ -473,7 +542,7 @@ class _DataWargaMainPageState extends State<DataWargaMainPage>
                 Expanded(
                   child: _buildStatItem(
                     icon: Icons.family_restroom_rounded,
-                    value: '342',
+                    value: totalKeluarga.toString(),
                     label: 'Keluarga',
                     color: const Color(0xFF10B981),
                   ),
@@ -482,7 +551,7 @@ class _DataWargaMainPageState extends State<DataWargaMainPage>
                 Expanded(
                   child: _buildStatItem(
                     icon: Icons.house_rounded,
-                    value: '289',
+                    value: totalRumah.toString(),
                     label: 'Rumah',
                     color: const Color(0xFFF59E0B),
                   ),

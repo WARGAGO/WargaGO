@@ -7,12 +7,16 @@ class KeluargaExpandableCard extends StatefulWidget {
   final String namaKepalaKeluarga;
   final String alamat;
   final String status;
+  final String nomorKK;
+  final int jumlahAnggota;
 
   const KeluargaExpandableCard({
     super.key,
     required this.namaKepalaKeluarga,
     required this.alamat,
     required this.status,
+    this.nomorKK = '',
+    this.jumlahAnggota = 0,
   });
 
   @override
@@ -109,6 +113,25 @@ class _KeluargaExpandableCardState extends State<KeluargaExpandableCard> {
           ],
         ),
         const SizedBox(height: 12),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: _buildInfoColumn(
+                "Nomor KK:",
+                widget.nomorKK.isNotEmpty ? widget.nomorKK : '-',
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _buildInfoColumn(
+                "Jumlah Anggota:",
+                '${widget.jumlahAnggota} orang',
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
         Align(
           alignment: Alignment.centerLeft,
           child: OutlinedButton(
@@ -116,7 +139,9 @@ class _KeluargaExpandableCardState extends State<KeluargaExpandableCard> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const DetailKeluargaPage(),
+                  builder: (context) => DetailKeluargaPage(
+                    nomorKK: widget.nomorKK,
+                  ),
                 ),
               );
             },

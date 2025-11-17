@@ -39,69 +39,77 @@ class AppBottomNavigation extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _BottomNavItem(
-                icon: Icons.home_filled,
-                label: 'Home',
-                isActive: currentIndex == 0,
-                onTap: () {
-                  if (currentIndex != 0) {
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(
-                        builder: (context) => const DashboardPage(),
-                      ),
-                      (route) => false,
-                    );
-                  }
-                },
+              Expanded(
+                child: _BottomNavItem(
+                  icon: Icons.home_filled,
+                  label: 'Home',
+                  isActive: currentIndex == 0,
+                  onTap: () {
+                    if (currentIndex != 0) {
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                          builder: (context) => const DashboardPage(),
+                        ),
+                        (route) => false,
+                      );
+                    }
+                  },
+                ),
               ),
-              _BottomNavItem(
-                icon: Icons.assignment_outlined,
-                label: 'Data Warga',
-                isActive: currentIndex == 1,
-                onTap: () {
-                  if (currentIndex != 1) {
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(
-                        builder: (context) => const DataWargaMainPage(),
-                      ),
-                      (route) => false,
-                    );
-                  }
-                },
+              Expanded(
+                child: _BottomNavItem(
+                  icon: Icons.assignment_outlined,
+                  label: 'Data Warga',
+                  isActive: currentIndex == 1,
+                  onTap: () {
+                    if (currentIndex != 1) {
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                          builder: (context) => const DataWargaMainPage(),
+                        ),
+                        (route) => false,
+                      );
+                    }
+                  },
+                ),
               ),
-              _BottomNavItem(
-                icon: Icons.account_balance_wallet_outlined,
-                label: 'Keuangan',
-                isActive: currentIndex == 2,
-                onTap: () {
-                  if (currentIndex != 2) {
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(
-                        builder: (context) => const KeuanganPage(),
-                      ),
-                      (route) => false,
-                    );
-                  }
-                },
+              Expanded(
+                child: _BottomNavItem(
+                  icon: Icons.account_balance_wallet_outlined,
+                  label: 'Keuangan',
+                  isActive: currentIndex == 2,
+                  onTap: () {
+                    if (currentIndex != 2) {
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                          builder: (context) => const KeuanganPage(),
+                        ),
+                        (route) => false,
+                      );
+                    }
+                  },
+                ),
               ),
-              _BottomNavItem(
-                icon: Icons.store_rounded,
-                label: 'Kelola Lapak',
-                isActive: currentIndex == 3,
-                onTap: () {
-                  if (currentIndex != 3) {
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(
-                        builder: (context) => const KelolaLapakPage(),
-                      ),
-                      (route) => false,
-                    );
-                  }
-                },
+              Expanded(
+                child: _BottomNavItem(
+                  icon: Icons.store_rounded,
+                  label: 'Kelola Lapak',
+                  isActive: currentIndex == 3,
+                  onTap: () {
+                    if (currentIndex != 3) {
+                      Navigator.of(context).pushAndRemoveUntil(
+                        MaterialPageRoute(
+                          builder: (context) => const KelolaLapakPage(),
+                        ),
+                        (route) => false,
+                      );
+                    }
+                  },
+                ),
               ),
             ],
           ),
@@ -131,10 +139,10 @@ class _BottomNavItem extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(22),
+      borderRadius: BorderRadius.circular(18),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
           gradient: isActive
               ? const LinearGradient(
@@ -146,7 +154,7 @@ class _BottomNavItem extends StatelessWidget {
                   ],
                 )
               : null,
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(18),
           boxShadow: isActive
               ? [
                   BoxShadow(
@@ -163,16 +171,20 @@ class _BottomNavItem extends StatelessWidget {
             Icon(
               icon,
               color: isActive ? Colors.white : inactive,
-              size: 26,
+              size: 24,
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4),
             Text(
               label,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.poppins(
-                fontSize: 11,
-                fontWeight: isActive ? FontWeight.w800 : FontWeight.w600,
+                fontSize: 9,
+                fontWeight: isActive ? FontWeight.w700 : FontWeight.w600,
                 color: isActive ? Colors.white : inactive,
-                letterSpacing: 0.2,
+                letterSpacing: 0,
+                height: 1.2,
               ),
             ),
           ],
