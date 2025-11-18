@@ -13,6 +13,9 @@ MODEL_PATHS = {
     "mlpv2": os.path.join(
         os.path.dirname(os.path.dirname(__file__)), "api", "models", "mlpv2.pth"
     ),
+    "mlpv2_auto-clahe": os.path.join(
+        os.path.dirname(os.path.dirname(__file__)), "api", "models", "mlpv2_auto-clahe.pth"
+    ),
 }
 
 CLASS_NAMES = ["Sayur Akar", "Sayur Buah", "Sayur Daun", "Sayur Polong"]
