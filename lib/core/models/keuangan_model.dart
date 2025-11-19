@@ -2,110 +2,87 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class KeuanganModel {
   final String id;
-  final String type; // 'income' or 'expense'
-  final String category;
+  final String type;
   final double amount;
-  final String description;
-  final DateTime date;
-  final String? proofUrl; // URL bukti transfer/nota
+  final String kategori;
+  final String? deskripsi;
+  final DateTime tanggal;
+  final String? bukti;
   final String createdBy;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final bool isActive;
 
   KeuanganModel({
     required this.id,
     required this.type,
-    required this.category,
     required this.amount,
-    this.description = '',
-    required this.date,
-    this.proofUrl,
+    required this.kategori,
+    this.deskripsi,
+    required this.tanggal,
+    this.bukti,
     this.createdBy = '',
     this.createdAt,
     this.updatedAt,
+    this.isActive = true,
   });
 
-  // From Firestore
   factory KeuanganModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
     return KeuanganModel(
       id: doc.id,
-      type: data['type'] ?? '',
-      category: data['category'] ?? '',
-      amount: (data['amount'] as num).toDouble(),
-      description: data['description'] ?? '',
-      date: (data['date'] as Timestamp).toDate(),
-      proofUrl: data['proofUrl'],
+      type: data['type'] ?? 'pemasukan',
+      amount: (data['amount'] as num?)?.toDouble() ?? 0,
+      kategori: data['kategori'] ?? data['category'] ?? '',
+      deskripsi: data['deskripsi'] ?? data['description'],
+      tanggal: (data['tanggal'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      bukti: data['bukti'] ?? data['proof'],
       createdBy: data['createdBy'] ?? '',
       createdAt: (data['createdAt'] as Timestamp?)?.toDate(),
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
+      isActive: data['isActive'] ?? true,
     );
   }
 
-  // From Map
-  factory KeuanganModel.fromMap(Map<String, dynamic> map, String id) {
-    return KeuanganModel(
-      id: id,
-      type: map['type'] ?? '',
-      category: map['category'] ?? '',
-      amount: (map['amount'] as num).toDouble(),
-      description: map['description'] ?? '',
-      date: (map['date'] as Timestamp).toDate(),
-      proofUrl: map['proofUrl'],
-      createdBy: map['createdBy'] ?? '',
-      createdAt: (map['createdAt'] as Timestamp?)?.toDate(),
-      updatedAt: (map['updatedAt'] as Timestamp?)?.toDate(),
-    );
-  }
-
-  // To Map
   Map<String, dynamic> toMap() {
     return {
       'type': type,
-      'category': category,
       'amount': amount,
-      'description': description,
-      'date': Timestamp.fromDate(date),
-      'proofUrl': proofUrl,
+      'kategori': kategori,
+      'category': kategori,
+      'deskripsi': deskripsi,
+      'description': deskripsi,
+      'tanggal': Timestamp.fromDate(tanggal),
+      'bukti': bukti,
+      'proof': bukti,
+      'createdBy': createdBy,
+      'isActive': isActive,
     };
   }
 
-  // Copy with
   KeuanganModel copyWith({
     String? type,
-    String? category,
     double? amount,
-    String? description,
-    DateTime? date,
-    String? proofUrl,
+    String? kategori,
+    String? deskripsi,
+    DateTime? tanggal,
+    String? bukti,
     String? createdBy,
-    DateTime? createdAt,
-    DateTime? updatedAt,
+    bool? isActive,
   }) {
     return KeuanganModel(
       id: id,
       type: type ?? this.type,
-      category: category ?? this.category,
       amount: amount ?? this.amount,
-      description: description ?? this.description,
-      date: date ?? this.date,
-      proofUrl: proofUrl ?? this.proofUrl,
+      kategori: kategori ?? this.kategori,
+      deskripsi: deskripsi ?? this.deskripsi,
+      tanggal: tanggal ?? this.tanggal,
+      bukti: bukti ?? this.bukti,
       createdBy: createdBy ?? this.createdBy,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      isActive: isActive ?? this.isActive,
     );
-  }
-
-  // Check if income
-  bool get isIncome => type == 'income';
-
-  // Check if expense
-  bool get isExpense => type == 'expense';
-
-  // Get formatted amount with sign
-  String get formattedAmountWithSign {
-    final sign = isIncome ? '+' : '-';
-    return '$sign Rp ${amount.toStringAsFixed(0)}';
   }
 }
 

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 import '../edit_iuran_page.dart';
 
 class JenisIuranTab extends StatefulWidget {
@@ -95,7 +94,7 @@ class _JenisIuranTabState extends State<JenisIuranTab> {
             color: Colors.white,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.03),
+                color: Colors.black.withValues(alpha: 0.03),
                 blurRadius: 10,
                 offset: const Offset(0, 2),
               ),
@@ -108,7 +107,7 @@ class _JenisIuranTabState extends State<JenisIuranTab> {
                 children: [
                   Flexible(
                     child: Text(
-                      'Daftar Jenis Iuran',
+                      'Jenis Iuran',
                       style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -125,10 +124,10 @@ class _JenisIuranTabState extends State<JenisIuranTab> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF3B82F6).withOpacity(0.1),
+                      color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(6),
                       border: Border.all(
-                        color: const Color(0xFF3B82F6).withOpacity(0.2),
+                        color: const Color(0xFF3B82F6).withValues(alpha: 0.2),
                         width: 1,
                       ),
                     ),
@@ -199,19 +198,19 @@ class _JenisIuranTabState extends State<JenisIuranTab> {
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
+                        gradient: const LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [
-                            const Color(0xFF3B82F6),
-                            const Color(0xFF2563EB),
+                            Color(0xFF3B82F6),
+                            Color(0xFF2563EB),
                           ],
                         ),
                         borderRadius: BorderRadius.circular(14),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF3B82F6).withOpacity(0.4),
-                            blurRadius: 12,
+                            color: const Color(0xFF2988EA).withValues(alpha: 0.2),
+                            blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),
                         ],
@@ -233,11 +232,12 @@ class _JenisIuranTabState extends State<JenisIuranTab> {
           child: _filteredList.isEmpty
               ? _buildEmptyState()
               : ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                  padding: const EdgeInsets.all(20),
                   itemCount: _filteredList.length,
                   itemBuilder: (context, index) {
                     final item = _filteredList[index];
-                    return _buildIuranCard(item, index);
+                    final bool isExpanded = _expandedIndex == index;
+                    return _buildIuranCard(item, index, isExpanded);
                   },
                 ),
         ),
@@ -245,9 +245,7 @@ class _JenisIuranTabState extends State<JenisIuranTab> {
     );
   }
 
-  Widget _buildIuranCard(Map<String, dynamic> item, int index) {
-    final isExpanded = _expandedIndex == index;
-
+  Widget _buildIuranCard(Map<String, dynamic> item, int index, bool isExpanded) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -256,21 +254,21 @@ class _JenisIuranTabState extends State<JenisIuranTab> {
           end: Alignment.bottomRight,
           colors: [
             Colors.white,
-            const Color(0xFF3B82F6).withOpacity(0.02),
+            const Color(0xFF3B82F6).withValues(alpha: 0.02),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isExpanded
-              ? const Color(0xFF3B82F6).withOpacity(0.3)
+              ? const Color(0xFF3B82F6).withValues(alpha: 0.3)
               : const Color(0xFFE8EAF2),
           width: isExpanded ? 2 : 1.5,
         ),
         boxShadow: [
           BoxShadow(
             color: isExpanded
-                ? const Color(0xFF3B82F6).withOpacity(0.15)
-                : Colors.black.withOpacity(0.04),
+                ? const Color(0xFF3B82F6).withValues(alpha: 0.15)
+                : Colors.black.withValues(alpha: 0.04),
             blurRadius: isExpanded ? 20 : 10,
             offset: Offset(0, isExpanded ? 8 : 2),
             spreadRadius: isExpanded ? -2 : 0,
@@ -295,22 +293,22 @@ class _JenisIuranTabState extends State<JenisIuranTab> {
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
+                      gradient: const LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          const Color(0xFF3B82F6).withOpacity(0.2),
-                          const Color(0xFF3B82F6).withOpacity(0.1),
+                          Color(0xFF3B82F6),
+                          Color(0xFF2563EB),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: const Color(0xFF3B82F6).withOpacity(0.3),
+                        color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
                         width: 1.5,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF3B82F6).withOpacity(0.2),
+                          color: const Color(0xFF3B82F6).withValues(alpha: 0.2),
                           blurRadius: 8,
                           offset: const Offset(0, 4),
                         ),
@@ -322,7 +320,7 @@ class _JenisIuranTabState extends State<JenisIuranTab> {
                         style: GoogleFonts.poppins(
                           fontSize: 22,
                           fontWeight: FontWeight.w800,
-                          color: const Color(0xFF3B82F6),
+                          color: Colors.white,
                         ),
                       ),
                     ),
@@ -355,56 +353,73 @@ class _JenisIuranTabState extends State<JenisIuranTab> {
                                 ),
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
                                     colors: [
-                                      const Color(0xFF3B82F6).withOpacity(0.15),
-                                      const Color(0xFF3B82F6).withOpacity(0.08),
+                                      const Color(0xFF3B82F6).withValues(alpha: 0.15),
+                                      const Color(0xFF3B82F6).withValues(alpha: 0.08),
                                     ],
                                   ),
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(6),
                                   border: Border.all(
-                                    color: const Color(0xFF3B82F6).withOpacity(0.2),
+                                    color: const Color(0xFF3B82F6).withValues(alpha: 0.2),
+                                    width: 1,
                                   ),
                                 ),
                                 child: Text(
                                   item['subtitle'],
                                   style: GoogleFonts.poppins(
-                                    fontSize: 10.5,
-                                    fontWeight: FontWeight.w700,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
                                     color: const Color(0xFF3B82F6),
-                                    letterSpacing: 0.2,
                                   ),
-                                  maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
                                 ),
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
-                        // Nominal dengan design lebih prominent
-                        Text(
-                          item['nominal'],
-                          style: GoogleFonts.poppins(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w800,
-                            color: const Color(0xFF3B82F6),
-                            letterSpacing: -0.5,
-                          ),
-                        ),
                       ],
                     ),
                   ),
-                  // Arrow Icon with animation
+                  const SizedBox(width: 12),
+                  // Nominal
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        item['nominal'],
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF3B82F6),
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        item['tanggal'],
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          color: const Color(0xFF9CA3AF),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 12),
+                  // Arrow Icon
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
                       color: isExpanded
-                          ? const Color(0xFF3B82F6).withOpacity(0.1)
-                          : const Color(0xFFF3F4F6),
-                      borderRadius: BorderRadius.circular(10),
+                          ? const Color(0xFF3B82F6).withValues(alpha: 0.1)
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: isExpanded
-                            ? const Color(0xFF3B82F6).withOpacity(0.2)
+                            ? const Color(0xFF3B82F6).withValues(alpha: 0.2)
                             : Colors.transparent,
                       ),
                     ),
@@ -424,13 +439,12 @@ class _JenisIuranTabState extends State<JenisIuranTab> {
           ),
           if (isExpanded) ...[
             Container(
-              height: 1.5,
-              margin: const EdgeInsets.symmetric(horizontal: 18),
+              height: 1,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
                     Colors.transparent,
-                    const Color(0xFF3B82F6).withOpacity(0.2),
+                    const Color(0xFF3B82F6).withValues(alpha: 0.2),
                     Colors.transparent,
                   ],
                 ),
@@ -442,8 +456,8 @@ class _JenisIuranTabState extends State<JenisIuranTab> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    const Color(0xFF3B82F6).withOpacity(0.03),
-                    const Color(0xFF3B82F6).withOpacity(0.01),
+                    const Color(0xFF3B82F6).withValues(alpha: 0.03),
+                    const Color(0xFF3B82F6).withValues(alpha: 0.01),
                   ],
                 ),
                 borderRadius: const BorderRadius.only(
@@ -559,7 +573,7 @@ class _JenisIuranTabState extends State<JenisIuranTab> {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(
@@ -607,13 +621,13 @@ class _JenisIuranTabState extends State<JenisIuranTab> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: const Color(0xFF3B82F6).withOpacity(0.1),
+              color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.receipt_long_rounded,
               size: 64,
-              color: const Color(0xFF3B82F6).withOpacity(0.5),
+              color: const Color(0xFF3B82F6).withValues(alpha: 0.5),
             ),
           ),
           const SizedBox(height: 24),
@@ -627,7 +641,7 @@ class _JenisIuranTabState extends State<JenisIuranTab> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Coba cari dengan kata kunci lain\natau ubah filter tanggal',
+            'Coba cari dengan kata kunci lain',
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
               fontSize: 14,
@@ -665,3 +679,4 @@ class _JenisIuranTabState extends State<JenisIuranTab> {
     }
   }
 }
+

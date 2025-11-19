@@ -3,19 +3,27 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:jawara/core/providers/pemasukan_lain_provider.dart';
 import 'package:jawara/core/models/pemasukan_lain_model.dart';
 
-class PemasukanNonIuranPage extends StatefulWidget {
-  const PemasukanNonIuranPage({super.key});
+class EditPemasukanNonIuranPage extends StatefulWidget {
+  final PemasukanLainModel pemasukanData;
+
+  const EditPemasukanNonIuranPage({
+    super.key,
+    required this.pemasukanData,
+  });
 
   @override
-  State<PemasukanNonIuranPage> createState() => _PemasukanNonIuranPageState();
+  State<EditPemasukanNonIuranPage> createState() =>
+      _EditPemasukanNonIuranPageState();
 }
 
-class _PemasukanNonIuranPageState extends State<PemasukanNonIuranPage> {
-  final TextEditingController _namaPemasukanController = TextEditingController();
-  final TextEditingController _nominalController = TextEditingController();
+class _EditPemasukanNonIuranPageState extends State<EditPemasukanNonIuranPage> {
+  late TextEditingController _namaPemasukanController;
+  late TextEditingController _nominalController;
+  late TextEditingController _deskripsiController;
   DateTime? _selectedDate;
   String? _selectedKategori;
 
@@ -28,9 +36,24 @@ class _PemasukanNonIuranPageState extends State<PemasukanNonIuranPage> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    // Pre-fill dengan data existing
+    _namaPemasukanController =
+        TextEditingController(text: widget.pemasukanData.name);
+    _nominalController = TextEditingController(
+        text: widget.pemasukanData.nominal.toInt().toString());
+    _deskripsiController =
+        TextEditingController(text: widget.pemasukanData.deskripsi ?? '');
+    _selectedDate = widget.pemasukanData.tanggal;
+    _selectedKategori = widget.pemasukanData.category;
+  }
+
+  @override
   void dispose() {
     _namaPemasukanController.dispose();
     _nominalController.dispose();
+    _deskripsiController.dispose();
     super.dispose();
   }
 
@@ -53,7 +76,7 @@ class _PemasukanNonIuranPageState extends State<PemasukanNonIuranPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Pemasukan Non Iuran Baru',
+          'Edit Pemasukan Non Iuran',
           style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -67,6 +90,39 @@ class _PemasukanNonIuranPageState extends State<PemasukanNonIuranPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Info Badge
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEF3C7),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFFF59E0B),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.info_outline,
+                    color: Color(0xFFF59E0B),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Anda sedang mengedit data pemasukan',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: const Color(0xFFD97706),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+
             // Nama Pemasukan
             Text(
               'Nama Pemasukan',
@@ -122,7 +178,7 @@ class _PemasukanNonIuranPageState extends State<PemasukanNonIuranPage> {
 
             // Tanggal
             Text(
-              'tanggal',
+              'Tanggal',
               style: GoogleFonts.poppins(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -134,7 +190,8 @@ class _PemasukanNonIuranPageState extends State<PemasukanNonIuranPage> {
               onTap: () => _showDatePicker(),
               borderRadius: BorderRadius.circular(12),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF8F9FC),
                   borderRadius: BorderRadius.circular(12),
@@ -191,7 +248,8 @@ class _PemasukanNonIuranPageState extends State<PemasukanNonIuranPage> {
                   isExpanded: true,
                   value: _selectedKategori,
                   hint: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
                     child: Text(
                       'Pilih Kategori',
                       style: GoogleFonts.poppins(
@@ -231,7 +289,8 @@ class _PemasukanNonIuranPageState extends State<PemasukanNonIuranPage> {
                   selectedItemBuilder: (BuildContext context) {
                     return _kategoriList.map((String value) {
                       return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
                         child: Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
@@ -269,7 +328,7 @@ class _PemasukanNonIuranPageState extends State<PemasukanNonIuranPage> {
                 FilteringTextInputFormatter.digitsOnly,
               ],
               decoration: InputDecoration(
-                hintText: 'Masukkan nama pemasukan',
+                hintText: 'Masukkan nominal',
                 hintStyle: GoogleFonts.poppins(
                   fontSize: 14,
                   color: const Color(0xFF9CA3AF),
@@ -308,9 +367,9 @@ class _PemasukanNonIuranPageState extends State<PemasukanNonIuranPage> {
 
             const SizedBox(height: 24),
 
-            // Bukti Pemasukan
+            // Deskripsi (Optional)
             Text(
-              'Bukti Pemasukan',
+              'Deskripsi (Opsional)',
               style: GoogleFonts.poppins(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -318,41 +377,44 @@ class _PemasukanNonIuranPageState extends State<PemasukanNonIuranPage> {
               ),
             ),
             const SizedBox(height: 12),
-            InkWell(
-              onTap: () {
-                // Handle file upload
-                _showUploadDialog();
-              },
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                height: 120,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF8F9FC),
+            TextField(
+              controller: _deskripsiController,
+              maxLines: 3,
+              decoration: InputDecoration(
+                hintText: 'Masukkan deskripsi (opsional)',
+                hintStyle: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: const Color(0xFF9CA3AF),
+                ),
+                filled: true,
+                fillColor: const Color(0xFFF8F9FC),
+                border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: const Color(0xFFE8EAF2),
+                  borderSide: const BorderSide(
+                    color: Color(0xFFE8EAF2),
                   ),
                 ),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.upload_outlined,
-                        color: const Color(0xFF1E54F4),
-                        size: 32,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Upload Bukti',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          color: const Color(0xFF6B7280),
-                        ),
-                      ),
-                    ],
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: Color(0xFFE8EAF2),
                   ),
                 ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: Color(0xFF1E54F4),
+                    width: 2,
+                  ),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 16,
+                ),
+              ),
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: const Color(0xFF1F1F1F),
               ),
             ),
 
@@ -373,7 +435,7 @@ class _PemasukanNonIuranPageState extends State<PemasukanNonIuranPage> {
                       ),
                     ),
                     child: Text(
-                      'Kembali',
+                      'Batal',
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -385,11 +447,7 @@ class _PemasukanNonIuranPageState extends State<PemasukanNonIuranPage> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: _isFormValid()
-                        ? () {
-                            _submitPemasukan();
-                          }
-                        : null,
+                    onPressed: _isFormValid() ? () => _updatePemasukan() : null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1E54F4),
                       disabledBackgroundColor: const Color(0xFFE8EAF2),
@@ -400,7 +458,7 @@ class _PemasukanNonIuranPageState extends State<PemasukanNonIuranPage> {
                       ),
                     ),
                     child: Text(
-                      'Lanjut',
+                      'Simpan',
                       style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -448,40 +506,7 @@ class _PemasukanNonIuranPageState extends State<PemasukanNonIuranPage> {
     }
   }
 
-  void _showUploadDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: Text(
-          'Upload Bukti Pemasukan',
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        content: Text(
-          'Fitur upload bukti akan segera hadir.',
-          style: GoogleFonts.poppins(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'OK',
-              style: GoogleFonts.poppins(
-                color: const Color(0xFF1E54F4),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _submitPemasukan() async {
+  void _updatePemasukan() async {
     // Show loading
     showDialog(
       context: context,
@@ -499,7 +524,7 @@ class _PemasukanNonIuranPageState extends State<PemasukanNonIuranPage> {
               const CircularProgressIndicator(),
               const SizedBox(height: 16),
               Text(
-                'Menyimpan data...',
+                'Menyimpan perubahan...',
                 style: GoogleFonts.poppins(
                   fontSize: 14,
                   color: const Color(0xFF1F1F1F),
@@ -513,36 +538,27 @@ class _PemasukanNonIuranPageState extends State<PemasukanNonIuranPage> {
 
     try {
       final nominal = double.tryParse(_nominalController.text) ?? 0;
-      
-      // Create pemasukan model
-      final pemasukan = PemasukanLainModel(
-        id: '', // Will be auto-generated by Firestore
-        name: _namaPemasukanController.text,
-        category: _selectedKategori!,
-        nominal: nominal,
-        tanggal: _selectedDate!,
-        status: 'Menunggu', // Default status
-        createdBy: '', // Will be set by service if user is logged in
-        createdAt: DateTime.now(),
-        isActive: true,
-      );
 
-      // Save to Firebase
+      // Update data via provider
       final provider = context.read<PemasukanLainProvider>();
-      final success = await provider.createPemasukanLain(pemasukan);
+      final success = await provider.updatePemasukanLain(
+        widget.pemasukanData.id,
+        {
+          'name': _namaPemasukanController.text,
+          'category': _selectedKategori!,
+          'nominal': nominal,
+          'tanggal': Timestamp.fromDate(_selectedDate!),
+          'deskripsi': _deskripsiController.text.isNotEmpty
+              ? _deskripsiController.text
+              : null,
+        },
+      );
 
       // Close loading dialog
       if (mounted) Navigator.pop(context);
 
       if (success) {
-        // Format nominal untuk display
-        final formatter = NumberFormat.currency(
-          locale: 'id_ID',
-          symbol: 'Rp ',
-          decimalDigits: 0,
-        );
-
-        // Tampilkan dialog sukses
+        // Show success dialog
         if (mounted) {
           showDialog(
             context: context,
@@ -557,12 +573,12 @@ class _PemasukanNonIuranPageState extends State<PemasukanNonIuranPage> {
                     width: 64,
                     height: 64,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF3B82F6).withValues(alpha: 0.1),
+                      color: const Color(0xFF10B981).withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
                       Icons.check_circle,
-                      color: Color(0xFF3B82F6),
+                      color: Color(0xFF10B981),
                       size: 40,
                     ),
                   ),
@@ -577,40 +593,11 @@ class _PemasukanNonIuranPageState extends State<PemasukanNonIuranPage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Pemasukan Non Iuran berhasil ditambahkan',
+                    'Perubahan berhasil disimpan',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.poppins(
                       fontSize: 14,
                       color: const Color(0xFF6B7280),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8F9FC),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          _namaPemasukanController.text,
-                          style: GoogleFonts.poppins(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF1F1F1F),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          formatter.format(nominal),
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: const Color(0xFF3B82F6),
-                          ),
-                        ),
-                      ],
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -619,10 +606,10 @@ class _PemasukanNonIuranPageState extends State<PemasukanNonIuranPage> {
                     child: ElevatedButton(
                       onPressed: () {
                         Navigator.pop(context); // Close dialog
-                        Navigator.pop(context, true); // Back to previous page with result
+                        Navigator.pop(context, true); // Back with result
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF1E54F4),
+                        backgroundColor: const Color(0xFF10B981),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -661,7 +648,7 @@ class _PemasukanNonIuranPageState extends State<PemasukanNonIuranPage> {
                 ),
               ),
               content: Text(
-                provider.error ?? 'Terjadi kesalahan saat menyimpan data',
+                provider.error ?? 'Terjadi kesalahan saat menyimpan perubahan',
                 style: GoogleFonts.poppins(),
               ),
               actions: [
@@ -683,7 +670,7 @@ class _PemasukanNonIuranPageState extends State<PemasukanNonIuranPage> {
     } catch (e) {
       // Close loading dialog if still open
       if (mounted) Navigator.pop(context);
-      
+
       // Show error
       if (mounted) {
         showDialog(
@@ -721,3 +708,4 @@ class _PemasukanNonIuranPageState extends State<PemasukanNonIuranPage> {
     }
   }
 }
+

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+import 'package:jawara/core/providers/jenis_iuran_provider.dart';
+import 'package:jawara/core/providers/pemasukan_lain_provider.dart';
 import 'tabs/jenis_iuran_tab.dart';
-import 'tabs/tagihan_tab.dart';
 import 'tabs/lainnya_tab.dart';
-import 'tagih_iuran_page.dart';
 import 'pemasukan_non_iuran_page.dart';
+import 'forms/form_jenis_iuran_page.dart';
 import 'widgets/kelola_pemasukan_widgets.dart';
 import '../widgets/keuangan_constants.dart';
 
@@ -22,13 +25,74 @@ class _KelolaPemasukanPageState extends State<KelolaPemasukanPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 2, vsync: this);
+
+    // Load data from BOTH providers on init for complete stats
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<JenisIuranProvider>().fetchAllJenisIuran();
+        context.read<PemasukanLainProvider>().loadPemasukanLain();
+      }
+    });
+
+    // Add listener to refresh data when tab changes
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        // Rebuild to update stats card
+        setState(() {});
+      }
+
+      if (_tabController.index == 0 && mounted) {
+        // Refresh jenis iuran data when tab is selected
+        context.read<JenisIuranProvider>().fetchAllJenisIuran();
+      } else if (_tabController.index == 1 && mounted) {
+        // Refresh pemasukan lain data when tab is selected
+        context.read<PemasukanLainProvider>().loadPemasukanLain();
+      }
+    });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Widget _buildDynamicStatsCard() {
+    // Combine data from BOTH providers to show TOTAL of everything
+    return Consumer2<JenisIuranProvider, PemasukanLainProvider>(
+      builder: (context, jenisIuranProvider, pemasukanLainProvider, child) {
+        final jenisIuranList = jenisIuranProvider.jenisIuranList;
+        final pemasukanList = pemasukanLainProvider.pemasukanList;
+
+        // Calculate total from Jenis Iuran
+        final totalJenisIuran = jenisIuranList.fold<double>(
+          0,
+          (sum, item) => sum + item.jumlahIuran,
+        );
+
+        // Calculate total from Pemasukan Lain
+        final totalPemasukanLain = pemasukanList.fold<double>(
+          0,
+          (sum, item) => sum + item.nominal,
+        );
+
+        // TOTAL KESELURUHAN = Jenis Iuran + Pemasukan Lain
+        final totalKeseluruhan = totalJenisIuran + totalPemasukanLain;
+        final totalItems = jenisIuranList.length + pemasukanList.length;
+
+        final formatter = NumberFormat.currency(
+          locale: 'id_ID',
+          symbol: 'Rp ',
+          decimalDigits: 0,
+        );
+
+        return KelolaPemasukanStatsCard(
+          totalPemasukan: formatter.format(totalKeseluruhan),
+          totalTransaksi: '$totalItems Items',
+        );
+      },
+    );
   }
 
   @override
@@ -57,10 +121,7 @@ class _KelolaPemasukanPageState extends State<KelolaPemasukanPage>
                       onFilter: () {},
                     ),
                     const SizedBox(height: KeuanganSpacing.xxl),
-                    KelolaPemasukanStatsCard(
-                      totalPemasukan: 'Rp 20.000.000',
-                      totalTransaksi: '12 Items',
-                    ),
+                    _buildDynamicStatsCard(),
                   ],
                 ),
               ),
@@ -76,13 +137,11 @@ class _KelolaPemasukanPageState extends State<KelolaPemasukanPage>
                 tabController: _tabController,
                 onTabChange: () => setState(() {}),
                 tabs: const [
-                  PemasukanTabItem(icon: Icons.list_alt_rounded, label: 'Jenis Iuran'),
-                  PemasukanTabItem(icon: Icons.receipt_rounded, label: 'Tagihan'),
+                  PemasukanTabItem(icon: Icons.list_alt_rounded, label: 'Iuran'),
                   PemasukanTabItem(icon: Icons.more_horiz_rounded, label: 'Lainnya'),
                 ],
-                views: const [
+                views: [
                   JenisIuranTab(),
-                  TagihanTab(),
                   LainnyaTab(),
                 ],
               ),
@@ -90,153 +149,73 @@ class _KelolaPemasukanPageState extends State<KelolaPemasukanPage>
           ),
         ],
       ),
-      floatingActionButton: _tabController.index == 0
-          ? null
-          : Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF3B82F6).withValues(alpha: 0.4),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: FloatingActionButton.extended(
-                onPressed: _showAddDialog,
-                backgroundColor: const Color(0xFF3B82F6),
-                elevation: 0,
-                icon: const Icon(Icons.add_rounded, color: Colors.white, size: 24),
-                label: Text(
-                  'Tambah',
-                  style: GoogleFonts.poppins(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF3B82F6).withValues(alpha: 0.4),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+              spreadRadius: 2,
             ),
+          ],
+        ),
+        child: FloatingActionButton.extended(
+          onPressed: _showAddDialog,
+          backgroundColor: const Color(0xFF3B82F6),
+          elevation: 0,
+          icon: const Icon(Icons.add_rounded, color: Colors.white, size: 24),
+          label: Text(
+            'Tambah',
+            style: GoogleFonts.poppins(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ),
     );
   }
 
-  void _showAddDialog() {
+  void _showAddDialog() async {
     final currentIndex = _tabController.index;
 
-    // Jika tab Tagihan (index 1), langsung buka halaman Tagih Iuran
-    if (currentIndex == 1) {
-      Navigator.push(
+    // Jika tab Jenis Iuran (index 0), langsung buka halaman Form Jenis Iuran
+    if (currentIndex == 0) {
+      final result = await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const TagihIuranPage(),
+          builder: (context) => const FormJenisIuranPage(),
         ),
       );
+
+      // Refresh data setelah kembali dari form
+      if (result == true && mounted) {
+        // Data sudah otomatis ter-refresh dari provider saat addJenisIuran dipanggil
+        // Tapi kita panggil lagi untuk memastikan
+        context.read<JenisIuranProvider>().fetchAllJenisIuran();
+      }
       return;
     }
 
-    // Jika tab Lainnya (index 2), langsung buka halaman Pemasukan Non Iuran
-    if (currentIndex == 2) {
-      Navigator.push(
+    // Jika tab Lainnya (index 1), langsung buka halaman Pemasukan Non Iuran
+    if (currentIndex == 1) {
+      final result = await Navigator.push(
         context,
         MaterialPageRoute(
           builder: (context) => const PemasukanNonIuranPage(),
         ),
       );
+
+      // Refresh data setelah kembali dari form
+      if (result == true && mounted) {
+        // Data akan otomatis ter-refresh karena stream di provider
+        // Tapi kita panggil lagi untuk memastikan
+        context.read<PemasukanLainProvider>().loadPemasukanLain();
+      }
       return;
     }
-
-    // Untuk tab lainnya, tampilkan dialog
-    final tabNames = ['Jenis Iuran', 'Tagihan', 'Lainnya'];
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-        ),
-        contentPadding: EdgeInsets.zero,
-        content: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                const Color(0xFF3B82F6).withValues(alpha: 0.05),
-                Colors.white,
-              ],
-            ),
-            borderRadius: BorderRadius.circular(24),
-          ),
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      const Color(0xFF3B82F6),
-                      const Color(0xFF2563EB),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Icon(
-                  Icons.add_circle_rounded,
-                  color: Colors.white,
-                  size: 48,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'Tambah ${tabNames[currentIndex]}',
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 20,
-                  color: const Color(0xFF1F2937),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Fitur untuk menambahkan data ${tabNames[currentIndex]} akan segera hadir.',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  height: 1.5,
-                  color: const Color(0xFF6B7280),
-                ),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3B82F6),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: Text(
-                    'Mengerti',
-                    style: GoogleFonts.poppins(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }
