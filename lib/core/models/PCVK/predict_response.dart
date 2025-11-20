@@ -1,4 +1,5 @@
 class PredictModelResponse {
+  final String fileName;
   final String predictedClass;
   final double confidence;
   final Map<String, double> allConfidences;
@@ -9,6 +10,7 @@ class PredictModelResponse {
   final bool applyBrightnessContrast;
 
   PredictModelResponse({
+    required this.fileName,
     required this.predictedClass,
     required this.confidence,
     required this.allConfidences,
@@ -28,6 +30,7 @@ class PredictModelResponse {
     });
 
     return PredictModelResponse(
+      fileName: json['filename'] as String,
       predictedClass: json['predicted_class'] as String,
       confidence: (json['confidence'] as num).toDouble(),
       allConfidences: allConfidences,
@@ -41,6 +44,7 @@ class PredictModelResponse {
 
   Map<String, dynamic> toJson() {
     return {
+      'filename': fileName,
       'predicted_class': predictedClass,
       'confidence': confidence,
       'all_confidences': allConfidences,
@@ -55,57 +59,5 @@ class PredictModelResponse {
   @override
   String toString() {
     return 'PredictionResponse(predictedClass: $predictedClass, confidence: $confidence, allConfidences: $allConfidences, device: $device, modelType: $modelType, segmentationUsed: $segmentationUsed, segmentationMethod: $segmentationMethod, applyBrightnessContrast: $applyBrightnessContrast)';
-  }
-}
-
-class BatchPredictionResponse extends PredictModelResponse {
-  final String? error;
-
-  BatchPredictionResponse({
-    required super.predictedClass,
-    required super.confidence,
-    required super.allConfidences,
-    required super.device,
-    required super.modelType,
-    required super.segmentationUsed,
-    required super.segmentationMethod,
-    required super.applyBrightnessContrast,
-    this.error,
-  });
-
-  factory BatchPredictionResponse.fromJson(Map<String, dynamic> json) {
-    final allConfidencesJson = json['all_confidences'] as Map<String, dynamic>;
-    final allConfidences = <String, double>{};
-
-    allConfidencesJson.forEach((key, value) {
-      allConfidences[key] = (value as num).toDouble();
-    });
-
-    return BatchPredictionResponse(
-      predictedClass: json['predicted_class'] as String,
-      confidence: (json['confidence'] as num).toDouble(),
-      allConfidences: allConfidences,
-      device: json['device'] as String,
-      modelType: json['model_type'] as String,
-      segmentationUsed: json['segmentation_used'] as bool,
-      segmentationMethod: json['segmentation_method'] as String,
-      applyBrightnessContrast: json['apply_brightness_contrast'] as bool,
-      error: json['error'] as String,
-    );
-  }
-
-  @override
-  Map<String, dynamic> toJson() {
-    return {
-      'predicted_class': predictedClass,
-      'confidence': confidence,
-      'all_confidences': allConfidences,
-      'device': device,
-      'model_type': modelType,
-      'segmentation_used': segmentationUsed,
-      'segmentation_method': segmentationMethod,
-      'apply_brightness_contrast': applyBrightnessContrast,
-      'error': error,
-    };
   }
 }
