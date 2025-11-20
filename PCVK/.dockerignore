@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb
+
+# Dataset folders (terlalu besar)
+dataset_prepared/
+dataset_prepared_u2netp/
+dataset_prepared_u2netp_dirty/
+dataset_grouped/
+docs/
+
+# Training runs
+runs/
+runs_test_va/
+models/
+notebook/
+
+
+# Documentation
+docs/
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Temporary files
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Test files
+test_*.py
+*_test.py
