@@ -1,13 +1,10 @@
-"""
-Pydantic models for request/response validation
-"""
-
 from typing import Dict, List, Optional, Union, Any
 from pydantic import BaseModel
 
 
 class PredictionResponse(BaseModel):
     """Response model for prediction endpoint"""
+
     filename: str
     predicted_class: str
     confidence: float
@@ -21,6 +18,7 @@ class PredictionResponse(BaseModel):
 
 class HealthResponse(BaseModel):
     """Response model for health check endpoint"""
+
     status: str
     device: str
     num_classes: int
@@ -30,11 +28,13 @@ class HealthResponse(BaseModel):
 
 class ClassesResponse(BaseModel):
     """Response model for classes endpoint"""
+
     classes: List[str]
 
 
 class ModelInfo(BaseModel):
     """Information about a single model"""
+
     loaded: bool
     architecture: Optional[str] = None
     hidden_layers: Optional[str] = None
@@ -44,6 +44,7 @@ class ModelInfo(BaseModel):
 
 class ModelsInfoResponse(BaseModel):
     """Response model for models info endpoint"""
+
     available_models: List[str]
     total_models: int
     models: Dict[str, ModelInfo]
@@ -51,9 +52,11 @@ class ModelsInfoResponse(BaseModel):
 
 class BatchPredictionResult(PredictionResponse):
     """Single result in batch prediction"""
+
     error: Optional[str] = None
 
 
 class BatchPredictionResponse(BaseModel):
     """Response model for batch prediction endpoint"""
+
     results: List[BatchPredictionResult]

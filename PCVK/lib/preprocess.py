@@ -4,8 +4,8 @@ from torch.utils.data import Dataset
 import torchvision.transforms as T
 import cv2
 import torch
-from extract_features import extract_all_features
-from segment import auto_segment
+from .extract_features import extract_all_features
+from .segment import auto_segment
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from multiprocessing import cpu_count
 import gc

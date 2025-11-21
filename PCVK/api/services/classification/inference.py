@@ -17,7 +17,7 @@ if lib_path not in sys.path:
 
 from lib.extract_features import extract_all_features
 from lib.segment import auto_segment
-from api.config import CLASS_NAMES, DEVICE
+from api.configs.pcvk_config import CLASS_NAMES, DEVICE
 
 
 def preprocess_image(image: Image.Image, target_size: Tuple[int, int] = (224, 224)) -> np.ndarray:

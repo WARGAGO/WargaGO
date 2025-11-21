@@ -2,7 +2,7 @@ import numpy as np
 from skimage.feature import hog, local_binary_pattern
 import cv2
 from scipy.stats import entropy
-from segment import auto_segment
+from .segment import auto_segment
 
 
 def extract_hog_features(

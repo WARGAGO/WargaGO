@@ -7,19 +7,19 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import gradio as gr
 
-from api.config import (
+from api.configs.config import (
     API_TITLE,
     API_DESCRIPTION,
     API_VERSION,
     CORS_ORIGINS,
     CORS_CREDENTIALS,
     CORS_METHODS,
-    CORS_HEADERS,
-    DEVICE
+    CORS_HEADERS
 )
-from api.routes import router
-from api.gradio_interface import create_gradio_interface
-from api.model_loader import model_manager
+from api.configs.pcvk_config import DEVICE
+from api.routes.api_route import router
+from api.services.classification.gradio_interface import create_gradio_interface
+from api.services.classification.model_loader import model_manager
 
 
 @asynccontextmanager
