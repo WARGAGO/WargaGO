@@ -21,7 +21,7 @@ from api.configs.config import (
 )
 from api.configs.pcvk_config import DEVICE
 from api.routes.api_route import router
-from api.routes.azure_routes import azure_router
+from api.routes.storage_public_route import public_storage_router
 from api.services.classification.gradio_interface import create_gradio_interface
 from api.services.classification.model_loader import model_manager
 
@@ -78,7 +78,7 @@ def create_app() -> FastAPI:
     )
     
     app.include_router(router, prefix="/api")
-    app.include_router(azure_router, prefix="/api")
+    app.include_router(public_storage_router, prefix="/api")
     
     # Create and mount Gradio app at root
     gradio_app = create_gradio_interface()

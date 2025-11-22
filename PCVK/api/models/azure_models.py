@@ -20,4 +20,4 @@ class UserImagesResponse(BaseModel):
 
     user_id: str
     count: int
-    images: List[Dict[str, str]]
+    images: List[StorageResponse]

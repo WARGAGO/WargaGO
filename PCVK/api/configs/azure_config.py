@@ -10,7 +10,7 @@ from pathlib import Path
 
 # Azure Blob Storage Configuration
 AZURE_STORAGE_CONNECTION_STRING = os.getenv("AZURE_STORAGE_CONNECTION_STRING", "")
-AZURE_STORAGE_CONTAINER_NAME = os.getenv("AZURE_STORAGE_CONTAINER_NAME", "vegetable-images")
+AZURE_STORAGE_CONTAINER_PUBLIC_NAME = os.getenv("AZURE_STORAGE_CONTAINER_NAME", "vegetable-images")
 
 # Firebase Configuration
 FIREBASE_CREDENTIALS = None
@@ -33,7 +33,7 @@ WEBP_QUALITY = 85  # Quality for WebP conversion (1-100)
 # Validate configuration
 def validate_azure_config() -> bool:
     """Validate Azure configuration"""    
-    if not AZURE_STORAGE_CONTAINER_NAME:
+    if not AZURE_STORAGE_CONTAINER_PUBLIC_NAME:
         print("WARNING: Azure Storage container name not configured")
         return False
     

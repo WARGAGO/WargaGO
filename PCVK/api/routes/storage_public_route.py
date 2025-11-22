@@ -9,17 +9,23 @@ import io
 
 from api.models.azure_models import StorageResponse, UserImagesResponse
 from api.services.firebase_auth import get_current_user
-from api.services.azure_storage import azure_storage
+from api.services.azure_storage import AzureBlobStorage
+from api.configs.azure_config import AZURE_STORAGE_CONTAINER_PUBLIC_NAME
+
+azure_storage = AzureBlobStorage(
+    storage_container_name=AZURE_STORAGE_CONTAINER_PUBLIC_NAME
+)
+
+public_storage_router = APIRouter(
+    prefix="/storage/public", tags=["Azure Blob Storage (Public)"]
+)
 
 
-# Create router
-azure_router = APIRouter(prefix="/azure", tags=["Azure Blob Storage"])
-
-
-@azure_router.post("/upload", response_model=StorageResponse)
+@public_storage_router.post("/upload", response_model=StorageResponse)
 async def upload_image(
     file: UploadFile = File(..., description="Image file to store"),
     custom_name: Optional[str] = None,
+    prefix_name: Optional[str] = None,
     user_info: dict = Depends(get_current_user),
 ):
     """
@@ -39,7 +45,11 @@ async def upload_image(
         # Upload to Azure
         user_id = user_info.get("uid", "unknown")
         blob_name, blob_url = azure_storage.upload_image(
-            image=image, user_id=user_id, filename=file.filename, custom_name=custom_name
+            image=image,
+            user_id=user_id,
+            filename=file.filename,
+            custom_name=custom_name,
+            prefix_name=prefix_name,
         )
 
         if not blob_name:
@@ -62,69 +72,43 @@ async def upload_image(
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
 
-@azure_router.get("/get-images")
-async def get_images(uid: Optional[str] = None):
+@public_storage_router.get("/get-images", response_model=UserImagesResponse)
+async def get_images(uid: Optional[str] = None, filename_prefix: Optional[str] = None):
     """
-    Get list of images by user ID (no authentication required)
-    
+    Get list of images by user ID and/or filename (no authentication required)
+
     Args:
-        uid: Optional user ID. If not provided, returns all images.
-    
+        uid: Optional user ID. If not provided, searches all users.
+        filename_prefix: Optional filename prefix for server-side filtering (searches files starting with this value).
+
     Returns:
         List of images with their URLs
     """
     try:
-        if uid:
-            # Get images for specific user
-            blob_names = azure_storage.list_user_blobs(uid)
-        else:
-            # Get all images
-            blob_names = azure_storage.list_user_blobs()
-        
+        # Use server-side filtering with name_starts_with
+        blob_names = azure_storage.list_user_blobs(
+            user_id=uid, filename_prefix=filename_prefix
+        )
+
         # Generate SAS URLs for each blob
         images = []
         for blob_name in blob_names:
             sas_url = azure_storage.get_blob_url_with_sas(blob_name, expiry_hours=24)
             if sas_url:
-                images.append({"blob_name": blob_name, "url": sas_url})
-        
-        return {
-            "user_id": uid if uid else "all",
-            "count": len(images),
-            "images": images
-        }
-    
+                images.append(
+                    StorageResponse(success=True, blob_name=blob_name, blob_url=sas_url)
+                )
+
+        return UserImagesResponse(
+            user_id=uid if uid else "all", count=len(images), images=images
+        )
+
     except Exception as e:
         print(f"Error listing images: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to list images: {str(e)}")
 
 
-@azure_router.get("/my-images", response_model=UserImagesResponse)
-async def get_user_images(user_info: dict = Depends(get_current_user)):
-    """
-    Get list of all images uploaded by the authenticated user
-
-    Requires: Bearer token in Authorization header
-    """
-    try:
-        user_id = user_info.get("uid", "unknown")
-        blob_names = azure_storage.list_user_blobs(user_id)
-
-        # Generate SAS URLs for each blob
-        images = []
-        for blob_name in blob_names:
-            sas_url = azure_storage.get_blob_url_with_sas(blob_name, expiry_hours=24)
-            if sas_url:
-                images.append({"blob_name": blob_name, "url": sas_url})
-
-        return UserImagesResponse(user_id=user_id, count=len(images), images=images)
-
-    except Exception as e:
-        print(f"Error listing user images: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to list images: {str(e)}")
-
-
-@azure_router.delete("/image/{blob_name:path}")
+@public_storage_router.delete("/image/{blob_name:path}")
 async def delete_image(blob_name: str, user_info: dict = Depends(get_current_user)):
     """
     Delete an image from Azure Blob Storage
