@@ -10,7 +10,12 @@ from pathlib import Path
 
 # Azure Blob Storage Configuration
 AZURE_STORAGE_CONNECTION_STRING = os.getenv("AZURE_STORAGE_CONNECTION_STRING", "")
-AZURE_STORAGE_CONTAINER_PUBLIC_NAME = os.getenv("AZURE_STORAGE_CONTAINER_NAME", "vegetable-images")
+AZURE_STORAGE_CONTAINER_PUBLIC_NAME = os.getenv(
+    "AZURE_STORAGE_CONTAINER_PUBLIC_NAME", "public"
+)
+AZURE_STORAGE_CONTAINER_PRIVATE_NAME = os.getenv(
+    "AZURE_STORAGE_CONTAINER_PRIVATE_NAME", "private"
+)
 
 # Firebase Configuration
 FIREBASE_CREDENTIALS = None
@@ -30,20 +35,21 @@ ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 MAX_IMAGE_SIZE_MB = 10
 WEBP_QUALITY = 85  # Quality for WebP conversion (1-100)
 
+
 # Validate configuration
 def validate_azure_config() -> bool:
-    """Validate Azure configuration"""    
+    """Validate Azure configuration"""
     if not AZURE_STORAGE_CONTAINER_PUBLIC_NAME:
         print("WARNING: Azure Storage container name not configured")
         return False
-    
+
     return True
 
 
 def validate_firebase_config() -> bool:
-    """Validate Firebase configuration"""    
+    """Validate Firebase configuration"""
     if FIREBASE_CREDENTIALS is None:
         print(f"WARNING: Firebase credentials are not set")
         return False
-    
+
     return True

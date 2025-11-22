@@ -1,5 +1,5 @@
 """
-FastAPI Application Entry Point (Backward Compatible)
+FastAPI Application Entry Point
 
 This file maintains backward compatibility by importing from the modular structure.
 To use the new modular structure, run: python main.py

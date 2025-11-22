@@ -126,16 +126,17 @@ class AzureBlobStorage:
                         safe_name.rsplit(".", 1)[0] if "." in safe_name else safe_name
                     )
                     safe_name += ".webp"
-                blob_name = f"{user_id}/{safe_name}"
+                blob_name = f"{safe_name}"
             else:
                 # Generate timestamp-based name
                 timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
                 unique_id = str(uuid.uuid4())[:8]
-                blob_name = f"{user_id}/{timestamp}_{unique_id}.webp"
-                
+                blob_name = f"{timestamp}_{unique_id}.webp"
+
             if prefix_name:
-               safe_name = custom_name.replace("/", "_").replace("\\", "_")
-               blob_name = f"{prefix_name}{blob_name}"
+                safe_name = custom_name.replace("/", "_").replace("\\", "_")
+                blob_name = f"{prefix_name}{blob_name}"
+            blob_name = f"{user_id}/{blob_name}"
 
             # Convert image to WebP
             webp_bytes = self.convert_to_webp(image)
@@ -243,7 +244,7 @@ class AzureBlobStorage:
 
         Args:
             user_id: User ID from Firebase auth
-            filename_prefix: Optional filename prefix for server-side filtering
+            filename_prefix: Optional filename prefix for filtering.
 
         Returns:
             List of blob names
@@ -252,20 +253,25 @@ class AzureBlobStorage:
             return []
 
         try:
-            # Build the prefix for name_starts_with
-            prefix = None
             if user_id and filename_prefix:
                 prefix = f"{user_id}/{filename_prefix}"
+                blobs = self.container_client.list_blobs(name_starts_with=prefix)
+                return [blob.name for blob in blobs]
             elif user_id:
                 prefix = f"{user_id}/"
-            elif filename_prefix:
-                prefix = filename_prefix
-            
-            if prefix:
                 blobs = self.container_client.list_blobs(name_starts_with=prefix)
-            else:
+                return [blob.name for blob in blobs]
+            elif filename_prefix:
                 blobs = self.container_client.list_blobs()
-            return [blob.name for blob in blobs]
+                filename_prefix_lower = filename_prefix.lower()
+                return [
+                    blob.name for blob in blobs
+                    if filename_prefix_lower in blob.name.lower()
+                ]
+            else:
+                # No filters: return all blobs
+                blobs = self.container_client.list_blobs()
+                return [blob.name for blob in blobs]
 
         except Exception as e:
             print(f"Error listing blobs: {e}")

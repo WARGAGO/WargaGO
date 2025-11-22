@@ -10,18 +10,18 @@ import io
 from api.models.azure_models import StorageResponse, UserImagesResponse
 from api.services.firebase_auth import get_current_user, firebase_auth
 from api.services.azure_storage import AzureBlobStorage
-from api.configs.azure_config import AZURE_STORAGE_CONTAINER_PUBLIC_NAME
+from api.configs.azure_config import AZURE_STORAGE_CONTAINER_PRIVATE_NAME
 
 azure_storage = AzureBlobStorage(
-    storage_container_name=AZURE_STORAGE_CONTAINER_PUBLIC_NAME
+    storage_container_name=AZURE_STORAGE_CONTAINER_PRIVATE_NAME
 )
 
-public_storage_router = APIRouter(
-    prefix="/storage/public", tags=["Azure Blob Storage (Public)"]
+private_storage_router = APIRouter(
+    prefix="/storage/private", tags=["Azure Blob Storage (Private)"]
 )
 
 
-@public_storage_router.post("/upload", response_model=StorageResponse)
+@private_storage_router.post("/upload", response_model=StorageResponse)
 async def upload_image(
     file: UploadFile = File(..., description="Image file to store"),
     custom_name: Optional[str] = None,
@@ -72,22 +72,47 @@ async def upload_image(
         raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
 
 
-@public_storage_router.get("/get-images", response_model=UserImagesResponse)
-async def get_images(uid: Optional[str] = None, filename_prefix: Optional[str] = None):
+@private_storage_router.get("/get-images", response_model=UserImagesResponse)
+async def get_images(
+    uid: Optional[str] = None,
+    filename_prefix: Optional[str] = None,
+    user_info: dict = Depends(get_current_user),
+):
     """
-    Get list of images by user ID and/or filename (no authentication required)
+    Get list of images by user ID and/or filename (requires authentication)
+    Admins can access all users' images by specifying uid parameter.
 
     Args:
-        uid: Optional user ID. If not provided, searches all users.
+        uid: Optional user ID. If provided and user is admin, returns that user's images. 
+             If not provided, returns current user's images.
         filename_prefix: Optional filename prefix for server-side filtering (searches files starting with this value).
 
     Returns:
         List of images with their URLs
     """
     try:
-        # Use server-side filtering with name_starts_with
+        current_uid = user_info.get("uid", "unknown")
+        
+        # Check if user is admin
+        user_role = firebase_auth.get_user_role(current_uid)
+        is_admin = user_role == "admin"
+        
+        # Determine which user's images to retrieve
+        if uid and is_admin:
+            # Admin can access any user's images
+            target_uid = uid
+        elif uid and not is_admin:
+            # Non-admin cannot access other users' images
+            raise HTTPException(
+                status_code=403, 
+                detail="Only admins can access other users' images"
+            )
+        else:
+            # No uid specified, use current user
+            target_uid = current_uid
+        
         blob_names = azure_storage.list_user_blobs(
-            user_id=uid, filename_prefix=filename_prefix
+            user_id=target_uid, filename_prefix=filename_prefix
         )
 
         # Generate SAS URLs for each blob
@@ -100,31 +125,29 @@ async def get_images(uid: Optional[str] = None, filename_prefix: Optional[str] =
                 )
 
         return UserImagesResponse(
-            user_id=uid if uid else "all", count=len(images), images=images
+            user_id=target_uid, count=len(images), images=images
         )
 
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"Error listing images: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to list images: {str(e)}")
 
 
-@public_storage_router.delete("/image/{blob_name:path}")
+@private_storage_router.delete("/image/{blob_name:path}")
 async def delete_image(blob_name: str, user_info: dict = Depends(get_current_user)):
     """
     Delete an image from Azure Blob Storage
 
     Requires: Bearer token in Authorization header
-    Allows users to delete their own images, or admins to delete any image
+    Only allows deletion of user's own images
     """
     try:
         user_id = user_info.get("uid", "unknown")
-        
-        # Check if user is admin
-        user_role = firebase_auth.get_user_role(user_id)
-        is_admin = user_role == "admin"
 
-        # Verify the blob belongs to the user or user is admin
-        if not is_admin and not blob_name.startswith(f"{user_id}/"):
+        # Verify the blob belongs to the user
+        if not blob_name.startswith(f"{user_id}/"):
             raise HTTPException(
                 status_code=403, detail="You can only delete your own images"
             )
