@@ -12,7 +12,7 @@ SERVER_HOST = "0.0.0.0"
 SERVER_PORT = 8000
 
 # CORS configuration
-CORS_ORIGINS = ["*"]  # Adjust this in production
+CORS_ORIGINS = ["*"] 
 CORS_CREDENTIALS = True
 CORS_METHODS = ["*"]
 CORS_HEADERS = ["*"]
