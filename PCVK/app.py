@@ -7,13 +7,12 @@ To use this file directly, run: python app.py
 """
 
 from api.app import app
-from api.config import SERVER_HOST, SERVER_PORT, MODEL_PATHS
+from api.configs.config import SERVER_HOST, SERVER_PORT
 
 if __name__ == "__main__":
     import uvicorn
     
     print("Starting FastAPI server")
-    print(f"Device: {app.extra.get('device', 'N/A')}" if hasattr(app, 'extra') else "")
     
     uvicorn.run(
         app,

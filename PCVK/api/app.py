@@ -2,24 +2,28 @@
 Main FastAPI application
 """
 
+from dotenv import load_dotenv
+load_dotenv()
+
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import gradio as gr
 
-from api.config import (
+from api.configs.config import (
     API_TITLE,
     API_DESCRIPTION,
     API_VERSION,
     CORS_ORIGINS,
     CORS_CREDENTIALS,
     CORS_METHODS,
-    CORS_HEADERS,
-    DEVICE
+    CORS_HEADERS
 )
-from api.routes import router
-from api.gradio_interface import create_gradio_interface
-from api.model_loader import model_manager
+from api.configs.pcvk_config import DEVICE
+from api.routes.api_route import router
+from api.routes.azure_routes import azure_router
+from api.services.classification.gradio_interface import create_gradio_interface
+from api.services.classification.model_loader import model_manager
 
 
 @asynccontextmanager
@@ -74,6 +78,7 @@ def create_app() -> FastAPI:
     )
     
     app.include_router(router, prefix="/api")
+    app.include_router(azure_router, prefix="/api")
     
     # Create and mount Gradio app at root
     gradio_app = create_gradio_interface()

@@ -8,7 +8,7 @@ from PIL import Image
 import io
 from typing import List
 
-from api.models import (
+from api.models.pcvk_models import (
     PredictionResponse,
     HealthResponse,
     ClassesResponse,
@@ -17,18 +17,18 @@ from api.models import (
     BatchPredictionResponse,
     BatchPredictionResult
 )
-from api.config import (
+from api.configs.pcvk_config import (
     CLASS_NAMES,
     DEVICE,
     MODEL_PATHS,
     VALID_SEGMENTATION_METHODS
 )
-from api.model_loader import model_manager
-from api.inference import predict_image
+from api.services.classification.model_loader import model_manager
+from api.services.classification.inference import predict_image
 
 
 # Create router
-router = APIRouter()
+router = APIRouter(tags=["PCVK"])
 
 
 @router.get("/health", response_model=HealthResponse)

@@ -11,6 +11,14 @@ tqdm>=4.65.0
 fastapi>=0.104.0
 uvicorn[standard]>=0.24.0
 python-multipart>=0.0.6
+python-dotenv
 onnxruntime
 matplotlib
 tensorboard
+
+# Azure dependencies
+azure-storage-blob
+azure-identity
+
+# Firebase dependencies
+firebase-admin

@@ -23,11 +23,13 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy aplikasi
 COPY . .
 
+# Create directory for Firebase credentials (optional, can be mounted)
+RUN mkdir -p /app/credentials
+
 # Expose port
 EXPOSE 8000
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 
-# Command untuk menjalankan aplikasi
 CMD ["python", "app.py"]

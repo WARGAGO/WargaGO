@@ -12,7 +12,7 @@ class FirestoreService {
       print('\n=== FirestoreService.getUserByEmail ===');
       print('Input email: "$email"');
       print('Querying collection: users');
-      
+
       final querySnapshot = await _firestore
           .collection('users')
           .where('email', isEqualTo: email)
@@ -39,7 +39,7 @@ class FirestoreService {
       print('Password from doc: ${doc.data()['password']}');
       print('Status from doc: ${doc.data()['status']}');
       print('Role from doc: ${doc.data()['role']}');
-      
+
       final user = UserModel.fromMap(doc.data(), doc.id);
       print('✅ UserModel created successfully');
       print('=====================================\n');
@@ -74,6 +74,7 @@ class FirestoreService {
   Future<String?> createUser(UserModel user) async {
     try {
       print('=== FirestoreService: createUser START ===');
+      print('User ID: ${user.id}');
       print('Email: ${user.email}');
       print('Nama: ${user.nama}');
       print('NIK: ${user.nik}');
@@ -89,14 +90,25 @@ class FirestoreService {
       final userMap = user.toMap();
       print('User map created successfully');
       print('Map keys: ${userMap.keys.toList()}');
-      print('Map values preview: email=${userMap['email']}, nama=${userMap['nama']}');
+      print(
+        'Map values preview: email=${userMap['email']}, nama=${userMap['nama']}',
+      );
 
-      print('Adding document to Firestore...');
-      final docRef = await _firestore.collection('users').add(userMap);
-      print('SUCCESS! Document created with ID: ${docRef.id}');
-      print('=== FirestoreService: createUser END ===');
-
-      return docRef.id;
+      // Use user.id as document ID if provided (for Firebase Auth UID)
+      // Otherwise, let Firestore generate an ID
+      if (user.id.isNotEmpty) {
+        print('Using provided user ID as document ID: ${user.id}');
+        await _firestore.collection('users').doc(user.id).set(userMap);
+        print('SUCCESS! Document created with ID: ${user.id}');
+        print('=== FirestoreService: createUser END ===');
+        return user.id;
+      } else {
+        print('Letting Firestore generate document ID...');
+        final docRef = await _firestore.collection('users').add(userMap);
+        print('SUCCESS! Document created with ID: ${docRef.id}');
+        print('=== FirestoreService: createUser END ===');
+        return docRef.id;
+      }
     } catch (e, stackTrace) {
       print('=== FirestoreService: createUser ERROR ===');
       print('Error type: ${e.runtimeType}');
@@ -275,7 +287,9 @@ class FirestoreService {
     bool descending = false,
   }) async {
     try {
-      Query query = _firestore.collection(collection).where(field, isEqualTo: value);
+      Query query = _firestore
+          .collection(collection)
+          .where(field, isEqualTo: value);
 
       if (orderBy != null) {
         query = query.orderBy(orderBy, descending: descending);
@@ -291,4 +305,3 @@ class FirestoreService {
     }
   }
 }
-

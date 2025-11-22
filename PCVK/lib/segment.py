@@ -1,12 +1,9 @@
 # @markdown ### Segment.py - Image Segmentation Functions
 import cv2
 import numpy as np
-import torch
-from torchvision import transforms
-from PIL import Image
 import os
 
-from api.config import MODEL_PATHS
+from api.configs.pcvk_config import MODEL_PATHS
 
 
 def apply_clahe(img, clip_limit=2.0, tile_grid_size=(8, 8)):

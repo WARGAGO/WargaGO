@@ -6,15 +6,17 @@ services:
     container_name: vegetable-classification-api
     ports:
       - "8000:8000"
+    env_file:
+      - .env
     volumes:
       # Mount models directory untuk mengakses model yang sudah ditraining
-      - ./models:/app/models:ro
+      # - ./models:/app/models:ro
       # Mount api directory untuk hot-reload saat development (opsional)
       # - ./api:/app/api
     environment:
       - PYTHONUNBUFFERED=1
     restart: unless-stopped
-    # Uncomment jika ingin menggunakan GPU
+    # Uncomment for GPU support
     # deploy:
     #   resources:
     #     reservations:

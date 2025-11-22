@@ -5,12 +5,12 @@ import 'firebase_service.dart';
 
 class AuthService {
   final FirebaseService _firebaseService = FirebaseService();
-  
+
   FirebaseFirestore get _firestore => _firebaseService.firestore;
 
   // Current logged in user ID (stored in memory)
   String? _currentUserId;
-  
+
   // Get current user ID
   String? get currentUserId => _currentUserId;
 
@@ -54,10 +54,7 @@ class AuthService {
       _currentUserId = userDoc.id;
 
       // Return user data with ID
-      return {
-        'id': userDoc.id,
-        ...userData,
-      };
+      return {'id': userDoc.id, ...userData};
     } catch (e) {
       if (e is String) rethrow;
       throw 'Terjadi kesalahan: $e';
@@ -128,10 +125,7 @@ class AuthService {
 
       // Return user data
       final userDoc = await userRef.get();
-      return {
-        'id': userRef.id,
-        ...userDoc.data()!,
-      };
+      return {'id': userRef.id, ...userDoc.data()!};
     } catch (e) {
       if (e is String) rethrow;
       throw 'Terjadi kesalahan: $e';
@@ -156,7 +150,10 @@ class AuthService {
       if (_currentUserId == null) throw 'User tidak login';
 
       // Get current user data
-      final userDoc = await _firestore.collection('users').doc(_currentUserId).get();
+      final userDoc = await _firestore
+          .collection('users')
+          .doc(_currentUserId)
+          .get();
       if (!userDoc.exists) throw 'User tidak ditemukan';
 
       final userData = userDoc.data()!;
@@ -197,10 +194,7 @@ class AuthService {
     try {
       final doc = await _firestore.collection('users').doc(uid).get();
       if (doc.exists) {
-        return {
-          'id': uid,
-          ...doc.data()!,
-        };
+        return {'id': uid, ...doc.data()!};
       }
       return null;
     } catch (e) {
@@ -231,11 +225,13 @@ class AuthService {
       if (rw != null) updateData['rw'] = rw;
       if (photoUrl != null) updateData['photoUrl'] = photoUrl;
 
-      await _firestore.collection('users').doc(_currentUserId).update(updateData);
+      await _firestore
+          .collection('users')
+          .doc(_currentUserId)
+          .update(updateData);
     } catch (e) {
       if (e is String) rethrow;
       throw 'Gagal update profil: $e';
     }
   }
 }
-

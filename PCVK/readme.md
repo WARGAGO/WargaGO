@@ -1,10 +1,40 @@
-# Setup
+# Vegetable Classification API
 
-```python
+FastAPI-based vegetable classification system with Azure Blob Storage integration and Firebase authentication.
+
+## Quick Start
+
+### Installation
+
+```bash
 pip install -r requirements.txt
 ```
 
-#### Tested: Python 3.12
+**Tested with Python 3.12**
+
+### Firebase, Azure Storage Configuration
+
+1. Copy environment template:
+
+```bash
+cp .env.example .env
+```
+
+2. Configure Azure and Firebase credentials in `.env`
+
+### Run Application
+
+**Standard mode:**
+
+```bash
+python app.py
+```
+
+**Docker mode:**
+
+```bash
+docker-compose up --build
+```
 
 # Dataset
 

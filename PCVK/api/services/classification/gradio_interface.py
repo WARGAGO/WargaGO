@@ -8,9 +8,8 @@ import cv2
 import numpy as np
 from PIL import Image
 
-from api.config import CLASS_NAMES
-from api.model_loader import model_manager
-from api.inference import predict_image
+from api.services.classification.model_loader import model_manager
+from api.services.classification.inference import predict_image
 
 
 def gradio_predict(

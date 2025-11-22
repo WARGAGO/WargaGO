@@ -14,7 +14,7 @@ if lib_path not in sys.path:
 
 from lib.model import ModelMLP
 from lib.model_v2 import ModelMLPV2
-from api.config import MODEL_PATHS, CLASS_NAMES, DEVICE, NUM_FEATURES
+from api.configs.pcvk_config import MODEL_PATHS, CLASS_NAMES, DEVICE, NUM_FEATURES
 
 
 class ModelManager:
