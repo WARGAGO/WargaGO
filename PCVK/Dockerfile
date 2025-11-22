@@ -1,5 +1,7 @@
 FROM python:3.12-slim
 
+ARG USE_CUDA=true
+
 # Set working directory
 WORKDIR /app
 
@@ -15,21 +17,22 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements file
-COPY requirements.txt .
+COPY requirements-docker.txt .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN echo "USE_CUDA is set to: $USE_CUDA" && \
+    if [ "$USE_CUDA" = "true" ]; then \
+        echo "Installing CUDA version..." && \
+        pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cu130; \
+    else \
+        echo "Installing CPU version..." && \
+        pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu; \
+    fi
 
-# Copy aplikasi
+RUN pip install --no-cache-dir -r requirements-docker.txt
+
 COPY . .
 
-# Create directory for Firebase credentials (optional, can be mounted)
-RUN mkdir -p /app/credentials
-
-# Expose port
 EXPOSE 8000
-
-# Set environment variables
 ENV PYTHONUNBUFFERED=1
 
 CMD ["python", "app.py"]
