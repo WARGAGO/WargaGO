@@ -20,9 +20,11 @@ class AuthProvider with ChangeNotifier {
   // Sign in with email and password using Firebase Auth
   Future<bool> signIn({required String email, required String password}) async {
     try {
-      print('\n=== LOGIN ATTEMPT ===');
-      print('Email: $email');
-      print('Password length: ${password.length}');
+      if (kDebugMode) {
+        print('\n=== LOGIN ATTEMPT ===');
+        print('Email: $email');
+        print('Password length: ${password.length}');
+      }
 
       _isLoading = true;
       _errorMessage = null;
@@ -30,7 +32,9 @@ class AuthProvider with ChangeNotifier {
 
       // Validate input
       if (email.isEmpty || password.isEmpty) {
-        print('❌ Validation failed: Empty fields');
+        if (kDebugMode) {
+          print('❌ Validation failed: Empty fields');
+        }
         _errorMessage = 'Email dan password harus diisi';
         _isLoading = false;
         notifyListeners();
@@ -38,32 +42,40 @@ class AuthProvider with ChangeNotifier {
       }
 
       // Sign in with Firebase Auth
-      print('🔐 Signing in with Firebase Auth...');
+      if (kDebugMode) {
+        print('🔐 Signing in with Firebase Auth...');
+      }
       final userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
       if (userCredential.user == null) {
-        print('❌ Firebase Auth user is null');
+        if (kDebugMode) {
+          print('❌ Firebase Auth user is null');
+        }
         _errorMessage = 'Login gagal';
         _isLoading = false;
         notifyListeners();
         return false;
       }
 
-      print('✅ Firebase Auth successful!');
-      print('Firebase UID: ${userCredential.user!.uid}');
+      if (kDebugMode) {
+        print('✅ Firebase Auth successful!');
+        print('Firebase UID: ${userCredential.user!.uid}');
+        print('🔍 Getting user data from Firestore...');
+      }
 
       // Get user data from Firestore using UID
-      print('🔍 Getting user data from Firestore...');
       final user = await _firestoreService.getUserById(
         userCredential.user!.uid,
       );
 
       if (user == null) {
-        print('❌ User not found in Firestore');
-        print('⚠️  User exists in Firebase Auth but not in Firestore!');
+        if (kDebugMode) {
+          print('❌ User not found in Firestore');
+          print('⚠️  User exists in Firebase Auth but not in Firestore!');
+        }
         await _auth.signOut();
         _errorMessage = 'Data pengguna tidak ditemukan';
         _isLoading = false;
@@ -71,16 +83,21 @@ class AuthProvider with ChangeNotifier {
         return false;
       }
 
-      print('✅ User found!');
-      print('User data:');
-      print('  - Email: ${user.email}');
-      print('  - Nama: ${user.nama}');
-      print('  - Role: ${user.role}');
-      print('  - Status: ${user.status}');
+      if (kDebugMode) {
+        print('✅ User found!');
+        print('User data:');
+        print('  - Email: ${user.email}');
+        print('  - Nama: ${user.nama}');
+        print('  - Role: ${user.role}');
+        print('  - Status: ${user.status}');
+        print('  - TOKEN: ${await _auth.currentUser!.getIdToken()}');
+      }
 
       // Check if user status is approved
       if (user.status != 'approved') {
-        print('❌ Status bukan approved: ${user.status}');
+        if (kDebugMode) {
+          print('❌ Status bukan approved: ${user.status}');
+        }
         await _auth.signOut();
         if (user.status == 'pending') {
           _errorMessage = 'Akun Anda masih menunggu persetujuan admin';
@@ -94,9 +111,11 @@ class AuthProvider with ChangeNotifier {
         return false;
       }
 
-      print('✅ Status approved!');
-      print('🎉 LOGIN BERHASIL!');
-      print('===================\n');
+      if (kDebugMode) {
+        print('✅ Status approved!');
+        print('🎉 LOGIN BERHASIL!');
+        print('===================\n');
+      }
 
       _userModel = user;
       _isAuthenticated = true;
@@ -104,9 +123,11 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } on FirebaseAuthException catch (e) {
-      print('\n❌ Firebase Auth Error ===');
-      print('Error code: ${e.code}');
-      print('Error message: ${e.message}');
+      if (kDebugMode) {
+        print('\n❌ Firebase Auth Error ===');
+        print('Error code: ${e.code}');
+        print('Error message: ${e.message}');
+      }
 
       switch (e.code) {
         case 'user-not-found':
@@ -136,10 +157,12 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
       return false;
     } catch (e, stackTrace) {
-      print('\n❌ LOGIN ERROR ===');
-      print('Error: $e');
-      print('StackTrace: $stackTrace');
-      print('==================\n');
+      if (kDebugMode) {
+        print('\n❌ LOGIN ERROR ===');
+        print('Error: $e');
+        print('StackTrace: $stackTrace');
+        print('==================\n');
+      }
       _errorMessage = 'Terjadi kesalahan: $e';
       _isLoading = false;
       notifyListeners();
@@ -162,39 +185,49 @@ class AuthProvider with ChangeNotifier {
       _errorMessage = null;
       notifyListeners();
 
-      print('=== START REGISTRATION ===');
-      print('Email: $email');
-      print('Nama: $nama');
+      if (kDebugMode) {
+        print('=== START REGISTRATION ===');
+        print('Email: $email');
+        print('Nama: $nama');
+      }
 
       // Validate input
       if (email.isEmpty || password.isEmpty || nama.isEmpty) {
         _errorMessage = 'Email, password, dan nama harus diisi';
         _isLoading = false;
         notifyListeners();
-        print('Validation failed: Empty fields');
+        if (kDebugMode) {
+          print('Validation failed: Empty fields');
+        }
         return false;
       }
 
       // Create user with Firebase Auth
-      print('🔐 Creating Firebase Auth user...');
+      if (kDebugMode) {
+        print('🔐 Creating Firebase Auth user...');
+      }
       final userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
       if (userCredential.user == null) {
-        print('❌ Failed to create Firebase Auth user');
+        if (kDebugMode) {
+          print('❌ Failed to create Firebase Auth user');
+        }
         _errorMessage = 'Gagal membuat akun';
         _isLoading = false;
         notifyListeners();
         return false;
       }
 
-      print('✅ Firebase Auth user created!');
-      print('Firebase UID: ${userCredential.user!.uid}');
+      if (kDebugMode) {
+        print('✅ Firebase Auth user created!');
+        print('Firebase UID: ${userCredential.user!.uid}');
+        print('Creating user document in Firestore...');
+      }
 
       // Create user data in Firestore (using Firebase UID as document ID)
-      print('Creating user document in Firestore...');
       final newUser = UserModel(
         id: userCredential.user!.uid, // Use Firebase UID
         email: email,
@@ -209,13 +242,19 @@ class AuthProvider with ChangeNotifier {
         createdAt: DateTime.now(),
       );
 
-      print('Saving to Firestore...');
+      if (kDebugMode) {
+        print('Saving to Firestore...');
+      }
       final userId = await _firestoreService.createUser(newUser);
-      print('User ID: $userId');
+      if (kDebugMode) {
+        print('User ID: $userId');
+      }
 
       if (userId == null) {
         // Rollback: Delete Firebase Auth user if Firestore save fails
-        print('⚠️ Firestore save failed, deleting Firebase Auth user...');
+        if (kDebugMode) {
+          print('⚠️ Firestore save failed, deleting Firebase Auth user...');
+        }
         await userCredential.user!.delete();
         _errorMessage = 'Gagal menyimpan data ke database';
         _isLoading = false;
@@ -226,14 +265,18 @@ class AuthProvider with ChangeNotifier {
       // Sign out after registration (user needs to login)
       await _auth.signOut();
 
-      print('=== REGISTRATION SUCCESS ===');
+      if (kDebugMode) {
+        print('=== REGISTRATION SUCCESS ===');
+      }
       _isLoading = false;
       notifyListeners();
       return true;
     } on FirebaseAuthException catch (e) {
-      print('=== Firebase Auth Error ===');
-      print('Error code: ${e.code}');
-      print('Error message: ${e.message}');
+      if (kDebugMode) {
+        print('=== Firebase Auth Error ===');
+        print('Error code: ${e.code}');
+        print('Error message: ${e.message}');
+      }
 
       switch (e.code) {
         case 'email-already-in-use':
@@ -256,9 +299,11 @@ class AuthProvider with ChangeNotifier {
       notifyListeners();
       return false;
     } catch (e, stackTrace) {
-      print('=== REGISTRATION ERROR ===');
-      print('Error: $e');
-      print('StackTrace: $stackTrace');
+      if (kDebugMode) {
+        print('=== REGISTRATION ERROR ===');
+        print('Error: $e');
+        print('StackTrace: $stackTrace');
+      }
       _errorMessage = 'Terjadi kesalahan: $e';
       _isLoading = false;
       notifyListeners();
@@ -298,7 +343,9 @@ class AuthProvider with ChangeNotifier {
       _isAuthenticated = true;
       return true;
     } catch (e) {
-      print('Error checking auth status: $e');
+      if (kDebugMode) {
+        print('Error checking auth status: $e');
+      }
       _isAuthenticated = false;
       _userModel = null;
       return false;
