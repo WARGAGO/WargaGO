@@ -3,6 +3,7 @@ Gradio web interface for vegetable classification
 """
 
 import os
+import time
 import gradio as gr
 import cv2
 import numpy as np
@@ -32,6 +33,9 @@ def gradio_predict(
     Wrapper function for Gradio interface
     """
     try:
+        # Start timing
+        start_time = time.time()
+        
         # Check if model is loaded
         if not model_manager.is_loaded(model_type):
             return f"Error: Model '{model_type}' is not loaded", {}, None
@@ -107,8 +111,11 @@ def gradio_predict(
             seg_method="none"
         )
 
+        # Calculate prediction time
+        prediction_time_ms = (time.time() - start_time) * 1000
+
         # Format output
-        result_text = f"**Prediksi:** {predicted_class}\n\n**Confidence:** {confidence_value:.2%}\n\n**Model:** {model_type.upper()}"
+        result_text = f"**Prediksi:** {predicted_class}\n\n**Confidence:** {confidence_value:.2%}\n\n**Model:** {model_type.upper()}\n\n**Waktu Prediksi:** {prediction_time_ms:.2f} ms"
 
         # Convert segmented image back to RGB for display
         segmented_rgb = cv2.cvtColor(segmented_img, cv2.COLOR_BGR2RGB)
@@ -340,11 +347,7 @@ def create_gradio_interface():
         
         gr.Markdown("""
         ---
-        ### API Endpoints
-        - **API Documentation**: [/docs](/docs)
-        - **Health Check**: [/api/health](/api/health)
-        - **Available Classes**: [/api/classes](/api/classes)
-        - **Models Info**: [/api/models](/api/models)
+        ### API Documentation**: [/docs](/docs)
         """)
 
     return demo

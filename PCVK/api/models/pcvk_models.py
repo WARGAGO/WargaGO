@@ -14,6 +14,7 @@ class PredictionResponse(BaseModel):
     segmentation_used: bool
     segmentation_method: Optional[str]
     apply_brightness_contrast: bool
+    prediction_time_ms: float
 
 
 class HealthResponse(BaseModel):
@@ -60,3 +61,4 @@ class BatchPredictionResponse(BaseModel):
     """Response model for batch prediction endpoint"""
 
     results: List[BatchPredictionResult]
+    total_time_ms: float

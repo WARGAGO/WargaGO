@@ -6,7 +6,7 @@ from typing import Optional
 from fastapi import HTTPException, Security
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import firebase_admin
-from firebase_admin import credentials, auth
+from firebase_admin import credentials, auth, firestore
 
 from api.configs.azure_config import FIREBASE_CREDENTIALS, validate_firebase_config
 
@@ -26,6 +26,9 @@ class FirebaseAuth:
             # Initialize Firebase Admin SDK
             cred = credentials.Certificate(FIREBASE_CREDENTIALS)
             firebase_admin.initialize_app(cred)
+            
+            # Initialize Firestore client
+            self.db = firestore.client()
 
             print("Firebase Authentication initialized")
             self.enabled = True
@@ -33,6 +36,7 @@ class FirebaseAuth:
         except Exception as e:
             print(f"Error initializing Firebase: {e}")
             self.enabled = False
+            self.db = None
 
     def verify_token(self, token: str) -> Optional[dict]:
         """
@@ -66,6 +70,35 @@ class FirebaseAuth:
             return None
         except Exception as e:
             print(f"Error verifying Firebase token: {e}")
+            return None
+
+    def get_user_role(self, uid: str) -> Optional[str]:
+        """
+        Get user role from Firestore
+
+        Args:
+            uid: User ID
+
+        Returns:
+            User role (e.g., 'admin', 'user') or None if not found
+        """
+        if not self.enabled or not self.db:
+            return None
+
+        try:
+            # Get user document from Firestore
+            user_ref = self.db.collection('users').document(uid)
+            user_doc = user_ref.get()
+            
+            if user_doc.exists:
+                user_data = user_doc.to_dict()
+                return user_data.get('role', 'user')
+            else:
+                # Default role if user document doesn't exist
+                return 'user'
+
+        except Exception as e:
+            print(f"Error getting user role: {e}")
             return None
 
     def get_user_info(self, uid: str) -> Optional[dict]:

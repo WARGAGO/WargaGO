@@ -18,7 +18,6 @@ from azure.core.exceptions import AzureError
 
 from api.configs.azure_config import (
     AZURE_STORAGE_CONNECTION_STRING,
-    AZURE_STORAGE_CONTAINER_NAME,
     WEBP_QUALITY,
     validate_azure_config,
 )
@@ -27,9 +26,10 @@ from api.configs.azure_config import (
 class AzureBlobStorage:
     """Service for managing image storage in Azure Blob Storage"""
 
-    def __init__(self):
+    def __init__(self, storage_container_name):
         """Initialize Azure Blob Storage client"""
         self.enabled = validate_azure_config()
+        self.storage_container_name = storage_container_name
 
         if not self.enabled:
             print("Azure Blob Storage is disabled due to missing configuration")
@@ -45,18 +45,18 @@ class AzureBlobStorage:
 
             # Get container client
             self.container_client = self.blob_service_client.get_container_client(
-                AZURE_STORAGE_CONTAINER_NAME
+                storage_container_name
             )
 
             # Create container if it doesn't exist
             try:
                 self.container_client.create_container()
-                print(f"Created container: {AZURE_STORAGE_CONTAINER_NAME}")
+                print(f"Created container: {storage_container_name}")
             except AzureError:
                 # Container already exists
                 pass
 
-            print(f"Azure Blob Storage initialized: {AZURE_STORAGE_CONTAINER_NAME}")
+            print(f"Azure Blob Storage initialized: {storage_container_name}")
 
         except Exception as e:
             print(f"Error initializing Azure Blob Storage: {e}")
@@ -96,6 +96,7 @@ class AzureBlobStorage:
         user_id: str,
         filename: Optional[str] = None,
         custom_name: Optional[str] = None,
+        prefix_name: Optional[str] = None,
         metadata: Optional[dict] = None,
     ) -> Tuple[Optional[str], Optional[str]]:
         """
@@ -125,12 +126,17 @@ class AzureBlobStorage:
                         safe_name.rsplit(".", 1)[0] if "." in safe_name else safe_name
                     )
                     safe_name += ".webp"
-                blob_name = f"{user_id}/{safe_name}"
+                blob_name = f"{safe_name}"
             else:
                 # Generate timestamp-based name
                 timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
                 unique_id = str(uuid.uuid4())[:8]
-                blob_name = f"{user_id}/{timestamp}_{unique_id}.webp"
+                blob_name = f"{timestamp}_{unique_id}.webp"
+
+            if prefix_name:
+                safe_name = custom_name.replace("/", "_").replace("\\", "_")
+                blob_name = f"{prefix_name}{blob_name}"
+            blob_name = f"{user_id}/{blob_name}"
 
             # Convert image to WebP
             webp_bytes = self.convert_to_webp(image)
@@ -192,7 +198,7 @@ class AzureBlobStorage:
 
             sas_token = generate_blob_sas(
                 account_name=self.blob_service_client.account_name,
-                container_name=AZURE_STORAGE_CONTAINER_NAME,
+                container_name=self.storage_container_name,
                 blob_name=blob_name,
                 account_key=self.blob_service_client.credential.account_key,
                 permission=BlobSasPermissions(read=True),
@@ -232,12 +238,13 @@ class AzureBlobStorage:
             print(f"Error deleting blob: {e}")
             return False
 
-    def list_user_blobs(self, user_id: str = None) -> list:
+    def list_user_blobs(self, user_id: str = None, filename_prefix: str = None) -> list:
         """
-        List all blobs for a specific user
+        List all blobs for a specific user and/or file name prefix
 
         Args:
             user_id: User ID from Firebase auth
+            filename_prefix: Optional filename prefix for filtering.
 
         Returns:
             List of blob names
@@ -246,16 +253,26 @@ class AzureBlobStorage:
             return []
 
         try:
-            if user_id is None:
+            if user_id and filename_prefix:
+                prefix = f"{user_id}/{filename_prefix}"
+                blobs = self.container_client.list_blobs(name_starts_with=prefix)
+                return [blob.name for blob in blobs]
+            elif user_id:
+                prefix = f"{user_id}/"
+                blobs = self.container_client.list_blobs(name_starts_with=prefix)
+                return [blob.name for blob in blobs]
+            elif filename_prefix:
                 blobs = self.container_client.list_blobs()
+                filename_prefix_lower = filename_prefix.lower()
+                return [
+                    blob.name for blob in blobs
+                    if filename_prefix_lower in blob.name.lower()
+                ]
             else:
-                blobs = self.container_client.list_blobs(name_starts_with=f"{user_id}/")
-            return [blob.name for blob in blobs]
+                # No filters: return all blobs
+                blobs = self.container_client.list_blobs()
+                return [blob.name for blob in blobs]
 
         except Exception as e:
             print(f"Error listing blobs: {e}")
             return []
-
-
-# Global instance
-azure_storage = AzureBlobStorage()

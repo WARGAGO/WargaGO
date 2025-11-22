@@ -3,6 +3,7 @@ API route handlers
 """
 
 import os
+import time
 from fastapi import APIRouter, File, UploadFile, HTTPException, Query
 from PIL import Image
 import io
@@ -132,6 +133,9 @@ async def predict(
         )
     
     try:
+        # Start timing
+        start_time = time.time()
+        
         # Read image
         image_bytes = await file.read()
         image = Image.open(io.BytesIO(image_bytes))
@@ -148,6 +152,9 @@ async def predict(
             apply_brightness_contrast=apply_brightness_contrast
         )
         
+        # Calculate prediction time
+        prediction_time_ms = (time.time() - start_time) * 1000
+        
         return PredictionResponse(
             filename=file.filename,
             predicted_class=predicted_class,
@@ -157,7 +164,8 @@ async def predict(
             model_type=model_type,
             segmentation_used=use_segmentation,
             segmentation_method=seg_method if use_segmentation else None,
-            apply_brightness_contrast=apply_brightness_contrast
+            apply_brightness_contrast=apply_brightness_contrast,
+            prediction_time_ms=prediction_time_ms
         )
     
     except Exception as e:
@@ -202,6 +210,9 @@ async def batch_predict(
     # Get model
     model = model_manager.get_model(model_type)
     
+    # Start timing for total batch
+    batch_start_time = time.time()
+    
     results = []
     
     for file in files:
@@ -213,6 +224,9 @@ async def batch_predict(
                     error="File must be an image"
                 ))
                 continue
+            
+            # Start timing for individual prediction
+            pred_start_time = time.time()
             
             # Read and process image
             image_bytes = await file.read()
@@ -227,6 +241,9 @@ async def batch_predict(
                 apply_brightness_contrast=apply_brightness_contrast
             )
             
+            # Calculate prediction time
+            prediction_time_ms = (time.time() - pred_start_time) * 1000
+            
             results.append(BatchPredictionResult(
                 filename=file.filename,
                 predicted_class=predicted_class,
@@ -236,13 +253,26 @@ async def batch_predict(
                 model_type=model_type,
                 segmentation_used=use_segmentation,
                 segmentation_method=seg_method if use_segmentation else None,
-                apply_brightness_contrast=apply_brightness_contrast
+                apply_brightness_contrast=apply_brightness_contrast,
+                prediction_time_ms=prediction_time_ms
             ))
         
         except Exception as e:
             results.append(BatchPredictionResult(
                 filename=file.filename,
-                error=str(e)
+                error=str(e),
+                predicted_class="",
+                confidence=0.0,
+                all_confidences={},
+                device=str(DEVICE),
+                model_type=model_type,
+                segmentation_used=use_segmentation,
+                segmentation_method=seg_method if use_segmentation else None,
+                apply_brightness_contrast=apply_brightness_contrast,
+                prediction_time_ms=0.0
             ))
     
-    return BatchPredictionResponse(results=results)
+    # Calculate total batch time
+    total_time_ms = (time.time() - batch_start_time) * 1000
+    
+    return BatchPredictionResponse(results=results, total_time_ms=total_time_ms)
