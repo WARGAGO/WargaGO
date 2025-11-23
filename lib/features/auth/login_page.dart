@@ -16,6 +16,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:jawara/features/auth/lupa_page.dart';
 import 'package:provider/provider.dart';
 import 'package:jawara/features/dashboard/dashboard_page.dart';
 import 'package:jawara/features/auth/register_page.dart';
@@ -50,6 +51,7 @@ class _LoginPageState extends State<LoginPage>
   late final AnimationController _controller;
   late final Animation<double> _progress;
   late bool _isForward;
+  late final ScrollController _scrollController;
 
   @override
   void initState() {
@@ -66,6 +68,7 @@ class _LoginPageState extends State<LoginPage>
     } else {
       _controller.reverse();
     }
+    _scrollController = ScrollController();
   }
 
   void _handleStatus(AnimationStatus status) {
@@ -81,6 +84,7 @@ class _LoginPageState extends State<LoginPage>
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _controller.removeStatusListener(_handleStatus);
     _controller.dispose();
     super.dispose();
@@ -90,46 +94,44 @@ class _LoginPageState extends State<LoginPage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        child: AnimatedBuilder(
-          animation: _progress,
-          builder: (context, _) {
-            return Stack(
-              children: [
-                _DecorBackground(progress: _progress.value),
-                const _LoginBody(),
-              ],
-            );
-          },
-        ),
+      body: AnimatedBuilder(
+        animation: _progress,
+        builder: (context, _) {
+          return Stack(
+            children: [
+              _DecorBackground(progress: _progress.value),
+              _LoginBody(scrollController: _scrollController),
+            ],
+          );
+        },
       ),
     );
   }
 }
 
 class _LoginBody extends StatelessWidget {
-  const _LoginBody();
+  final ScrollController scrollController;
+  const _LoginBody({required this.scrollController});
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(
+          controller: scrollController,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: constraints.maxHeight),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: const [
-                _LoginHeader(),
-                SizedBox(height: 24),
-                _LoginIllustration(),
-                SizedBox(height: 32),
-                _LoginIntro(),
-                SizedBox(height: 28),
-                _LoginFields(),
-                SizedBox(height: 32),
-                SizedBox(height: 16),
+              children: [
+                const SafeArea(child: _LoginHeader()),
+                const SizedBox(height: 24),
+                const _LoginIllustration(),
+                const SizedBox(height: 32),
+                const _LoginIntro(),
+                const SizedBox(height: 28),
+                _LoginFields(scrollController: scrollController),
               ],
             ),
           ),
@@ -221,7 +223,8 @@ class _LoginIntro extends StatelessWidget {
 // ============================================================================
 /// Form login dengan email & password fields
 class _LoginFields extends StatefulWidget {
-  const _LoginFields();
+  final ScrollController scrollController;
+  const _LoginFields({required this.scrollController});
 
   @override
   State<_LoginFields> createState() => _LoginFieldsState();
@@ -298,13 +301,17 @@ class _LoginFieldsState extends State<_LoginFields> {
 
   /// Handle forgot password
   void _handleForgotPassword() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Fitur lupa password belum tersedia',
-          style: GoogleFonts.poppins(),
-        ),
-      ),
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const LupaPage()));
+  }
+
+  void _moveDown() async {
+    await Future.delayed(const Duration(milliseconds: 500));
+    await widget.scrollController.animateTo(
+      widget.scrollController.position.maxScrollExtent,
+      duration: const Duration(milliseconds: 50),
+      curve: Curves.easeInOut,
     );
   }
 
@@ -330,6 +337,7 @@ class _LoginFieldsState extends State<_LoginFields> {
               }
               return null;
             },
+            onTap: _moveDown,
           ),
           const SizedBox(height: AuthSpacing.xl),
 
@@ -340,7 +348,8 @@ class _LoginFieldsState extends State<_LoginFields> {
             obscureText: _obscurePassword,
             suffixIcon: PasswordVisibilityToggle(
               isObscure: _obscurePassword,
-              onToggle: () => setState(() => _obscurePassword = !_obscurePassword),
+              onToggle: () =>
+                  setState(() => _obscurePassword = !_obscurePassword),
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -351,6 +360,7 @@ class _LoginFieldsState extends State<_LoginFields> {
               }
               return null;
             },
+            onTap: _moveDown,
           ),
           const SizedBox(height: AuthSpacing.md),
 
@@ -382,7 +392,6 @@ class _LoginFieldsState extends State<_LoginFields> {
             onPressed: _handleLogin,
             isLoading: _isLoading,
           ),
-          const SizedBox(height: AuthSpacing.xl),
         ],
       ),
     );

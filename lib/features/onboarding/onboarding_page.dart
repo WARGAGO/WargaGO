@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show SystemChrome, SystemUiOverlayStyle;
 
 import 'package:jawara/features/pre_auth/pre_auth_page.dart';
 import 'widgets/onboarding_constants.dart';
@@ -43,9 +44,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
   void _handleNext() {
     final isLast = _currentPage == _slides.length - 1;
     if (isLast) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const PreAuthPage()),
-      );
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const PreAuthPage()));
       return;
     }
     _pageController.nextPage(
@@ -89,7 +90,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
                   controller: _pageController,
                   itemCount: _slides.length,
                   physics: const BouncingScrollPhysics(),
-                  onPageChanged: (value) => setState(() => _currentPage = value),
+                  onPageChanged: (value) =>
+                      setState(() => _currentPage = value),
                   itemBuilder: (context, index) {
                     final slide = _slides[index];
                     final isLast = index == _slides.length - 1;
@@ -115,7 +117,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
                         final easedScale = _springEase(clampedScale);
 
                         // 3D rotation with perspective
-                        final double rotation = progress * 0.15; // More dramatic
+                        final double rotation =
+                            progress * 0.15; // More dramatic
                         final double rotationY = progress * 0.4;
 
                         // Parallax slide with ease
@@ -132,10 +135,7 @@ class _OnboardingPageState extends State<OnboardingPage> {
                           alignment: Alignment.center,
                           child: Transform.scale(
                             scale: easedScale,
-                            child: Opacity(
-                              opacity: easedOpacity,
-                              child: child,
-                            ),
+                            child: Opacity(opacity: easedOpacity, child: child),
                           ),
                         );
                       },
@@ -191,6 +191,14 @@ class _OnboardingSlideState extends State<_OnboardingSlide>
   @override
   void initState() {
     super.initState();
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.dark,
+        systemNavigationBarDividerColor: Colors.white,
+      ),
+    );
     _animController = AnimationController(
       duration: OnboardingDurations.slideEntrance,
       vsync: this,
@@ -203,15 +211,10 @@ class _OnboardingSlideState extends State<_OnboardingSlide>
       ),
     );
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.5),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _animController,
-        curve: Curves.elasticOut,
-      ),
-    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(
+          CurvedAnimation(parent: _animController, curve: Curves.elasticOut),
+        );
 
     // Delay start for smoother entrance
     Future.delayed(const Duration(milliseconds: 100), () {
@@ -234,7 +237,8 @@ class _OnboardingSlideState extends State<_OnboardingSlide>
       builder: (context, child) {
         double parallaxOffset = 0.0;
         if (widget.pageController.position.haveDimensions) {
-          final pageOffset = (widget.pageController.page ?? 0) - widget.pageIndex;
+          final pageOffset =
+              (widget.pageController.page ?? 0) - widget.pageIndex;
           parallaxOffset = pageOffset * 30;
         }
 
@@ -262,15 +266,20 @@ class _OnboardingSlideState extends State<_OnboardingSlide>
                 curve: const Interval(0.2, 0.8, curve: Curves.easeOut),
               ),
               child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0, 0.3),
-                  end: Offset.zero,
-                ).animate(
-                  CurvedAnimation(
-                    parent: _animController,
-                    curve: const Interval(0.2, 0.8, curve: Curves.easeOutCubic),
-                  ),
-                ),
+                position:
+                    Tween<Offset>(
+                      begin: const Offset(0, 0.3),
+                      end: Offset.zero,
+                    ).animate(
+                      CurvedAnimation(
+                        parent: _animController,
+                        curve: const Interval(
+                          0.2,
+                          0.8,
+                          curve: Curves.easeOutCubic,
+                        ),
+                      ),
+                    ),
                 child: const Text(
                   // ...existing code... replaced for style consistency
                   '',
@@ -300,18 +309,23 @@ class _OnboardingSlideState extends State<_OnboardingSlide>
                 curve: const Interval(0.5, 1.0, curve: Curves.easeOutExpo),
               ),
               child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0, 0.5),
-                  end: Offset.zero,
-                ).animate(
-                  CurvedAnimation(
-                    parent: _animController,
-                    curve: const Interval(0.5, 1.0, curve: Curves.elasticOut),
-                  ),
-                ),
+                position:
+                    Tween<Offset>(
+                      begin: const Offset(0, 0.5),
+                      end: Offset.zero,
+                    ).animate(
+                      CurvedAnimation(
+                        parent: _animController,
+                        curve: const Interval(
+                          0.5,
+                          1.0,
+                          curve: Curves.elasticOut,
+                        ),
+                      ),
+                    ),
                 child: OnboardingPrimaryButton(
                   color: widget.accentColor,
-                  text: widget.isLast ? 'Mulai' : 'Next',
+                  text: widget.isLast ? 'Mulai' : 'Selanjutnya',
                   onPressed: widget.onNextPressed,
                 ),
               ),
@@ -356,4 +370,3 @@ class _OnboardingData {
   final String description;
   final String assetPath;
 }
-

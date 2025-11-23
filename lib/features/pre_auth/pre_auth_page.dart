@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show SystemUiOverlayStyle, SystemChrome;
 import 'package:google_fonts/google_fonts.dart';
 
 import 'package:jawara/features/auth/login_page.dart';
@@ -23,6 +24,14 @@ class _PreAuthPageState extends State<PreAuthPage>
 
   @override
   void initState() {
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.dark,
+        systemNavigationBarDividerColor: Colors.white,
+      ),
+    );
     super.initState();
     _controller = AnimationController(
       vsync: this,
@@ -128,7 +137,7 @@ class _PreAuthPageState extends State<PreAuthPage>
                             backgroundColor: _kAccent,
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(26),
+                              borderRadius: BorderRadius.circular(16),
                             ),
                             textStyle: GoogleFonts.poppins(
                               fontSize: 16,
@@ -156,7 +165,7 @@ class _PreAuthPageState extends State<PreAuthPage>
                             foregroundColor: _kAccent,
                             side: const BorderSide(color: _kAccent, width: 2),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(26),
+                              borderRadius: BorderRadius.circular(16),
                             ),
                             textStyle: GoogleFonts.poppins(
                               fontSize: 16,

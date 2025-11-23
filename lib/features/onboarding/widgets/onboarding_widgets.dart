@@ -63,7 +63,8 @@ class OnboardingPrimaryButton extends StatefulWidget {
   final Color color;
 
   @override
-  State<OnboardingPrimaryButton> createState() => _OnboardingPrimaryButtonState();
+  State<OnboardingPrimaryButton> createState() =>
+      _OnboardingPrimaryButtonState();
 }
 
 class _OnboardingPrimaryButtonState extends State<OnboardingPrimaryButton>
@@ -77,7 +78,7 @@ class _OnboardingPrimaryButtonState extends State<OnboardingPrimaryButton>
     _arrowController = AnimationController(
       duration: OnboardingDurations.arrow,
       vsync: this,
-    )..repeat();
+    )..repeat(reverse: true);
   }
 
   @override
@@ -121,15 +122,15 @@ class _OnboardingPrimaryButtonState extends State<OnboardingPrimaryButton>
               AnimatedBuilder(
                 animation: _arrowController,
                 builder: (context, child) {
-                  final offset = Curves.easeInOut.transform(
-                        (_arrowController.value % 1.0),
-                      ) * 6 - 3;
+                  final offset =
+                      Curves.easeInOut.transform(_arrowController.value) * 6 -
+                      3;
                   return Transform.translate(
                     offset: Offset(offset, 0),
                     child: child,
                   );
                 },
-                child: const Icon(Icons.arrow_forward, size: 18),
+                child: const Icon(Icons.arrow_forward_ios, size: 18),
               ),
             ],
           ),
@@ -188,7 +189,9 @@ class OnboardingBrandHeader extends StatelessWidget {
                 height: 6,
                 margin: EdgeInsets.only(left: index == 0 ? 0 : 12),
                 decoration: BoxDecoration(
-                  color: isFilled ? accentColor : OnboardingColors.progressTrack,
+                  color: isFilled
+                      ? accentColor
+                      : OnboardingColors.progressTrack,
                   borderRadius: BorderRadius.circular(OnboardingRadius.lg),
                 ),
               ),
@@ -249,4 +252,3 @@ class OnboardingIllustration extends StatelessWidget {
     );
   }
 }
-

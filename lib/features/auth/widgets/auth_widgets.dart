@@ -29,6 +29,7 @@ class AuthTextField extends StatelessWidget {
     this.maxLength,
     this.validator,
     this.onChanged,
+    this.onTap,
   });
 
   final TextEditingController controller;
@@ -43,6 +44,7 @@ class AuthTextField extends StatelessWidget {
   final int? maxLength;
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
+  final void Function()? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -89,6 +91,7 @@ class AuthTextField extends StatelessWidget {
         ),
         validator: validator,
         onChanged: onChanged,
+        onTap: onTap,
       );
     }
 
@@ -125,6 +128,7 @@ class AuthTextField extends StatelessWidget {
       ),
       validator: validator,
       onChanged: onChanged,
+      onTap: onTap,
     );
   }
 }
@@ -136,8 +140,8 @@ class AuthPrimaryButton extends StatelessWidget {
     required this.text,
     required this.onPressed,
     this.isLoading = false,
-    this.height = 52.0,
-    this.borderRadius,
+    this.height = 56.0,
+    this.borderRadius = 16.0,
   });
 
   final String text;
@@ -156,9 +160,7 @@ class AuthPrimaryButton extends StatelessWidget {
           backgroundColor: AuthColors.primary,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-              borderRadius ?? AuthRadius.xxl,
-            ),
+            borderRadius: BorderRadius.circular(borderRadius ?? AuthRadius.xxl),
           ),
           textStyle: GoogleFonts.poppins(
             fontSize: 16,
@@ -250,11 +252,8 @@ class AuthLogo extends StatelessWidget {
           'assets/icons/icon.png',
           height: size,
           width: size,
-          errorBuilder: (_, __, ___) => Icon(
-            Icons.fingerprint,
-            size: size,
-            color: AuthColors.primary,
-          ),
+          errorBuilder: (_, __, ___) =>
+              Icon(Icons.fingerprint, size: size, color: AuthColors.primary),
         ),
         const SizedBox(width: AuthSpacing.md),
         Text(
@@ -334,11 +333,7 @@ class AuthDialogs {
   AuthDialogs._();
 
   /// Show error dialog
-  static void showError(
-    BuildContext context,
-    String title,
-    String message,
-  ) {
+  static void showError(BuildContext context, String title, String message) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -346,10 +341,7 @@ class AuthDialogs {
           title,
           style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
         ),
-        content: Text(
-          message,
-          style: GoogleFonts.poppins(),
-        ),
+        content: Text(message, style: GoogleFonts.poppins()),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -379,13 +371,11 @@ class AuthDialogs {
           title,
           style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
         ),
-        content: Text(
-          message,
-          style: GoogleFonts.poppins(),
-        ),
+        content: Text(message, style: GoogleFonts.poppins()),
         actions: [
           TextButton(
-            onPressed: onPressed ??
+            onPressed:
+                onPressed ??
                 () {
                   Navigator.pop(context);
                 },
@@ -399,4 +389,3 @@ class AuthDialogs {
     );
   }
 }
-
