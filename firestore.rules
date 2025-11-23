@@ -4,374 +4,181 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // ========================================================================
-    // SECURE RULES FOR CUSTOM AUTHENTICATION
+    // FIREBASE AUTHENTICATION RULES
     // ========================================================================
-    // Rules ini untuk app dengan custom authentication (tanpa Firebase Auth)
-    // Security bergantung pada:
-    // 1. Password hashing (SHA-256) - password tidak bisa dilihat
-    // 2. Data validation - format data harus benar
-    // 3. App-layer authorization - role checking di aplikasi
+    // Rules untuk Firebase Authentication
+    // Security dengan request.auth (user yang sudah login)
     // ========================================================================
+
+    // Helper function - check if user is authenticated
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Helper function - check if user is the owner
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Helper function - check if user is admin
+    function isAdmin() {
+      return isSignedIn() &&
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
 
     // Helper function - check if data is valid
     function hasValidData() {
       return request.resource.data != null;
     }
 
-    // Helper function - check if string is not empty
-    function isValidString(field) {
-      return field in request.resource.data &&
-             request.resource.data[field] is string &&
-             request.resource.data[field].size() > 0;
-    }
-
-    // Helper function - check if number is positive
-    function isPositiveNumber(field) {
-      return field in request.resource.data &&
-             request.resource.data[field] is number &&
-             request.resource.data[field] > 0;
-    }
-
     // ========================================================================
-    // USERS COLLECTION - Password harus di-hash SHA-256
+    // USERS COLLECTION - Firebase Auth Users
     // ========================================================================
     match /users/{userId} {
-      // Read: Semua bisa read (untuk login verification)
-      // Password sudah di-hash SHA-256 (64 char hex) jadi AMAN dilihat
-      allow read: if true;
+      // Read: User bisa read data sendiri, admin bisa read semua
+      allow read: if isOwner(userId) || isAdmin();
 
-      // Create: Hanya registrasi dengan password ter-hash
-      allow create: if hasValidData() &&
+      // Create: Hanya user yang baru register (auth.uid sama dengan userId)
+      // Tidak perlu password field karena sudah di-handle Firebase Auth
+      allow create: if isSignedIn() &&
+                       request.auth.uid == userId &&
+                       hasValidData() &&
                        'email' in request.resource.data &&
-                       'password' in request.resource.data &&
-                       request.resource.data.password is string &&
-                       request.resource.data.password.size() == 64 && // SHA-256 hash
-                       request.resource.data.password.matches('^[a-f0-9]+$'); // Hex only
+                       'nama' in request.resource.data &&
+                       'role' in request.resource.data;
 
-      // Update: Harus ada updatedAt, tidak boleh ubah email/nik
-      allow update: if hasValidData() &&
-                       'updatedAt' in request.resource.data &&
-                       !('email' in request.resource.data.diff(resource.data).affectedKeys()) &&
-                       !('nik' in request.resource.data.diff(resource.data).affectedKeys());
+      // Update: User bisa update data sendiri (kecuali role), admin bisa update semua
+      allow update: if (isOwner(userId) &&
+                        (!('role' in request.resource.data) ||
+                         request.resource.data.role == resource.data.role)) ||
+                       isAdmin();
 
-      // Delete: Allow (check authorization di app)
-      allow delete: if true;
+      // Delete: Hanya admin yang bisa delete user
+      allow delete: if isAdmin();
+    }
+
+    // ========================================================================
+    // KYC DOCUMENTS COLLECTION - Know Your Customer Documents
+    // ========================================================================
+    match /kyc_documents/{documentId} {
+      // Read: User bisa read KYC sendiri, admin bisa read semua
+      allow read: if isSignedIn() &&
+                     (request.auth.uid == resource.data.userId || isAdmin());
+
+      // Create: User yang login bisa upload KYC untuk dirinya sendiri
+      allow create: if isSignedIn() &&
+                       hasValidData() &&
+                       'userId' in request.resource.data &&
+                       request.auth.uid == request.resource.data.userId &&
+                       'documentType' in request.resource.data &&
+                       'documentUrl' in request.resource.data &&
+                       'status' in request.resource.data &&
+                       request.resource.data.status == 'pending';
+
+      // Update: User bisa update KYC sendiri (reupload), admin bisa approve/reject
+      allow update: if (isSignedIn() && request.auth.uid == resource.data.userId) ||
+                       isAdmin();
+
+      // Delete: User bisa delete KYC sendiri, admin juga bisa
+      allow delete: if (isSignedIn() && request.auth.uid == resource.data.userId) ||
+                       isAdmin();
     }
 
     // ========================================================================
     // WARGA COLLECTION - Data Penduduk
     // ========================================================================
     match /warga/{wargaId} {
-      // Read: Semua bisa lihat (transparansi data warga)
-      allow read: if true;
+      // Read: Semua authenticated user bisa lihat
+      allow read: if isSignedIn();
 
-      // Create: Harus ada nama dan NIK
-      allow create: if hasValidData() &&
-                       'name' in request.resource.data &&
-                       request.resource.data.name is string &&
-                       request.resource.data.name.size() > 0 &&
-                       'nik' in request.resource.data;
-
-      // Update: Harus ada updatedAt
-      allow update: if hasValidData() &&
-                       'updatedAt' in request.resource.data;
-
-      // Delete: Allow (check di app)
-      allow delete: if true;
+      // Create/Update/Delete: Hanya admin
+      allow create, update, delete: if isAdmin();
     }
 
     // ========================================================================
-    // RUMAH, MUTASI, PENDING_WARGA - Basic validation
+    // AGENDA COLLECTION - Kegiatan & Broadcast
+    // ========================================================================
+    match /agenda/{agendaId} {
+      // Read: Semua authenticated user bisa lihat
+      allow read: if isSignedIn();
+
+      // Create/Update/Delete: Hanya admin
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ========================================================================
+    // KEUANGAN COLLECTIONS
+    // ========================================================================
+    match /keuangan/{transactionId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /pemasukan/{pemasukanId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /pengeluaran/{pengeluaranId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /jenis_iuran/{jenisIuranId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    match /tagihan/{tagihanId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ========================================================================
+    // OTHER COLLECTIONS
     // ========================================================================
     match /rumah/{rumahId} {
-      allow read: if true;
-      allow create: if hasValidData() && 'alamat' in request.resource.data;
-      allow update: if hasValidData();
-      allow delete: if true;
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
     }
 
     match /mutasi/{mutasiId} {
-      allow read: if true;
-      allow create: if hasValidData() && 'nama' in request.resource.data;
-      allow update: if hasValidData();
-      allow delete: if true;
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
     }
 
     match /pending_warga/{pendingId} {
-      allow read: if true;
-      allow create: if hasValidData() && 'name' in request.resource.data;
-      allow update: if hasValidData();
-      allow delete: if true;
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
     }
 
-    // ========================================================================
-    // AGENDA COLLECTION - Kegiatan & Broadcast dengan Validasi Ketat
-    // ========================================================================
-    match /agenda/{agendaId} {
-      // Read: Semua bisa lihat (transparansi agenda warga)
-      allow read: if true;
-
-      // Create: Validasi field wajib dan tipe data yang ketat
-      allow create: if hasValidData() &&
-                       // Field wajib harus ada
-                       (isValidString('judul') || isValidString('title')) &&
-                       'type' in request.resource.data &&
-                       'tanggal' in request.resource.data &&
-                       'isActive' in request.resource.data &&
-                       // Validasi tipe data
-                       request.resource.data.type is string &&
-                       request.resource.data.tanggal is timestamp &&
-                       request.resource.data.isActive is bool &&
-                       // Validasi nilai enum untuk type
-                       request.resource.data.type in ['kegiatan', 'broadcast'] &&
-                       // isActive harus true saat create
-                       request.resource.data.isActive == true &&
-                       // Validasi optional fields jika ada (bisa null atau string)
-                       (!('deskripsi' in request.resource.data) ||
-                        request.resource.data.deskripsi == null ||
-                        request.resource.data.deskripsi is string) &&
-                       (!('description' in request.resource.data) ||
-                        request.resource.data.description == null ||
-                        request.resource.data.description is string) &&
-                       (!('lokasi' in request.resource.data) ||
-                        request.resource.data.lokasi == null ||
-                        request.resource.data.lokasi is string) &&
-                       (!('location' in request.resource.data) ||
-                        request.resource.data.location == null ||
-                        request.resource.data.location is string) &&
-                       (!('gambar' in request.resource.data) ||
-                        request.resource.data.gambar == null ||
-                        request.resource.data.gambar is string) &&
-                       (!('image' in request.resource.data) ||
-                        request.resource.data.image == null ||
-                        request.resource.data.image is string) &&
-                       (!('createdBy' in request.resource.data) ||
-                        request.resource.data.createdBy == null ||
-                        request.resource.data.createdBy is string);
-
-      // Update: Harus ada updatedAt, tidak boleh ubah field immutable
-      allow update: if hasValidData() &&
-                       'updatedAt' in request.resource.data &&
-                       // Field immutable tidak boleh diubah
-                       !('type' in request.resource.data.diff(resource.data).affectedKeys()) &&
-                       !('createdAt' in request.resource.data.diff(resource.data).affectedKeys()) &&
-                       !('createdBy' in request.resource.data.diff(resource.data).affectedKeys()) &&
-                       // Validasi tipe data jika field diubah
-                       (
-                         !('judul' in request.resource.data.diff(resource.data).affectedKeys()) ||
-                         (request.resource.data.judul is string &&
-                          request.resource.data.judul.size() > 0)
-                       ) &&
-                       (
-                         !('title' in request.resource.data.diff(resource.data).affectedKeys()) ||
-                         (request.resource.data.title is string &&
-                          request.resource.data.title.size() > 0)
-                       ) &&
-                       (
-                         !('tanggal' in request.resource.data.diff(resource.data).affectedKeys()) ||
-                         request.resource.data.tanggal is timestamp
-                       ) &&
-                       (
-                         !('isActive' in request.resource.data.diff(resource.data).affectedKeys()) ||
-                         request.resource.data.isActive is bool
-                       );
-
-      // Delete: Allow (soft delete dengan isActive di app lebih aman)
-      allow delete: if true;
-
-      // Subcollection untuk dokumentasi kegiatan (future feature)
-      match /dokumentasi/{dokumentasiId} {
-        allow read: if true;
-        allow create: if hasValidData() &&
-                         'imageUrl' in request.resource.data;
-        allow update, delete: if true;
-      }
-
-      // Subcollection untuk komentar broadcast (future feature)
-      match /comments/{commentId} {
-        allow read: if true;
-        allow create: if hasValidData() &&
-                         'userId' in request.resource.data &&
-                         'comment' in request.resource.data;
-        allow update, delete: if true;
-      }
-    }
-
-    // ========================================================================
-    // KEUANGAN COLLECTION - Transparansi keuangan dengan validasi
-    // ========================================================================
-    match /keuangan/{transactionId} {
-      allow read: if true; // Transparansi
-
-      // Create: Amount harus > 0
-      allow create: if hasValidData() &&
-                       'amount' in request.resource.data &&
-                       request.resource.data.amount is number &&
-                       request.resource.data.amount > 0;
-
-      allow update: if hasValidData();
-      allow delete: if true;
-
-      match /pemasukan/{pemasukanId} {
-        allow read: if true;
-        allow write: if true;
-      }
-
-      match /pengeluaran/{pengeluaranId} {
-        allow read: if true;
-        allow write: if true;
-      }
-    }
-
-    // ========================================================================
-    // JENIS IURAN COLLECTION - Validasi nominal > 0
-    // ========================================================================
-    match /jenis_iuran/{jenisIuranId} {
-      allow read: if true;
-
-      // Create: Nama dan jumlah harus ada dan valid
-      allow create: if hasValidData() &&
-                       'namaIuran' in request.resource.data &&
-                       request.resource.data.namaIuran is string &&
-                       request.resource.data.namaIuran.size() > 0 &&
-                       'jumlahIuran' in request.resource.data &&
-                       request.resource.data.jumlahIuran is number &&
-                       request.resource.data.jumlahIuran > 0;
-
-      allow update: if hasValidData();
-      allow delete: if true;
-    }
-
-    // ========================================================================
-    // TAGIHAN COLLECTION - AMAN dengan validasi ketat
-    // ========================================================================
-    match /tagihan/{tagihanId} {
-      // Read: Semua bisa lihat (transparansi tagihan)
-      allow read: if true;
-
-      // Create: Validasi field wajib dan nilai valid
-      allow create: if hasValidData() &&
-                       // Field wajib harus ada
-                       'jenisIuranId' in request.resource.data &&
-                       'jenisIuranName' in request.resource.data &&
-                       'keluargaId' in request.resource.data &&
-                       'keluargaName' in request.resource.data &&
-                       'nominal' in request.resource.data &&
-                       'periode' in request.resource.data &&
-                       'status' in request.resource.data &&
-                       'isActive' in request.resource.data &&
-                       // Validasi tipe data
-                       request.resource.data.jenisIuranName is string &&
-                       request.resource.data.keluargaName is string &&
-                       request.resource.data.nominal is number &&
-                       request.resource.data.periode is string &&
-                       // Validasi nilai
-                       request.resource.data.nominal > 0 &&
-                       request.resource.data.periode.size() > 0 &&
-                       request.resource.data.status in ['Belum Dibayar', 'Lunas', 'Terlambat'] &&
-                       request.resource.data.isActive == true;
-
-      // Update: Tidak boleh ubah field immutable
-      allow update: if hasValidData() &&
-                       'updatedAt' in request.resource.data &&
-                       // Field immutable tidak boleh diubah
-                       !('kodeTagihan' in request.resource.data.diff(resource.data).affectedKeys()) &&
-                       !('jenisIuranId' in request.resource.data.diff(resource.data).affectedKeys()) &&
-                       !('keluargaId' in request.resource.data.diff(resource.data).affectedKeys()) &&
-                       !('nominal' in request.resource.data.diff(resource.data).affectedKeys()) &&
-                       !('periode' in request.resource.data.diff(resource.data).affectedKeys());
-
-      // Delete: Allow (soft delete dengan isActive di app)
-      allow delete: if true;
-    }
-
-    // ========================================================================
-    // COLLECTIONS LAIN - Basic validation
-    // ========================================================================
     match /pemasukan_lain/{pemasukanLainId} {
-      allow read: if true;
-      allow create: if hasValidData() && 'nominal' in request.resource.data;
-      allow update, delete: if true;
-    }
-
-    // ========================================================================
-    // PENGELUARAN COLLECTION - Full CRUD access
-    // ========================================================================
-    match /pengeluaran/{pengeluaranId} {
-      allow read: if true;
-      allow create: if hasValidData() &&
-                       'name' in request.resource.data &&
-                       'category' in request.resource.data &&
-                       'nominal' in request.resource.data &&
-                       request.resource.data.nominal is number &&
-                       request.resource.data.nominal > 0;
-      allow update, delete: if true;
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
     }
 
     match /mutasi_warga/{mutasiId} {
-      allow read: if true;
-      allow create: if hasValidData() && 'type' in request.resource.data;
-      allow update, delete: if true;
+      allow read: if isSignedIn();
+      allow create, update, delete: if isAdmin();
     }
 
     match /notifications/{notificationId} {
-      allow read: if true;
-      allow create: if hasValidData() && 'userId' in request.resource.data;
-      allow update, delete: if true;
+      // User bisa read notifikasi sendiri, create untuk diri sendiri
+      allow read: if isSignedIn() && request.auth.uid == resource.data.userId;
+      allow create: if isSignedIn() && request.auth.uid == request.resource.data.userId;
+      allow update, delete: if isSignedIn() && request.auth.uid == resource.data.userId;
     }
 
     match /settings/{settingId} {
-      allow read, write: if true;
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
 
     match /dashboard_stats/{statId} {
-      allow read, write: if true;
+      allow read: if isSignedIn();
+      allow write: if isAdmin();
     }
-
-    // ========================================================================
-    // SECURITY NOTES & CHANGELOG
-    // ========================================================================
-    // 🔒 PASSWORD SECURITY:
-    //    - Password WAJIB di-hash SHA-256 sebelum disimpan (64 char hex)
-    //    - Rules memvalidasi password adalah hash, bukan plaintext
-    //    - Password hash aman dilihat karena tidak bisa di-reverse
-    //
-    // 🔐 DATA VALIDATION:
-    //    - Rules enforce tipe data dan format yang benar
-    //    - Field immutable dilindungi dari perubahan
-    //    - Nominal harus positif, string tidak boleh kosong
-    //
-    // 👥 AUTHORIZATION:
-    //    - Role-based access control dilakukan di app layer
-    //    - Rules fokus pada data validation, bukan authorization
-    //    - Admin/petugas check di aplikasi sebelum operasi sensitive
-    //
-    // 📅 AGENDA COLLECTION (UPDATE):
-    //    - Validasi ketat untuk field wajib: judul/title, type, tanggal
-    //    - Type harus 'kegiatan' atau 'broadcast' (enum validation)
-    //    - isActive harus true saat create (soft delete pattern)
-    //    - Field immutable: type, createdAt, createdBy (tidak bisa diubah)
-    //    - Support backward compatibility (judul/title, deskripsi/description)
-    //    - Subcollection untuk dokumentasi dan comments (future features)
-    //    - Tanggal harus timestamp (validasi tipe data)
-    //
-    // ✅ KEAMANAN:
-    //    - Semua collection punya validasi dasar
-    //    - Tidak ada catch-all rule (default deny)
-    //    - Field sensitive (email, NIK) protected dari update
-    //    - Password harus hash SHA-256 (tidak bisa plaintext)
-    //    - Agenda type validation mencegah data tidak valid
-    //    - Helper functions untuk validasi yang reusable
-    //
-    // 📝 CHANGELOG:
-    //    - 2025-11-22: Enhanced AGENDA rules dengan validasi ketat
-    //    - Added helper functions: hasValidData, isValidString, isPositiveNumber
-    //    - Added type enum validation untuk agenda (kegiatan/broadcast)
-    //    - Added immutable field protection untuk agenda
-    //    - Added subcollection rules untuk dokumentasi & comments
-    //    - Added backward compatibility support (judul/title, deskripsi/description)
-    //
-    // ========================================================================
   }
 }
 

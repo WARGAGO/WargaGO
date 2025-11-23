@@ -1,10 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:jawara/core/models/user_model.dart';
 import 'package:jawara/core/services/firestore_service.dart';
 
 class AuthProvider with ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email'],
+    // JANGAN tambahkan serverClientId untuk mobile-only!
+  );
   final FirestoreService _firestoreService = FirestoreService();
 
   UserModel? _userModel;
@@ -314,10 +319,312 @@ class AuthProvider with ChangeNotifier {
   // Sign out from Firebase Auth
   Future<void> signOut() async {
     await _auth.signOut();
+    await _googleSignIn.signOut();
     _userModel = null;
     _isAuthenticated = false;
     _errorMessage = null;
     notifyListeners();
+  }
+
+  // Sign in with Google
+  Future<bool> signInWithGoogle() async {
+    try {
+      if (kDebugMode) {
+        print('\n=== GOOGLE SIGN IN ATTEMPT ===');
+      }
+
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      // Trigger Google Sign In flow
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+
+      if (googleUser == null) {
+        // User cancelled the sign-in
+        if (kDebugMode) {
+          print('❌ User cancelled Google Sign In');
+        }
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+
+      if (kDebugMode) {
+        print('✅ Google account selected: ${googleUser.email}');
+      }
+
+      // Obtain auth details from request
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+
+      // Create credential for Firebase
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      if (kDebugMode) {
+        print('🔐 Signing in with Google credential...');
+      }
+
+      // Sign in to Firebase with Google credential
+      final userCredential = await _auth.signInWithCredential(credential);
+
+      if (userCredential.user == null) {
+        if (kDebugMode) {
+          print('❌ Firebase Auth user is null');
+        }
+        _errorMessage = 'Login gagal';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+
+      if (kDebugMode) {
+        print('✅ Firebase Auth successful!');
+        print('Firebase UID: ${userCredential.user!.uid}');
+        print('🔍 Checking user in Firestore...');
+      }
+
+      // Check if user exists in Firestore
+      var user = await _firestoreService.getUserById(userCredential.user!.uid);
+
+      if (user == null) {
+        // New user - create account as warga with unverified status
+        if (kDebugMode) {
+          print('📝 New user - creating warga account...');
+        }
+
+        final newUser = UserModel(
+          id: userCredential.user!.uid,
+          email: userCredential.user!.email ?? '',
+          nama: userCredential.user!.displayName ?? '',
+          role: 'warga',
+          status: 'unverified', // New status for unverified warga
+          createdAt: DateTime.now(),
+        );
+
+        final userId = await _firestoreService.createUser(newUser);
+
+        if (userId == null) {
+          if (kDebugMode) {
+            print('❌ Failed to create user in Firestore');
+          }
+          await _auth.signOut();
+          await _googleSignIn.signOut();
+          _errorMessage = 'Gagal menyimpan data pengguna';
+          _isLoading = false;
+          notifyListeners();
+          return false;
+        }
+
+        user = newUser;
+        if (kDebugMode) {
+          print('✅ New warga account created!');
+        }
+      }
+
+      if (kDebugMode) {
+        print('✅ User found/created!');
+        print('User data:');
+        print('  - Email: ${user.email}');
+        print('  - Nama: ${user.nama}');
+        print('  - Role: ${user.role}');
+        print('  - Status: ${user.status}');
+      }
+
+      // Allow login for both unverified and approved warga
+      // Admin should still be approved only
+      if (user.role == 'admin' && user.status != 'approved') {
+        if (kDebugMode) {
+          print('❌ Admin status bukan approved: ${user.status}');
+        }
+        await _auth.signOut();
+        await _googleSignIn.signOut();
+        _errorMessage = user.status == 'pending'
+            ? 'Akun admin Anda masih menunggu persetujuan'
+            : 'Akun admin Anda tidak aktif';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+
+      if (user.status == 'rejected') {
+        if (kDebugMode) {
+          print('❌ User rejected');
+        }
+        await _auth.signOut();
+        await _googleSignIn.signOut();
+        _errorMessage = 'Akun Anda ditolak oleh admin';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+
+      if (kDebugMode) {
+        print('🎉 GOOGLE SIGN IN BERHASIL!');
+        print('===================\n');
+      }
+
+      _userModel = user;
+      _isAuthenticated = true;
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        print('\n❌ GOOGLE SIGN IN ERROR ===');
+        print('Error: $e');
+        print('StackTrace: $stackTrace');
+        print('==================\n');
+      }
+      _errorMessage = 'Terjadi kesalahan saat login dengan Google: $e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // Register warga with email/password
+  Future<bool> registerWarga({
+    required String email,
+    required String password,
+    required String nama,
+    String? nik,
+    String? jenisKelamin,
+    String? noTelepon,
+    String? alamat,
+  }) async {
+    try {
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      if (kDebugMode) {
+        print('=== START WARGA REGISTRATION ===');
+        print('Email: $email');
+        print('Nama: $nama');
+      }
+
+      // Validate input
+      if (email.isEmpty || password.isEmpty || nama.isEmpty) {
+        _errorMessage = 'Email, password, dan nama harus diisi';
+        _isLoading = false;
+        notifyListeners();
+        if (kDebugMode) {
+          print('Validation failed: Empty fields');
+        }
+        return false;
+      }
+
+      // Create user with Firebase Auth
+      if (kDebugMode) {
+        print('🔐 Creating Firebase Auth user...');
+      }
+      final userCredential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      if (userCredential.user == null) {
+        if (kDebugMode) {
+          print('❌ Failed to create Firebase Auth user');
+        }
+        _errorMessage = 'Gagal membuat akun';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+
+      if (kDebugMode) {
+        print('✅ Firebase Auth user created!');
+        print('Firebase UID: ${userCredential.user!.uid}');
+        print('Creating warga document in Firestore...');
+      }
+
+      // Create user data in Firestore as warga with unverified status
+      final newUser = UserModel(
+        id: userCredential.user!.uid,
+        email: email,
+        nama: nama,
+        nik: nik,
+        jenisKelamin: jenisKelamin,
+        noTelepon: noTelepon,
+        alamat: alamat,
+        role: 'warga',
+        status: 'unverified', // Start as unverified
+        password: null,
+        createdAt: DateTime.now(),
+      );
+
+      if (kDebugMode) {
+        print('Saving to Firestore...');
+      }
+      final userId = await _firestoreService.createUser(newUser);
+      if (kDebugMode) {
+        print('User ID: $userId');
+      }
+
+      if (userId == null) {
+        // Rollback: Delete Firebase Auth user if Firestore save fails
+        if (kDebugMode) {
+          print('⚠️ Firestore save failed, deleting Firebase Auth user...');
+        }
+        await userCredential.user!.delete();
+        _errorMessage = 'Gagal menyimpan data ke database';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+
+      // Auto login after registration for warga
+      _userModel = newUser;
+      _isAuthenticated = true;
+
+      if (kDebugMode) {
+        print('=== WARGA REGISTRATION SUCCESS ===');
+      }
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } on FirebaseAuthException catch (e) {
+      if (kDebugMode) {
+        print('=== Firebase Auth Error ===');
+        print('Error code: ${e.code}');
+        print('Error message: ${e.message}');
+      }
+
+      switch (e.code) {
+        case 'email-already-in-use':
+          _errorMessage = 'Email sudah terdaftar';
+          break;
+        case 'invalid-email':
+          _errorMessage = 'Format email tidak valid';
+          break;
+        case 'weak-password':
+          _errorMessage = 'Password terlalu lemah (minimal 6 karakter)';
+          break;
+        case 'operation-not-allowed':
+          _errorMessage = 'Registrasi tidak diizinkan';
+          break;
+        default:
+          _errorMessage = 'Registrasi gagal: ${e.message}';
+      }
+
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        print('=== REGISTRATION ERROR ===');
+        print('Error: $e');
+        print('StackTrace: $stackTrace');
+      }
+      _errorMessage = 'Terjadi kesalahan: $e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
   }
 
   // Check authentication status from Firebase Auth

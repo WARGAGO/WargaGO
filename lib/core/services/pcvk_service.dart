@@ -9,7 +9,7 @@ import 'package:jawara/core/models/PCVK/predict_response.dart';
 
 class PcvkService {
   final String _apiUrl =
-      'https://pcvk-containerapp.lemonisland-43c085da.southeastasia.azurecontainerapps.io/api/';
+      '';
   late final http.Client _client;
 
   PcvkService({http.Client? httpClient}) {

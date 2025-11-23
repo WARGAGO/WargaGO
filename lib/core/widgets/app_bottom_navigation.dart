@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../features/dashboard/dashboard_page.dart';
-import '../../features/data_warga/data_warga_main_page.dart';
-import '../../features/keuangan/keuangan_page.dart';
-import '../../features/kelola_lapak/kelola_lapak_page.dart';
+import 'package:jawara/features/admin/dashboard/dashboard_page.dart';
+import 'package:jawara/features/admin/data_warga/data_warga_main_page.dart';
+import 'package:jawara/features/admin/keuangan/keuangan_page.dart';
+import 'package:jawara/features/admin/kelola_lapak/kelola_lapak_page.dart';
 
 /// Unified Bottom Navigation Bar untuk semua halaman
 /// Menggunakan desain modern dengan gradient pada active state

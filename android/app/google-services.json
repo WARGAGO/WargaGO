@@ -12,7 +12,20 @@
           "package_name": "com.example.jawara"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "693556950050-nggmgi9gksor75efoi9obcqi79neckjh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.jawara",
+            "certificate_hash": "e721c95e33521a0aba74305850e60a376c1e7c82"
+          }
+        },
+        {
+          "client_id": "693556950050-vp8tf6ib0a5vfsqik0m3lm46o1f0786o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyD96pspshH9zDowI-Ka_VFZHKd0K5XlvfM"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "693556950050-vp8tf6ib0a5vfsqik0m3lm46o1f0786o.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "693556950050-8rqk3cd31g2crs1a3qt99e9l7cvl3piv.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.jawara"
+              }
+            }
+          ]
         }
       }
     }

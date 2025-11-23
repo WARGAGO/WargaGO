@@ -11,8 +11,8 @@ dependencies:
     sdk: flutter
   google_fonts: ^6.1.0
   intl: ^0.20.2
-  image_picker: ^1.0.7
   file_picker: ^8.1.4
+  image_picker: ^1.2.1
   qr_flutter: ^4.1.0
   auto_size_text: ^3.0.0
   crypto: ^3.0.3
@@ -24,7 +24,9 @@ dependencies:
   cloud_firestore: ^5.4.4
   firebase_storage: ^12.3.4
   
-  # State Management & Utils
+  # ML Kit (OCR & Face Detection) - Using google_ml_kit
+  google_mlkit_text_recognition: ^0.13.0
+  google_mlkit_face_detection: ^0.11.0
   provider: ^6.1.2
   shared_preferences: ^2.3.3
   flutter_launcher_icons: ^0.14.4
@@ -36,8 +38,9 @@ dependencies:
   csv: ^6.0.0
   path_provider: ^2.1.5
   permission_handler: ^11.3.1
+  google_sign_in: ^6.2.1
 
-dev_dependencies:
+  # UI Enhancement for KYC
   flutter_test:
     sdk: flutter
   integration_test:

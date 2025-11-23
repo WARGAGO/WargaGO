@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jawara/core/theme/app_theme.dart';
-import 'package:jawara/features/splash/splash_page.dart';
+import 'package:jawara/core/constants/app_routes.dart';
+import 'package:jawara/app/routes.dart';
 
 class JawaraApp extends StatelessWidget {
   const JawaraApp({super.key});
@@ -11,7 +12,8 @@ class JawaraApp extends StatelessWidget {
       title: 'Jawara',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const SplashPage(),
+      initialRoute: AppRoutes.splash,
+      onGenerateRoute: AppRouter.generateRoute,
     );
   }
 }

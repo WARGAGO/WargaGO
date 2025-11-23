@@ -50,4 +50,12 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Azure Configuration (DO NOT COMMIT)
+lib/core/config/azure_config.dart
+
+# Firebase Configuration
+google-services.json
+GoogleService-Info.plist
+firebase_options.dart
+
 *.mocks.dart
