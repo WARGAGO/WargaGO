@@ -20,8 +20,8 @@ class AppRoutes {
 
   // ========== ADMIN ROUTES ==========
   /// Route login admin (DEPRECATED - gunakan /login)
-  @Deprecated('Use login instead')
-  static const String adminLogin = '/admin/login';
+  // @Deprecated('Use login instead')
+  // static const String adminLogin = '/admin/login';
 
   /// Route dashboard admin
   static const String adminDashboard = '/admin/dashboard';
@@ -34,8 +34,8 @@ class AppRoutes {
   static const String wargaRegister = '/warga/register';
 
   /// Route login warga (DEPRECATED - gunakan /login)
-  @Deprecated('Use login instead')
-  static const String wargaLogin = '/warga/login';
+  // @Deprecated('Use login instead')
+  // static const String wargaLogin = '/warga/login';
 
   /// Route upload KYC (KTP & Selfie)
   static const String wargaKYC = '/warga/kyc';
@@ -50,4 +50,3 @@ class AppRoutes {
   /// Route halaman akun ditolak
   static const String rejected = '/rejected';
 }
-

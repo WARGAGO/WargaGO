@@ -5,11 +5,10 @@ import 'package:jawara/features/common/onboarding/onboarding_page.dart';
 import 'package:jawara/features/common/pre_auth/pre_auth_page.dart';
 
 // Auth - Admin
-import 'package:jawara/features/common/auth/presentation/pages/admin/admin_login_page.dart';
+import 'package:jawara/features/common/auth/presentation/pages/unified_login_page.dart';
 
 // Auth - Warga
 import 'package:jawara/features/common/auth/presentation/pages/warga/warga_register_page.dart';
-import 'package:jawara/features/common/auth/presentation/pages/warga/warga_login_page.dart';
 import 'package:jawara/features/common/auth/presentation/pages/warga/kyc_upload_page.dart';
 
 // Dashboards
@@ -45,12 +44,10 @@ class AppRouter {
           settings: settings,
         );
 
-      // ========== ADMIN ROUTES ==========
-      case AppRoutes.adminLogin:
-      case AppRoutes.login: // Redirect ke admin login untuk backwards compatibility
+      case AppRoutes.login:
         final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
-          builder: (_) => AdminLoginPage(
+          builder: (_) => UnifiedLoginPage(
             initialProgress: args?['initialProgress'] as double? ?? 0.0,
             isForward: args?['isForward'] as bool? ?? true,
           ),
@@ -67,12 +64,6 @@ class AppRouter {
       case AppRoutes.wargaRegister:
         return MaterialPageRoute(
           builder: (_) => const WargaRegisterPage(),
-          settings: settings,
-        );
-
-      case AppRoutes.wargaLogin:
-        return MaterialPageRoute(
-          builder: (_) => const WargaLoginPage(),
           settings: settings,
         );
 
@@ -98,9 +89,7 @@ class AppRouter {
       case AppRoutes.rejected:
         final args = settings.arguments as Map<String, dynamic>?;
         return MaterialPageRoute(
-          builder: (_) => RejectedPage(
-            reason: args?['reason'] as String?,
-          ),
+          builder: (_) => RejectedPage(reason: args?['reason'] as String?),
           settings: settings,
         );
 
@@ -122,11 +111,7 @@ class AppRouter {
     String routeName, {
     Object? arguments,
   }) {
-    return Navigator.pushNamed<T>(
-      context,
-      routeName,
-      arguments: arguments,
-    );
+    return Navigator.pushNamed<T>(context, routeName, arguments: arguments);
   }
 
   /// Helper untuk navigasi dengan replace (tidak bisa back)
@@ -158,4 +143,3 @@ class AppRouter {
     );
   }
 }
-

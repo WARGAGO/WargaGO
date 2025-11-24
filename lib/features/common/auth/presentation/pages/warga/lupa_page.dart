@@ -146,7 +146,7 @@ class _LupaPageState extends State<LupaPage> {
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF2F80ED).withOpacity(0.05),
+                color: const Color(0xFF2F80ED).withValues(alpha: 0.05),
               ),
             ),
           ),
@@ -158,7 +158,7 @@ class _LupaPageState extends State<LupaPage> {
               height: 200,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF2F80ED).withOpacity(0.05),
+                color: const Color(0xFF2F80ED).withValues(alpha: 0.05),
               ),
             ),
           ),
