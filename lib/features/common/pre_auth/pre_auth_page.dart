@@ -145,7 +145,7 @@ class _PreAuthPageState extends State<PreAuthPage>
                           onPressed: () {
                             Navigator.pushNamed(
                               context,
-                              AppRoutes.adminLogin,
+                              AppRoutes.login,
                               arguments: {
                                 'initialProgress': _controller.value,
                                 'isForward': _isForward,
@@ -267,6 +267,6 @@ class _BlobPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _BlobPainter oldDelegate) =>
       oldDelegate.baseColor != baseColor ||
-          oldDelegate.accentColor != accentColor ||
-          oldDelegate.progress != progress;
+      oldDelegate.accentColor != accentColor ||
+      oldDelegate.progress != progress;
 }
