@@ -34,7 +34,6 @@ class _WargaLoginPageState extends State<WargaLoginPage>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _progress;
-  bool _isForward = true;
 
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
@@ -56,10 +55,8 @@ class _WargaLoginPageState extends State<WargaLoginPage>
   void _handleStatus(AnimationStatus status) {
     if (!mounted) return;
     if (status == AnimationStatus.completed) {
-      _isForward = false;
       _controller.reverse();
     } else if (status == AnimationStatus.dismissed) {
-      _isForward = true;
       _controller.forward();
     }
   }
@@ -90,7 +87,6 @@ class _WargaLoginPageState extends State<WargaLoginPage>
       if (success) {
         final user = authProvider.userModel;
         final status = user?.status;
-
         // Cek status verifikasi warga
         if (status == 'approved') {
           // Warga sudah disetujui -> ke dashboard
@@ -203,7 +199,6 @@ class _WargaLoginPageState extends State<WargaLoginPage>
                           controller: _emailController,
                           hintText: 'warga@example.com',
                           labelText: 'Email',
-                          keyboardType: TextInputType.emailAddress,
                           prefixIcon: Icons.email_outlined,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
@@ -222,8 +217,8 @@ class _WargaLoginPageState extends State<WargaLoginPage>
                           controller: _passwordController,
                           hintText: '••••••••',
                           labelText: 'Password',
-                          obscureText: !_isPasswordVisible,
                           prefixIcon: Icons.lock_outline,
+                          obscureText: !_isPasswordVisible,
                           suffixIcon: IconButton(
                             icon: Icon(
                               _isPasswordVisible
@@ -333,8 +328,8 @@ class _BlobBackground extends StatelessWidget {
       child: SizedBox.expand(
         child: CustomPaint(
           painter: _BlobPainter(
-            baseColor: AuthColors.primary.withOpacity(0.12),
-            accentColor: AuthColors.primary.withOpacity(0.35),
+            baseColor: AuthColors.primary.withValues(alpha: 0.12),
+            accentColor: AuthColors.primary.withValues(alpha: 0.35),
             progress: progress,
           ),
         ),

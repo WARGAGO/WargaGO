@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../../core/models/kyc_document_model.dart';
 
 class KYCStep3AktePage extends StatelessWidget {
-  final Function(Map<String, dynamic>?) onNext;
+  final Function(OCRResult?) onNext;
   final VoidCallback onSkip;
 
   const KYCStep3AktePage({
