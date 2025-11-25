@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:jawara/core/models/PCVK/batch_predict_response.dart';
@@ -28,6 +29,9 @@ void main() {
 
     group('getHealth', () {
       test('returns HealthModelResponse on successful response', () async {
+        if (kDebugMode) {
+          print('📝 Testing: Get health response successfully');
+        }
         // Arrange
         when(mockClient.get(any)).thenAnswer(
           (_) async =>
@@ -51,17 +55,23 @@ void main() {
         expect(result.availableModels, ['mlp', 'mlpv2', 'mlpv2_auto-clahe']);
 
         verify(mockClient.get(any)).called(1);
+        if (kDebugMode) {
+          print('✅ Passed: Health response retrieved\n');
+        }
       });
 
       test('throws exception on failed response', () async {
+        if (kDebugMode) {
+          print('📝 Testing: Get health with 404 error');
+        }
         // Arrange
         when(
           mockClient.get(any),
         ).thenAnswer((_) async => http.Response('Not Found', 404));
 
         // Act & Assert
-        expect(
-          () => pcvkService.getHealth(),
+        await expectLater(
+          pcvkService.getHealth(),
           throwsA(
             isA<Exception>().having(
               (e) => e.toString(),
@@ -72,17 +82,23 @@ void main() {
         );
 
         verify(mockClient.get(any)).called(1);
+        if (kDebugMode) {
+          print('✅ Passed: 404 exception thrown\n');
+        }
       });
 
       test('throws exception on server error', () async {
+        if (kDebugMode) {
+          print('📝 Testing: Get health with 500 server error');
+        }
         // Arrange
         when(
           mockClient.get(any),
         ).thenAnswer((_) async => http.Response('Internal Server Error', 500));
 
         // Act & Assert
-        expect(
-          () => pcvkService.getHealth(),
+        await expectLater(
+          pcvkService.getHealth(),
           throwsA(
             isA<Exception>().having(
               (e) => e.toString(),
@@ -91,11 +107,17 @@ void main() {
             ),
           ),
         );
+        if (kDebugMode) {
+          print('✅ Passed: 500 exception thrown\n');
+        }
       });
     });
 
     group('getClasses', () {
       test('returns list of classes on successful response', () async {
+        if (kDebugMode) {
+          print('📝 Testing: Get classes list successfully');
+        }
         // Arrange
         when(mockClient.get(any)).thenAnswer(
           (_) async =>
@@ -116,17 +138,23 @@ void main() {
         expect(result.length, 4);
 
         verify(mockClient.get(any)).called(1);
+        if (kDebugMode) {
+          print('✅ Passed: Classes list retrieved\n');
+        }
       });
 
       test('throws exception on failed response', () async {
+        if (kDebugMode) {
+          print('📝 Testing: Get classes with 400 error');
+        }
         // Arrange
         when(
           mockClient.get(any),
         ).thenAnswer((_) async => http.Response('Bad Request', 400));
 
         // Act & Assert
-        expect(
-          () => pcvkService.getClasses(),
+        await expectLater(
+          pcvkService.getClasses(),
           throwsA(
             isA<Exception>().having(
               (e) => e.toString(),
@@ -135,11 +163,17 @@ void main() {
             ),
           ),
         );
+        if (kDebugMode) {
+          print('✅ Passed: 400 exception thrown\n');
+        }
       });
     });
 
     group('getModels', () {
       test('returns ModelsModelResponse on successful response', () async {
+        if (kDebugMode) {
+          print('📝 Testing: Get models response successfully');
+        }
         // Arrange
         when(mockClient.get(any)).thenAnswer(
           (_) async =>
@@ -160,9 +194,15 @@ void main() {
         expect(result.models['mlp']!.features, ['Simple Linear Layers']);
 
         verify(mockClient.get(any)).called(1);
+        if (kDebugMode) {
+          print('✅ Passed: Models response retrieved\n');
+        }
       });
 
       test('handles null optional fields', () async {
+        if (kDebugMode) {
+          print('📝 Testing: Get models with null optional fields');
+        }
         // Arrange
         when(mockClient.get(any)).thenAnswer(
           (_) async => http.Response(
@@ -181,6 +221,9 @@ void main() {
         expect(result.models['u2netp']!.hiddenLayers, null);
         expect(result.models['u2netp']!.dropout, 0.0);
         expect(result.models['u2netp']!.features, null);
+        if (kDebugMode) {
+          print('✅ Passed: Null fields handled\n');
+        }
       });
     });
 
@@ -201,6 +244,9 @@ void main() {
       });
 
       test('returns PredictModelResponse on successful prediction', () async {
+        if (kDebugMode) {
+          print('📝 Testing: Predict image successfully');
+        }
         // Arrange
         when(mockClient.send(any)).thenAnswer(
           (_) async => http.StreamedResponse(
@@ -234,9 +280,15 @@ void main() {
         });
 
         verify(mockClient.send(any)).called(1);
+        if (kDebugMode) {
+          print('✅ Passed: Image prediction successful\n');
+        }
       });
 
       test('throws exception on failed prediction', () async {
+        if (kDebugMode) {
+          print('📝 Testing: Predict with 400 error');
+        }
         // Arrange
         when(mockClient.send(any)).thenAnswer(
           (_) async => http.StreamedResponse(
@@ -246,8 +298,8 @@ void main() {
         );
 
         // Act & Assert
-        expect(
-          () => pcvkService.predict(mockFile),
+        await expectLater(
+          pcvkService.predict(mockFile),
           throwsA(
             isA<Exception>().having(
               (e) => e.toString(),
@@ -256,9 +308,15 @@ void main() {
             ),
           ),
         );
+        if (kDebugMode) {
+          print('✅ Passed: 400 exception thrown\n');
+        }
       });
 
       test('throws exception on server error during prediction', () async {
+        if (kDebugMode) {
+          print('📝 Testing: Predict with 500 server error');
+        }
         // Arrange
         when(mockClient.send(any)).thenAnswer(
           (_) async => http.StreamedResponse(
@@ -268,8 +326,8 @@ void main() {
         );
 
         // Act & Assert
-        expect(
-          () => pcvkService.predict(mockFile),
+        await expectLater(
+          pcvkService.predict(mockFile),
           throwsA(
             isA<Exception>().having(
               (e) => e.toString(),
@@ -278,6 +336,9 @@ void main() {
             ),
           ),
         );
+        if (kDebugMode) {
+          print('✅ Passed: 500 exception thrown\n');
+        }
       });
     });
 
@@ -310,6 +371,9 @@ void main() {
       test(
         'returns BatchPredictionResponse on successful batch prediction',
         () async {
+          if (kDebugMode) {
+            print('📝 Testing: Batch predict images successfully');
+          }
           // Arrange
           when(mockClient.send(any)).thenAnswer(
             (_) async => http.StreamedResponse(
@@ -347,10 +411,16 @@ void main() {
           );
 
           verify(mockClient.send(any)).called(1);
+          if (kDebugMode) {
+            print('✅ Passed: Batch prediction successful\n');
+          }
         },
       );
 
       test('handles batch prediction with error', () async {
+        if (kDebugMode) {
+          print('📝 Testing: Batch predict with partial errors');
+        }
         // Arrange
         when(mockClient.send(any)).thenAnswer(
           (_) async => http.StreamedResponse(
@@ -384,31 +454,49 @@ void main() {
         expect(result.predictions[1].error, "Fail");
 
         verify(mockClient.send(any)).called(1);
+        if (kDebugMode) {
+          print('✅ Passed: Partial errors handled\n');
+        }
       });
     });
 
     group('Error handling', () {
       test('handles network errors gracefully', () async {
+        if (kDebugMode) {
+          print('📝 Testing: Handle network error (SocketException)');
+        }
         // Arrange
         when(
           mockClient.get(any),
         ).thenThrow(const SocketException('Network unreachable'));
 
         // Act & Assert
-        expect(() => pcvkService.getHealth(), throwsA(isA<SocketException>()));
+        await expectLater(
+          pcvkService.getHealth(),
+          throwsA(isA<SocketException>()),
+        );
+        if (kDebugMode) {
+          print('✅ Passed: Network error handled\n');
+        }
       });
 
       test('handles timeout errors', () async {
+        if (kDebugMode) {
+          print('📝 Testing: Handle timeout error');
+        }
         // Arrange
         when(
           mockClient.get(any),
         ).thenThrow(TimeoutException('Request timeout'));
 
         // Act & Assert
-        expect(
-          () => pcvkService.getClasses(),
+        await expectLater(
+          pcvkService.getClasses(),
           throwsA(isA<TimeoutException>()),
         );
+        if (kDebugMode) {
+          print('✅ Passed: Timeout error handled\n');
+        }
       });
     });
   });

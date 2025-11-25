@@ -2,6 +2,7 @@
 
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jawara/core/models/PCVK/batch_predict_response.dart';
 import 'package:jawara/core/models/PCVK/health_response.dart';
@@ -19,6 +20,9 @@ void main() {
 
     group('getHealth', () {
       test('returns HealthModelResponse on successful response', () async {
+        if (kDebugMode) {
+          print('📝 Testing: Get health status from PCVK service');
+        }
         // Act
         final result = await pcvkService.getHealth();
 
@@ -29,11 +33,17 @@ void main() {
         expect(result.numClasses, greaterThan(0));
         expect(result.classNames, isNotEmpty);
         expect(result.availableModels, isNotEmpty);
+        if (kDebugMode) {
+          print('✅ Passed: Health status retrieved successfully\n');
+        }
       });
     });
 
     group('getClasses', () {
       test('returns list of classes on successful response', () async {
+        if (kDebugMode) {
+          print('📝 Testing: Get available classes from PCVK service');
+        }
         // Act
         final result = await pcvkService.getClasses();
 
@@ -41,11 +51,17 @@ void main() {
         expect(result, isA<List<String>>());
         expect(result, isNotEmpty);
         expect(result.length, greaterThan(0));
+        if (kDebugMode) {
+          print('✅ Passed: Classes retrieved successfully\n');
+        }
       });
     });
 
     group('getModels', () {
       test('returns ModelsModelResponse on successful response', () async {
+        if (kDebugMode) {
+          print('📝 Testing: Get available models from PCVK service');
+        }
         // Act
         final result = await pcvkService.getModels();
 
@@ -54,19 +70,19 @@ void main() {
         expect(result.totalModels, greaterThan(0));
         expect(result.availableModels, isNotEmpty);
         expect(result.models, isNotEmpty);
+        if (kDebugMode) {
+          print('✅ Passed: Models retrieved successfully\n');
+        }
       });
     });
 
     group('predict', () {
       test('returns PredictModelResponse on successful prediction', () async {
+        if (kDebugMode) {
+          print('📝 Testing: Predict image class using PCVK service');
+        }
         final testImagePath = 'test/fixtures/test_images/1.jpg';
         final testFile = File(testImagePath);
-
-        if (!await testFile.exists()) {
-          print('Skipping predict test - no test image at: $testImagePath');
-          print('Please provide a test image to run this test');
-          return;
-        }
 
         // Act
         final result = await pcvkService.predict(testFile);
@@ -80,6 +96,9 @@ void main() {
         expect(result.allConfidences, isNotEmpty);
         expect(result.device, isNotEmpty);
         expect(result.modelType, isNotEmpty);
+        if (kDebugMode) {
+          print('✅ Passed: Image prediction successful\n');
+        }
       }, skip: false);
     });
 
@@ -87,23 +106,17 @@ void main() {
       test(
         'returns BatchPredictionResponse on successful batch prediction',
         () async {
+          if (kDebugMode) {
+            print(
+              '📝 Testing: Batch predict multiple images using PCVK service',
+            );
+          }
           final testImagePaths = [
             'test/fixtures/test_images/1.jpg',
             'test/fixtures/test_images/2.jpeg',
           ];
 
           final testFiles = testImagePaths.map((path) => File(path)).toList();
-
-          // Check if test files exist
-          final allExist = await Future.wait(
-            testFiles.map((f) => f.exists()),
-          ).then((results) => results.every((exists) => exists));
-
-          if (!allExist) {
-            print('Skipping batch predict test - test images not found');
-            print('Expected images at: $testImagePaths');
-            return;
-          }
 
           // Act
           final result = await pcvkService.batchPredict(testFiles);
@@ -112,6 +125,9 @@ void main() {
           expect(result, isA<BatchPredictionResponse>());
           expect(result.predictions, isNotEmpty);
           expect(result.predictions.length, testFiles.length);
+          if (kDebugMode) {
+            print('✅ Passed: Batch prediction successful\n');
+          }
         },
         skip: false,
       );
