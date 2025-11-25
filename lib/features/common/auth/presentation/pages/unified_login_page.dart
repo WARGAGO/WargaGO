@@ -288,21 +288,10 @@ class _LoginFieldsState extends State<_LoginFields> {
         // Admin -> Dashboard Admin
         context.go(AppRoutes.adminDashboard);
       } else if (user?.role == 'warga') {
-        final status = user?.status;
-        // Cek status verifikasi warga
-        if (status == 'approved') {
-          // Warga sudah disetujui -> ke dashboard
-          context.go(AppRoutes.wargaDashboard);
-        } else if (status == 'pending') {
-          // Masih menunggu approval
-          context.go(AppRoutes.pending);
-        } else if (status == 'rejected') {
-          // Ditolak admin
-          context.go(AppRoutes.rejected);
-        } else {
-          // Status unverified -> belum upload KYC
-          context.go(AppRoutes.wargaKYC);
-        }
+        // Semua warga (approved, pending, unverified) bisa masuk dashboard
+        // Rejected sudah diblokir di AuthProvider
+        // Alert di dashboard akan menyesuaikan dengan status
+        context.go(AppRoutes.wargaDashboard);
       }
     } else {
       // Show error
@@ -359,34 +348,10 @@ class _LoginFieldsState extends State<_LoginFields> {
           // Admin -> Dashboard Admin
           context.go(AppRoutes.adminDashboard);
         } else if (user?.role == 'warga') {
-          // Warga -> Check status verifikasi
-          if (user?.status == 'pending') {
-            AuthDialogs.showError(
-              context,
-              'Menunggu Persetujuan',
-              'Akun Anda masih menunggu persetujuan dari admin.',
-            );
-            await authProvider.signOut();
-            return;
-          }
-
-          if (user?.status == 'rejected') {
-            AuthDialogs.showError(
-              context,
-              'Akun Ditolak',
-              'Akun Anda ditolak oleh admin.',
-            );
-            await authProvider.signOut();
-            return;
-          }
-
-          if (user?.status == 'approved') {
-            // Warga approved -> Dashboard Warga
-            context.go(AppRoutes.wargaDashboard);
-          } else {
-            // Unverified -> Upload KYC
-            context.go(AppRoutes.wargaKYC);
-          }
+          // Semua warga (approved, pending, unverified) bisa masuk dashboard
+          // Rejected sudah diblokir di AuthProvider
+          // Alert di dashboard akan menyesuaikan dengan status
+          context.go(AppRoutes.wargaDashboard);
         } else {
           // User baru dari Google Sign-In (belum ada role)
           // Redirect ke halaman registrasi untuk melengkapi data

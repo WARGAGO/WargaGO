@@ -94,6 +94,7 @@ class _WargaRegisterPageState extends State<WargaRegisterPage> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     // Call registerWarga from AuthProvider
+    // registerWarga already auto-login user, no need to call signIn again
     final success = await authProvider.registerWarga(
       email: _emailController.text.trim(),
       password: _passwordController.text,
@@ -104,12 +105,13 @@ class _WargaRegisterPageState extends State<WargaRegisterPage> {
     setState(() => _isLoading = false);
 
     if (success) {
-      // Show success and navigate to KYC upload
+      // User already logged in after registerWarga
+      // Show success dialog then redirect to KYC upload
       AuthDialogs.showSuccess(
         context,
         'Registrasi Berhasil',
-        'Akun Anda berhasil dibuat. Silakan lengkapi verifikasi KYC untuk mengakses fitur lengkap.',
-        buttonText: 'Lanjutkan',
+        'Akun Anda berhasil dibuat. Silakan lengkapi verifikasi KYC untuk mengakses semua fitur.',
+        buttonText: 'Upload KYC Sekarang',
         onPressed: () {
           Navigator.pop(context); // Close dialog
           context.go(AppRoutes.wargaKYC);

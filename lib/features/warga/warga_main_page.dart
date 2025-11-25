@@ -42,20 +42,9 @@ class _WargaMainPageState extends State<WargaMainPage> {
     final userId = authProvider.userModel?.id;
 
     return Scaffold(
-      body: Column(
-        children: [
-          // KYC Alert Banner (if not verified)
-          if (userId != null)
-            _buildKYCAlertBanner(userId),
-
-          // Main content
-          Expanded(
-            child: IndexedStack(
-              index: _getPageIndex(_currentIndex),
-              children: _allPages,
-            ),
-          ),
-        ],
+      body: IndexedStack(
+        index: _getPageIndex(_currentIndex),
+        children: _allPages,
       ),
       bottomNavigationBar: userId != null
           ? _buildBottomNavigationBar(userId)
@@ -76,136 +65,7 @@ class _WargaMainPageState extends State<WargaMainPage> {
     }
   }
 
-  // Build KYC Alert Banner
-  Widget _buildKYCAlertBanner(String userId) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: _kycService.getUserKYCDocuments(userId),
-      builder: (context, snapshot) {
-        // Check if user has completed KYC
-        bool hasKYC = false;
-        bool isVerified = false;
-
-        if (snapshot.hasData && snapshot.data!.docs.isNotEmpty) {
-          // Check if all required documents are uploaded and approved
-          final docs = snapshot.data!.docs;
-          final ktpDoc = docs.where((doc) => doc['documentType'] == 'ktp').firstOrNull;
-          final kkDoc = docs.where((doc) => doc['documentType'] == 'kk').firstOrNull;
-
-          hasKYC = ktpDoc != null && kkDoc != null;
-
-          if (hasKYC) {
-            final ktpStatus = ktpDoc['status'] ?? 'pending';
-            final kkStatus = kkDoc['status'] ?? 'pending';
-            isVerified = ktpStatus == 'approved' && kkStatus == 'approved';
-          }
-        }
-
-        // Show alert if KYC not completed or not verified
-        if (!hasKYC || !isVerified) {
-          return Container(
-            margin: const EdgeInsets.all(16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  const Color(0xFFFEF3C7),
-                  const Color(0xFFFDE68A),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: const Color(0xFFFBBF24),
-                width: 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFFFBBF24).withValues(alpha: 0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.warning_amber_rounded,
-                    color: Color(0xFFF59E0B),
-                    size: 28,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        !hasKYC
-                            ? 'Lengkapi Data KYC Anda'
-                            : 'Menunggu Verifikasi KYC',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF92400E),
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        !hasKYC
-                            ? 'Upload KTP & KK untuk mengakses semua fitur'
-                            : 'Data Anda sedang diverifikasi admin',
-                        style: GoogleFonts.poppins(
-                          fontSize: 12,
-                          color: const Color(0xFF78350F),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (!hasKYC)
-                  TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const KYCUploadPage(),
-                        ),
-                      );
-                    },
-                    style: TextButton.styleFrom(
-                      backgroundColor: const Color(0xFFF59E0B),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 8,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: Text(
-                      'Upload',
-                      style: GoogleFonts.poppins(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          );
-        }
-
-        return const SizedBox.shrink();
-      },
-    );
-  }
-
+  // Build bottom navigation bar with KYC check
   Widget _buildBottomNavigationBar(String userId) {
     return StreamBuilder<QuerySnapshot>(
       stream: userId.isNotEmpty ? _kycService.getUserKYCDocuments(userId) : null,

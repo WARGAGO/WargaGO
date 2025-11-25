@@ -98,26 +98,29 @@ class AuthProvider with ChangeNotifier {
         print('  - TOKEN: ${await _auth.currentUser!.getIdToken()}');
       }
 
-      // Check if user status is approved
-      if (user.status != 'approved') {
+      // Only block rejected users - others can login
+      // Status 'approved', 'pending', 'unverified' can all login
+      // but features will be limited based on status
+      if (user.status == 'rejected') {
         if (kDebugMode) {
-          print('❌ Status bukan approved: ${user.status}');
+          print('❌ Status rejected, login denied');
         }
         await _auth.signOut();
-        if (user.status == 'pending') {
-          _errorMessage = 'Akun Anda masih menunggu persetujuan admin';
-        } else if (user.status == 'rejected') {
-          _errorMessage = 'Akun Anda ditolak oleh admin';
-        } else {
-          _errorMessage = 'Akun Anda tidak aktif (status: ${user.status})';
-        }
+        _errorMessage = 'Akun Anda ditolak oleh admin. Silakan hubungi admin untuk informasi lebih lanjut.';
         _isLoading = false;
         notifyListeners();
         return false;
       }
 
       if (kDebugMode) {
-        print('✅ Status approved!');
+        print('✅ Login allowed for status: ${user.status}');
+        if (user.status == 'pending') {
+          print('⚠️  Status: PENDING - Menunggu approval admin');
+        } else if (user.status == 'unverified') {
+          print('⚠️  Status: UNVERIFIED - Belum upload KYC atau belum diverifikasi admin');
+        } else if (user.status == 'approved') {
+          print('✅ Status: APPROVED - Full access');
+        }
         print('🎉 LOGIN BERHASIL!');
         print('===================\n');
       }
@@ -698,13 +701,25 @@ class AuthProvider with ChangeNotifier {
 
       // Get user data from Firestore
       final user = await _firestoreService.getUserById(currentUser.uid);
-      if (user == null || user.status != 'approved') {
+
+      // Only block if user doesn't exist or is rejected
+      // Allow approved, pending, and unverified to stay logged in
+      if (user == null) {
         await _auth.signOut();
         _isAuthenticated = false;
         _userModel = null;
         return false;
       }
 
+      // Only sign out if rejected
+      if (user.status == 'rejected') {
+        await _auth.signOut();
+        _isAuthenticated = false;
+        _userModel = null;
+        return false;
+      }
+
+      // User exists and not rejected - keep them logged in
       _userModel = user;
       _isAuthenticated = true;
       return true;

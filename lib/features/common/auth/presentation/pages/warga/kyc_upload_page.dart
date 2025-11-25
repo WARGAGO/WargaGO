@@ -133,15 +133,18 @@ class _KYCUploadPageState extends State<KYCUploadPage> {
 
       if (!mounted) return;
 
+      // Update user status to pending
+      // TODO: Call API to update status in database
+
       // Show success and navigate to dashboard
       AuthDialogs.showSuccess(
         context,
         'Upload Berhasil',
         'Dokumen Anda berhasil diupload. Admin akan memverifikasi dokumen Anda dalam 1-3 hari kerja.',
-        buttonText: 'Lanjutkan',
+        buttonText: 'Ke Dashboard',
         onPressed: () {
           context.pop(); // Close dialog
-          context.go(AppRoutes.pending);
+          context.go(AppRoutes.wargaDashboard);
         },
       );
     } catch (e) {
