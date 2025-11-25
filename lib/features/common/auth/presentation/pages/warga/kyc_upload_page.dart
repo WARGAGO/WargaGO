@@ -26,7 +26,7 @@ class KYCUploadPage extends StatefulWidget {
 }
 
 class _KYCUploadPageState extends State<KYCUploadPage> {
-  final KYCService _kycService = KYCService();
+  late final KYCService _kycService;
   final ImagePicker _picker = ImagePicker();
 
   File? _ktpFile;
@@ -35,6 +35,12 @@ class _KYCUploadPageState extends State<KYCUploadPage> {
 
   bool _isUploading = false;
 
+  @override
+  void initState() {
+    KYCService.init().then((kycService) => _kycService = kycService);
+    super.initState();
+  }
+
   /// Pick image from gallery or camera
   Future<File?> _pickImage() async {
     try {
@@ -42,7 +48,6 @@ class _KYCUploadPageState extends State<KYCUploadPage> {
         source: ImageSource.gallery,
         maxWidth: 1920,
         maxHeight: 1080,
-        imageQuality: 85,
       );
 
       if (image != null) {

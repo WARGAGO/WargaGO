@@ -10,7 +10,8 @@ class AuthProvider with ChangeNotifier {
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: ['email'],
     // Web Client ID dari Firebase Console untuk Google Sign In
-    serverClientId: '693556950050-vp8tf6ib0a5vfsqik0m3lm46o1f0786o.apps.googleusercontent.com',
+    serverClientId:
+        '693556950050-vp8tf6ib0a5vfsqik0m3lm46o1f0786o.apps.googleusercontent.com',
   );
   final FirestoreService _firestoreService = FirestoreService();
 
@@ -23,6 +24,8 @@ class AuthProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get isAuthenticated => _isAuthenticated;
+
+  Future<String?> getToken() async => await _auth.currentUser!.getIdToken();
 
   // Sign in with email and password using Firebase Auth
   Future<bool> signIn({required String email, required String password}) async {
@@ -97,7 +100,7 @@ class AuthProvider with ChangeNotifier {
         print('  - Nama: ${user.nama}');
         print('  - Role: ${user.role}');
         print('  - Status: ${user.status}');
-        print('  - TOKEN: ${await _auth.currentUser!.getIdToken()}');
+        print('  - TOKEN: ${await getToken()}');
       }
 
       // Check if user status is approved
@@ -357,7 +360,8 @@ class AuthProvider with ChangeNotifier {
       }
 
       // Obtain auth details from request
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
 
       // Create credential for Firebase
       final credential = GoogleAuthProvider.credential(
@@ -485,12 +489,14 @@ class AuthProvider with ChangeNotifier {
 
       // Handling error code 10 (API_NOT_AVAILABLE)
       if (e.code == 'sign_in_failed') {
-        _errorMessage = 'Google Sign In tidak tersedia. Pastikan:\n'
+        _errorMessage =
+            'Google Sign In tidak tersedia. Pastikan:\n'
             '1. Google Play Services terinstall\n'
             '2. SHA-1 certificate sudah ditambahkan ke Firebase\n'
             '3. Koneksi internet aktif';
       } else if (e.code == 'network_error') {
-        _errorMessage = 'Gagal terhubung ke Google. Periksa koneksi internet Anda.';
+        _errorMessage =
+            'Gagal terhubung ke Google. Periksa koneksi internet Anda.';
       } else {
         _errorMessage = 'Google Sign In gagal: ${e.message ?? e.code}';
       }

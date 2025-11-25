@@ -19,7 +19,13 @@ class AdminKYCApprovalPage extends StatefulWidget {
 }
 
 class _AdminKYCApprovalPageState extends State<AdminKYCApprovalPage> {
-  final KYCService _kycService = KYCService();
+  late final KYCService _kycService;
+
+  @override
+  void initState() {
+    KYCService.init().then((kycService) => _kycService = kycService);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,9 +45,7 @@ class _AdminKYCApprovalPageState extends State<AdminKYCApprovalPage> {
           }
 
           if (snapshot.hasError) {
-            return Center(
-              child: Text('Error: ${snapshot.error}'),
-            );
+            return Center(child: Text('Error: ${snapshot.error}'));
           }
 
           final documents = snapshot.data ?? [];
@@ -97,9 +101,7 @@ class _AdminKYCApprovalPageState extends State<AdminKYCApprovalPage> {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -164,11 +166,7 @@ class _AdminKYCApprovalPageState extends State<AdminKYCApprovalPage> {
           // Document Type
           Row(
             children: [
-              Icon(
-                Icons.description,
-                size: 20,
-                color: const Color(0xFF2E7D32),
-              ),
+              Icon(Icons.description, size: 20, color: const Color(0xFF2E7D32)),
               const SizedBox(width: 8),
               Text(
                 document.documentTypeName,
@@ -268,14 +266,13 @@ class _AdminKYCApprovalPageState extends State<AdminKYCApprovalPage> {
                       child: CircularProgressIndicator(
                         value: loadingProgress.expectedTotalBytes != null
                             ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
+                                  loadingProgress.expectedTotalBytes!
                             : null,
                       ),
                     );
                   },
-                  errorBuilder: (context, error, stackTrace) => const Center(
-                    child: Icon(Icons.error, size: 64),
-                  ),
+                  errorBuilder: (context, error, stackTrace) =>
+                      const Center(child: Icon(Icons.error, size: 64)),
                 ),
               ),
             ),
@@ -306,10 +303,7 @@ class _AdminKYCApprovalPageState extends State<AdminKYCApprovalPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
       }
     }
@@ -352,9 +346,7 @@ class _AdminKYCApprovalPageState extends State<AdminKYCApprovalPage> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: const Text('Tolak'),
           ),
         ],
@@ -383,10 +375,7 @@ class _AdminKYCApprovalPageState extends State<AdminKYCApprovalPage> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error: $e'),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
           );
         }
       }
@@ -395,4 +384,3 @@ class _AdminKYCApprovalPageState extends State<AdminKYCApprovalPage> {
     reasonController.dispose();
   }
 }
-

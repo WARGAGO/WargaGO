@@ -21,13 +21,14 @@ class KYCDocumentPreview extends StatefulWidget {
 }
 
 class _KYCDocumentPreviewState extends State<KYCDocumentPreview> {
-  final KYCService _kycService = KYCService();
+  late final KYCService _kycService;
   String? _documentUrl;
   bool _isLoading = true;
   String? _error;
 
   @override
   void initState() {
+    KYCService.init().then((kycService) => _kycService = kycService);
     super.initState();
     _loadDocumentUrl();
   }
@@ -156,7 +157,7 @@ class _KYCDocumentPreviewState extends State<KYCDocumentPreview> {
             child: CircularProgressIndicator(
               value: loadingProgress.expectedTotalBytes != null
                   ? loadingProgress.cumulativeBytesLoaded /
-                      loadingProgress.expectedTotalBytes!
+                        loadingProgress.expectedTotalBytes!
                   : null,
             ),
           );
@@ -168,4 +169,3 @@ class _KYCDocumentPreviewState extends State<KYCDocumentPreview> {
   /// Get current document URL (untuk open di browser/viewer)
   String? get documentUrl => _documentUrl;
 }
-

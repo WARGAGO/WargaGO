@@ -7,6 +7,7 @@
 
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import '../models/kyc_document_model.dart';
 import 'azure_blob_storage_service.dart';
@@ -14,8 +15,15 @@ import 'ocr_service.dart';
 
 class KYCService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final AzureBlobStorageService _azureApiService = AzureBlobStorageService();
+  final AzureBlobStorageService _azureApiService;
   final OCRService _ocrService = OCRService();
+
+  KYCService(this._azureApiService);
+
+  static Future<KYCService> init() async {
+    final token = await FirebaseAuth.instance.currentUser?.getIdToken();
+    return KYCService(AzureBlobStorageService(firebaseToken: token ?? ''));
+  }
 
   // Collection reference
   CollectionReference get _kycCollection =>
