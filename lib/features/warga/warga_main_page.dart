@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'home/pages/warga_home_page.dart';
+import 'marketplace/pages/warga_marketplace_page.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/services/kyc_service.dart';
 import '../common/auth/presentation/pages/warga/kyc_upload_page.dart';
@@ -28,10 +29,10 @@ class _WargaMainPageState extends State<WargaMainPage> {
   void initState() {
     super.initState();
     _allPages = [
-      const WargaHomePage(),      // Index 0: Home
-      const _MarketplacePage(),   // Index 1: Marketplace (Perlu KYC)
-      const _IuranPage(),         // Index 2: Iuran (Perlu KYC)
-      const _AkunPage(),          // Index 3: Akun
+      const WargaHomePage(),           // Index 0: Home
+      const WargaMarketplacePage(),    // Index 1: Marketplace (Perlu KYC)
+      const _IuranPage(),              // Index 2: Iuran (Perlu KYC)
+      const _AkunPage(),               // Index 3: Akun
     ];
   }
 
@@ -555,61 +556,6 @@ class _WargaMainPageState extends State<WargaMainPage> {
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-// ============================================================================
-// MARKETPLACE PAGE (Requires KYC)
-// ============================================================================
-class _MarketplacePage extends StatelessWidget {
-  const _MarketplacePage();
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FD),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: Text(
-          'Marketplace',
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF1F2937),
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.storefront_rounded,
-              size: 80,
-              color: const Color(0xFF2F80ED).withValues(alpha: 0.3),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Marketplace',
-              style: GoogleFonts.poppins(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF1F2937),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Fitur dalam pengembangan',
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                color: const Color(0xFF6B7280),
-              ),
-            ),
-          ],
         ),
       ),
     );
