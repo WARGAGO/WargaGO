@@ -485,19 +485,46 @@ class AuthProvider with ChangeNotifier {
       if (e.code == 'sign_in_failed' || e.code == '10') {
         _errorMessage = 'Google Sign In tidak tersedia.\n\n'
             'Kemungkinan penyebab:\n'
-            '• Google Play Services belum terinstall/update\n'
-            '• Menggunakan emulator tanpa Google Play\n'
+            '• SHA-1 fingerprint belum terdaftar di Firebase Console\n'
+            '• Google Play Services perlu update\n'
             '• Koneksi internet tidak stabil\n\n'
             'Solusi:\n'
-            '1. Gunakan device fisik atau emulator dengan Google Play\n'
-            '2. Update Google Play Services\n'
-            '3. Periksa koneksi internet';
+            '1. Pastikan SHA-1 fingerprint HP sudah terdaftar di Firebase\n'
+            '2. Update Google Play Services di HP\n'
+            '3. Restart aplikasi dan coba lagi\n'
+            '4. Periksa koneksi internet\n\n'
+            'Catatan: Jika device lain bisa login, kemungkinan SHA-1 fingerprint device ini belum terdaftar.';
       } else if (e.code == 'network_error') {
         _errorMessage = 'Gagal terhubung ke Google.\nPeriksa koneksi internet Anda.';
       } else if (e.code == 'sign_in_canceled') {
         _errorMessage = null; // User cancelled, no error message needed
       } else {
         _errorMessage = 'Google Sign In gagal: ${e.message ?? e.code}';
+      }
+
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    } on FirebaseAuthException catch (e, stackTrace) {
+      if (kDebugMode) {
+        print('\n❌ FIREBASE AUTH ERROR ===');
+        print('Error Code: ${e.code}');
+        print('Error Message: ${e.message}');
+        print('StackTrace: $stackTrace');
+        print('==================\n');
+      }
+
+      if (e.code == 'invalid-credential') {
+        _errorMessage = 'Kredensial Google tidak valid.\n\n'
+            'Kemungkinan penyebab:\n'
+            '• SHA-1 fingerprint tidak sesuai\n'
+            '• Konfigurasi Firebase salah\n\n'
+            'Solusi:\n'
+            '1. Periksa SHA-1 di Firebase Console\n'
+            '2. Download ulang google-services.json\n'
+            '3. Rebuild aplikasi';
+      } else {
+        _errorMessage = 'Firebase Auth gagal: ${e.message}';
       }
 
       _isLoading = false;

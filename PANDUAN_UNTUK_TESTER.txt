@@ -1,0 +1,179 @@
+===========================================
+  PANDUAN TESTING APLIKASI JAWARA
+===========================================
+
+PENTING: JANGAN GUNAKAN "SIGN IN WITH GOOGLE"!
+Gunakan Email/Password saja untuk testing.
+
+---
+
+📱 LANGKAH 1: INSTALL APK
+---
+1. Download file APK yang dibagikan
+2. Buka file APK di HP Anda
+3. Jika muncul peringatan "Install from unknown sources":
+   - Klik "Settings" atau "Pengaturan"
+   - Aktifkan "Allow from this source"
+   - Kembali dan install
+4. Tunggu sampai selesai install
+5. Buka aplikasi "JAWARA"
+
+---
+
+📝 LANGKAH 2: REGISTER AKUN BARU
+---
+1. Di halaman login, klik "Daftar" atau "Register"
+2. Isi form registrasi:
+
+   📧 Email:
+   - Gunakan email Anda sendiri
+   - Contoh: nama.anda@gmail.com
+
+   🔒 Password:
+   - Minimal 6 karakter
+   - Contoh: testing123
+
+   👤 Nama:
+   - Nama lengkap Anda
+   - Contoh: Budi Santoso
+
+   🆔 NIK:
+   - Untuk testing, isi dengan NIK dummy
+   - 16 digit angka
+   - Contoh: 3201234567890123
+
+   📞 No. Telepon (opsional):
+   - Contoh: 081234567890
+
+   📍 Data lain:
+   - Isi sesuai kebutuhan
+   - Boleh pakai data dummy
+
+3. ⚠️ PENTING: JANGAN klik "Sign in with Google"!
+4. Klik tombol "Daftar" atau "Register"
+5. Tunggu proses registrasi selesai
+
+---
+
+🔐 LANGKAH 3: LOGIN
+---
+1. Setelah registrasi berhasil, Anda akan kembali ke halaman login
+2. Isi:
+   - Email: email yang tadi Anda daftarkan
+   - Password: password yang tadi Anda buat
+3. Klik "Login"
+4. ⚠️ JANGAN klik "Sign in with Google"!
+
+---
+
+🧪 LANGKAH 4: TESTING
+---
+Setelah berhasil login, silakan:
+
+✅ Coba semua menu yang ada
+✅ Coba semua fitur
+✅ Perhatikan apakah ada error
+✅ Screenshot jika menemukan bug
+✅ Catat pengalaman Anda
+
+Yang perlu diperhatikan:
+- Apakah aplikasi lancar?
+- Apakah ada yang crash/error?
+- Apakah ada fitur yang tidak jalan?
+- Apakah tampilan bagus?
+- Apakah mudah digunakan?
+
+---
+
+📊 LANGKAH 5: BERIKAN FEEDBACK
+---
+Setelah testing, berikan feedback via:
+[LINK GOOGLE FORM / CONTACT ADMIN]
+
+Yang perlu dilaporkan:
+1. Nama Anda
+2. Merk dan tipe HP (contoh: Samsung A52)
+3. Versi Android (contoh: Android 12)
+4. Fitur yang sudah dicoba
+5. Bug/error yang ditemukan (jika ada)
+6. Screenshot bug (jika ada)
+7. Saran perbaikan
+
+---
+
+🚪 LANGKAH 6: LOGOUT (OPSIONAL)
+---
+Jika ingin logout:
+1. Masuk ke menu "Akun"
+2. Scroll ke bawah
+3. Klik "Logout"
+
+---
+
+❓ FAQ - PERTANYAAN UMUM
+---
+
+Q: Kenapa tidak bisa pakai Google Sign In?
+A: Google Sign In memerlukan konfigurasi khusus per HP.
+   Untuk testing, lebih mudah pakai Email/Password.
+
+Q: Apakah data saya aman?
+A: Ya! Data tersimpan dengan aman di database.
+   Hanya Anda dan admin yang bisa akses data Anda.
+
+Q: Apakah boleh pakai email palsu?
+A: Untuk testing boleh, tapi lebih baik pakai email asli
+   agar bisa reset password jika lupa.
+
+Q: Apakah boleh pakai NIK palsu?
+A: Untuk testing BOLEH. Ini hanya untuk testing saja.
+   Di produksi nanti akan pakai NIK asli.
+
+Q: Aplikasi error/crash, apa yang harus dilakukan?
+A: Screenshot error-nya dan kirim ke admin beserta:
+   - Kapan error terjadi
+   - Apa yang sedang Anda lakukan
+   - Merk dan tipe HP Anda
+
+Q: Lupa password, bagaimana?
+A: Hubungi admin untuk reset password.
+
+Q: Bisa testing di beberapa HP?
+A: Bisa! Login dengan email dan password yang sama
+   di HP manapun.
+
+---
+
+⚠️ CATATAN PENTING
+---
+
+SILAKAN:
+✅ Coba Google Sign In dulu (paling mudah!)
+✅ Pakai Email/Password jika Google error
+✅ Testing dengan baik dan teliti
+✅ Laporkan semua bug yang ditemukan
+✅ Berikan saran yang membangun
+
+JANGAN:
+❌ Share password Anda ke orang lain
+❌ Coba hack/merusak aplikasi
+❌ Isi data yang sensitif/pribadi (gunakan dummy untuk testing)
+
+---
+
+📞 KONTAK
+---
+Jika ada pertanyaan atau masalah:
+- Hubungi: [NAMA ADMIN]
+- Email: [EMAIL ADMIN]
+- WhatsApp: [NO HP ADMIN]
+
+---
+
+Terima kasih sudah membantu testing! 🙏
+Feedback Anda sangat berharga untuk perbaikan aplikasi.
+
+===========================================
+        SELAMAT TESTING! 🚀
+===========================================
+
