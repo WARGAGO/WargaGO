@@ -1,13 +1,15 @@
 // ============================================================================
-// WARGA MARKETPLACE PAGE
+// WARGA MARKETPLACE PAGE (MAIN)
 // ============================================================================
-// Halaman utama untuk warga akses marketplace
+// Halaman utama marketplace dengan produk sayuran
 // ============================================================================
 
 import 'package:flutter/material.dart';
-import '../widgets/marketplace_header.dart';
-import '../widgets/marketplace_program_card.dart';
-import '../widgets/marketplace_daftar_button.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../widgets/marketplace_search_bar.dart';
+import '../widgets/marketplace_category_filter.dart';
+import '../widgets/marketplace_promo_banner.dart';
+import '../widgets/marketplace_product_card.dart';
 
 class WargaMarketplacePage extends StatelessWidget {
   const WargaMarketplacePage({super.key});
@@ -16,36 +18,66 @@ class WargaMarketplacePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Stack(
+      appBar: _buildAppBar(),
+      body: Column(
         children: [
-          const MarketplaceHeader(),
-          Positioned(
-            top: 170,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(24),
-                  topRight: Radius.circular(24),
-                ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    MarketplaceProgramCard(),
-                    MarketplaceDaftarButton(),
-                  ],
-                ),
-              ),
-            ),
+          // Search Bar
+          const MarketplaceSearchBar(),
+          
+          // Category Filter
+          const MarketplaceCategoryFilter(),
+          
+          // Promo Banner
+          const MarketplacePromoBanner(),
+          
+          // Product Grid
+          Expanded(
+            child: _buildProductGrid(),
           ),
         ],
       ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      title: Text(
+        'Produk Sayuran',
+        style: GoogleFonts.poppins(
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          color: const Color(0xFF1F2937),
+        ),
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.shopping_cart_outlined, color: Color(0xFF1F2937)),
+          onPressed: () {
+            // TODO: Navigate to cart
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProductGrid() {
+    return GridView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.75,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+      ),
+      itemCount: 4, // Demo: 4 products
+      itemBuilder: (context, index) {
+        return const MarketplaceProductCard(
+          productName: 'Wortel',
+          price: 'Rp. 10.000',
+        );
+      },
     );
   }
 }
