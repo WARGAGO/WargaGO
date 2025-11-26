@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/cart_seller_group.dart';
 import '../widgets/cart_bottom_bar.dart';
+import 'checkout_page.dart';
 
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
@@ -264,7 +265,7 @@ class _CartPageState extends State<CartPage> {
         onCheckout: () {
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const CartPage()),
+            MaterialPageRoute(builder: (context) => const CheckoutPage()),
           );
         },
       ),
