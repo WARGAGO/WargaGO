@@ -12,8 +12,8 @@ lib_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'lib')
 if lib_path not in sys.path:
     sys.path.append(lib_path)
 
-from lib.model import ModelMLP
 from lib.model_v2 import ModelMLPV2
+from lib.model_effnet import EfficientNetV2Model
 from api.configs.pcvk_config import MODEL_PATHS, CLASS_NAMES, DEVICE, NUM_FEATURES
 
 
@@ -28,7 +28,7 @@ class ModelManager:
         Load a specific model
         
         Args:
-            model_type: Type of model to load ('mlp' or 'mlpv2')
+            model_type: Type of model to load 
         
         Returns:
             True if successful, False otherwise
@@ -46,14 +46,12 @@ class ModelManager:
                 return False
             
             # Create model instance based on type
-            if model_type == "mlp":
-                model = ModelMLP(num_classes=len(CLASS_NAMES), dropout_rate=0.5)
-            elif model_type == "mlpv2":
+            if model_type == "mlpv2":
                 model = ModelMLPV2(
                     num_features=NUM_FEATURES,
                     num_classes=len(CLASS_NAMES),
                     hidden_dims=[256, 512, 256, 128],
-                    dropout_rate=0.3,
+                    dropout_rate=0.5,
                     use_residual=True
                 )
             elif model_type == "mlpv2_auto-clahe":
@@ -61,8 +59,15 @@ class ModelManager:
                     num_features=NUM_FEATURES,
                     num_classes=len(CLASS_NAMES),
                     hidden_dims=[256, 512, 256, 128],
-                    dropout_rate=0.3,
+                    dropout_rate=0.5,
                     use_residual=True
+                )
+            elif model_type == "efficientnetv2":
+                model = EfficientNetV2Model(
+                    num_classes=len(CLASS_NAMES),
+                    dropout_rate=0.3,
+                    pretrained=False,
+                    freeze_backbone=False
                 )
             else:
                 raise ValueError(f"Unknown model type: {model_type}")
@@ -95,9 +100,9 @@ class ModelManager:
         Returns:
             True if at least one model loaded successfully
         """
-        self.load_model("mlp")
         self.load_model("mlpv2")
         self.load_model("mlpv2_auto-clahe")
+        self.load_model("efficientnetv2")
         return True
     
     def get_model(self, model_type: str) -> Optional[torch.nn.Module]:

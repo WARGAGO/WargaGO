@@ -43,6 +43,32 @@ def gradio_predict(
         # Get model
         model = model_manager.get_model(model_type)
         
+        # EfficientNetV2 uses direct image without preprocessing
+        if model_type == "efficientnetv2":
+            # Convert to PIL Image if needed
+            if not isinstance(image, Image.Image):
+                image = Image.fromarray(image)
+            
+            # Perform prediction (no segmentation, no preprocessing)
+            predicted_class, confidence_value, all_confidences = predict_image(
+                model=model,
+                image=image,
+                use_segmentation=False,
+                seg_method="none",
+                apply_brightness_contrast=False,
+                model_type=model_type
+            )
+            
+            # Calculate prediction time
+            prediction_time_ms = (time.time() - start_time) * 1000
+            
+            # Format output
+            result_text = f"**Prediksi:** {predicted_class}\n\n**Confidence:** {confidence_value:.2%}\n\n**Model:** {model_type.upper()}\n\n**Waktu Prediksi:** {prediction_time_ms:.2f} ms"
+            
+            # Return original image as "segmented" output
+            return result_text, all_confidences, np.array(image)
+        
+        # Feature-based models (MLP variants)
         # Convert PIL Image to numpy array (BGR for OpenCV)
         if isinstance(image, Image.Image):
             image_np = np.array(image)
@@ -108,7 +134,9 @@ def gradio_predict(
             model=model,
             image=segmented_pil,
             use_segmentation=False,  # Already segmented above
-            seg_method="none"
+            seg_method="none",
+            apply_brightness_contrast=False,
+            model_type=model_type
         )
 
         # Calculate prediction time
@@ -156,10 +184,10 @@ def create_gradio_interface():
                 with gr.Accordion("Pengaturan Model dan Segmentasi", open=True):
                     # Model selection
                     model_type = gr.Radio(
-                        choices=["mlp", "mlpv2", "mlpv2_auto-clahe"],
+                        choices=["mlpv2", "mlpv2_auto-clahe", "efficientnetv2"],
                         value="mlpv2_auto-clahe",
                         label="Pilih Model",
-                        info="MLP: Simple model, MLPv2: Advanced with residual connections, MLPv2 Auto-CLAHE: MLPv2 trained with automatic brightness/contrast enhancement"
+                        info="MLPv2: Advanced with residual connections, MLPv2 Auto-CLAHE: MLPv2 trained with automatic brightness/contrast enhancement, EfficientNetV2: CNN-based direct image processing (no preprocessing)"
                     )
                     
                     use_seg = gr.Checkbox(

@@ -64,12 +64,7 @@ async def get_models_info():
             "loaded": model_loaded,
         }
         
-        if model_type == "mlp":
-            info_dict["architecture"] = "Simple MLP"
-            info_dict["hidden_layers"] = "512 -> 256"
-            info_dict["dropout"] = 0.5
-            info_dict["features"] = ["Simple Linear Layers"]
-        elif model_type == "mlpv2":
+        if model_type == "mlpv2":
             info_dict["architecture"] = "MLP with Residual Connections"
             info_dict["hidden_layers"] = "256 -> 512 -> 256 -> 128"
             info_dict["dropout"] = "Progressive (0.3 -> 0.15 -> 0.075 -> 0.0375)"
@@ -79,6 +74,11 @@ async def get_models_info():
             info_dict["hidden_layers"] = "256 -> 512 -> 256 -> 128"
             info_dict["dropout"] = "Progressive (0.3 -> 0.15 -> 0.075 -> 0.0375)"
             info_dict["features"] = ["Residual Blocks", "BatchNorm", "Kaiming Init", "Auto Brightness/Contrast", "CLAHE Enhancement"]
+        elif model_type == "efficientnetv2":
+            info_dict["architecture"] = "EfficientNetV2-S"
+            info_dict["hidden_layers"] = "CNN-based (no hidden layers)"
+            info_dict["dropout"] = 0.3
+            info_dict["features"] = ["Direct Image Processing", "No Segmentation", "No Preprocessing", "ImageNet Normalization"]
         
         models_info[model_type] = ModelInfo(**info_dict)
     
@@ -94,7 +94,7 @@ async def predict(
     file: UploadFile = File(..., description="Image file to classify"),
     use_segmentation: bool = Query(True, description="Whether to use segmentation"),
     seg_method: str = Query("u2netp", description="Segmentation method: hsv, grabcut, adaptive, u2netp, none"),
-    model_type: str = Query("mlpv2_auto-clahe", description="Model type to use: mlp, mlpv2, mlpv2_auto-clahe"),
+    model_type: str = Query("mlpv2_auto-clahe", description="Model type to use: mlpv2, mlpv2_auto-clahe, efficientnetv2"),
     apply_brightness_contrast: bool = Query(True, description="Apply brightness and contrast enhancement (CLAHE)")
 ):
     """
@@ -104,7 +104,7 @@ async def predict(
         file: Image file (JPG, PNG, etc.)
         use_segmentation: Whether to apply segmentation
         seg_method: Segmentation method (hsv, grabcut, adaptive, u2netp, none)
-        model_type: Type of model to use for prediction (mlp or mlpv2)
+        model_type: Type of model to use for prediction 
     
     Returns:
         Prediction results with confidence scores
@@ -149,7 +149,8 @@ async def predict(
             image=image,
             use_segmentation=use_segmentation,
             seg_method=seg_method,
-            apply_brightness_contrast=apply_brightness_contrast
+            apply_brightness_contrast=apply_brightness_contrast,
+            model_type=model_type
         )
         
         # Calculate prediction time
@@ -180,7 +181,7 @@ async def batch_predict(
     files: List[UploadFile] = File(..., description="Multiple image files to classify"),
     use_segmentation: bool = Query(True, description="Whether to use segmentation"),
     seg_method: str = Query("u2netp", description="Segmentation method: hsv, grabcut, adaptive, u2netp, none"),
-    model_type: str = Query("mlpv2_auto-clahe", description="Model type to use: mlp, mlpv2"),
+    model_type: str = Query("mlpv2_auto-clahe", description="Model type to use: mlpv2, mlpv2_auto-clahe, efficientnetv2"),
     apply_brightness_contrast: bool = Query(True, description="Apply brightness and contrast enhancement (CLAHE)")
 ):
     """
@@ -190,7 +191,7 @@ async def batch_predict(
         files: List of image files
         use_segmentation: Whether to apply segmentation
         seg_method: Segmentation method
-        model_type: Type of model to use for prediction (mlp or mlpv2)
+        model_type: Type of model to use for prediction
     
     Returns:
         List of prediction results
@@ -238,7 +239,8 @@ async def batch_predict(
                 image=image,
                 use_segmentation=use_segmentation,
                 seg_method=seg_method,
-                apply_brightness_contrast=apply_brightness_contrast
+                apply_brightness_contrast=apply_brightness_contrast,
+                model_type=model_type
             )
             
             # Calculate prediction time
