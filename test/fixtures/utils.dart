@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http show post;
 
 class Utils {
   static Future<String> getAuthToken() async {
-    await dotenv.load(fileName: ".env");
+    await dotenv.load(fileName: "..env");
 
     final apiKey = dotenv.env['FIREBASE_API_KEY_WEB'] ?? '';
     final url = Uri.parse(

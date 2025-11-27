@@ -1,6 +1,6 @@
 // filepath: lib/core/services/pengeluaran_service.dart
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import '../models/pengeluaran_model.dart';
 
@@ -153,11 +153,19 @@ class PengeluaranService {
   /// Get total pengeluaran terverifikasi
   Future<double> getTotalPengeluaranTerverifikasi() async {
     try {
+      // ✅ OPTIMASI: Tambahkan timeout untuk mencegah query yang terlalu lama
       final snapshot = await _firestore
           .collection(_collection)
           .where('status', isEqualTo: 'Terverifikasi')
           .where('isActive', isEqualTo: true)
-          .get();
+          .get(const GetOptions(source: Source.serverAndCache))
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              debugPrint('⚠️ Query timeout - using cache or returning 0');
+              throw TimeoutException('Query timeout');
+            },
+          );
 
       double total = 0;
       for (var doc in snapshot.docs) {
@@ -165,7 +173,12 @@ class PengeluaranService {
         final nominal = (data['nominal'] as num?)?.toDouble() ?? 0;
         total += nominal;
       }
+
+      debugPrint('✅ Total terverifikasi loaded: Rp ${total.toStringAsFixed(0)}');
       return total;
+    } on TimeoutException catch (e) {
+      debugPrint('⏱️ Timeout getting total pengeluaran: $e - returning 0');
+      return 0;
     } on FirebaseException catch (e) {
       if (e.code == 'permission-denied') {
         debugPrint('⚠️ Permission denied for getTotalPengeluaranTerverifikasi - returning 0');
@@ -245,10 +258,18 @@ class PengeluaranService {
   /// Get summary statistics
   Future<Map<String, dynamic>> getPengeluaranSummary() async {
     try {
+      // ✅ OPTIMASI: Tambahkan timeout dan gunakan cache
       final snapshot = await _firestore
           .collection(_collection)
           .where('isActive', isEqualTo: true)
-          .get();
+          .get(const GetOptions(source: Source.serverAndCache))
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              debugPrint('⚠️ Summary query timeout - returning empty summary');
+              throw TimeoutException('Summary query timeout');
+            },
+          );
 
       int total = 0;
       int menunggu = 0;
@@ -279,6 +300,8 @@ class PengeluaranService {
         }
       }
 
+      debugPrint('✅ Summary loaded: Total=$total, Menunggu=$menunggu, Terverifikasi=$terverifikasi');
+
       return {
         'total': total,
         'menunggu': menunggu,
@@ -287,19 +310,22 @@ class PengeluaranService {
         'totalNominal': totalNominal,
         'totalTerverifikasi': totalTerverifikasi,
       };
+    } on TimeoutException catch (e) {
+      debugPrint('⏱️ Timeout getting summary: $e - returning empty summary');
+      return {
+        'total': 0,
+        'menunggu': 0,
+        'terverifikasi': 0,
+        'ditolak': 0,
+        'totalNominal': 0.0,
+        'totalTerverifikasi': 0.0,
+      };
     } on FirebaseException catch (e) {
       if (e.code == 'permission-denied') {
         debugPrint('⚠️ Permission denied - returning empty summary');
-        return {
-          'total': 0,
-          'menunggu': 0,
-          'terverifikasi': 0,
-          'ditolak': 0,
-          'totalNominal': 0.0,
-          'totalTerverifikasi': 0.0,
-        };
+      } else {
+        debugPrint('❌ Firebase error getting summary: $e');
       }
-      debugPrint('❌ Error getting summary: $e');
       return {
         'total': 0,
         'menunggu': 0,
