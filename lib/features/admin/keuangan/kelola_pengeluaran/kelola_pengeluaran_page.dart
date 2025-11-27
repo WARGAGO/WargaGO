@@ -928,74 +928,84 @@ class _KelolaPengeluaranPageState extends State<KelolaPengeluaranPage> {
   }
 
   Future<void> _verifyPengeluaran(String id, bool approve) async {
-    // Show loading dialog
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: approve
-                        ? [const Color(0xFF2988EA).withValues(alpha: 0.2), const Color(0xFF2988EA).withValues(alpha: 0.1)]
-                        : [const Color(0xFFEF4444).withValues(alpha: 0.2), const Color(0xFFEF4444).withValues(alpha: 0.1)],
+    // ✅ Check mounted first
+    if (!mounted) return;
+
+    // ✅ OPTIMASI: Gunakan loading overlay yang lebih ringan
+    final loadingOverlay = OverlayEntry(
+      builder: (context) => Container(
+        color: Colors.black.withValues(alpha: 0.5),
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 40,
+                  height: 40,
+                  child: CircularProgressIndicator(
+                    color: approve ? const Color(0xFF2988EA) : const Color(0xFFEF4444),
+                    strokeWidth: 3,
                   ),
-                  shape: BoxShape.circle,
                 ),
-                child: CircularProgressIndicator(
-                  color: approve ? const Color(0xFF2988EA) : const Color(0xFFEF4444),
-                  strokeWidth: 3,
+                const SizedBox(height: 16),
+                Text(
+                  approve ? 'Memverifikasi...' : 'Menolak...',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF1F2937),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                approve ? 'Memverifikasi...' : 'Menolak...',
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF1F2937),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Mohon tunggu sebentar',
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  color: const Color(0xFF6B7280),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
 
-    final provider = Provider.of<PengeluaranProvider>(context, listen: false);
-    final success = await provider.verifikasiPengeluaran(id, approve);
+    Overlay.of(context).insert(loadingOverlay);
 
-    // Close loading dialog
-    if (mounted) Navigator.pop(context);
+    try {
+      if (!mounted) {
+        loadingOverlay.remove();
+        return;
+      }
 
-    if (mounted) {
-      if (success) {
-        _showSuccessSnackBar(
-          approve
-              ? '✅ Pengeluaran berhasil diverifikasi! Total akan diperbarui.'
-              : '❌ Pengeluaran berhasil ditolak'
-        );
-      } else {
-        _showErrorSnackBar('⚠️ Gagal memproses verifikasi. Silakan coba lagi.');
+      final provider = Provider.of<PengeluaranProvider>(context, listen: false);
+
+      // ✅ OPTIMASI: Tambahkan timeout untuk mencegah stuck
+      final success = await provider.verifikasiPengeluaran(id, approve).timeout(
+        const Duration(seconds: 15),
+        onTimeout: () {
+          debugPrint('⏱️ Verification timeout after 15 seconds');
+          return false;
+        },
+      );
+
+      // Remove loading overlay
+      loadingOverlay.remove();
+
+      if (mounted) {
+        if (success) {
+          _showSuccessSnackBar(
+            approve
+                ? '✅ Pengeluaran berhasil diverifikasi!'
+                : '❌ Pengeluaran berhasil ditolak'
+          );
+        } else {
+          _showErrorSnackBar('⚠️ Gagal memproses verifikasi. Silakan coba lagi.');
+        }
+      }
+    } catch (e) {
+      loadingOverlay.remove();
+      if (mounted) {
+        _showErrorSnackBar('⚠️ Terjadi kesalahan: ${e.toString()}');
       }
     }
   }

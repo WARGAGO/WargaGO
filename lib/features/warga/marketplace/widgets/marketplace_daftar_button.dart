@@ -6,6 +6,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../pages/seller_registration_form_page.dart';
 
 class MarketplaceDaftarButton extends StatelessWidget {
   const MarketplaceDaftarButton({super.key});
@@ -16,6 +17,12 @@ class MarketplaceDaftarButton extends StatelessWidget {
       width: double.infinity,
       child: ElevatedButton(
         onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const SellerRegistrationFormPage(),
+            ),
+          );
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF2F80ED),

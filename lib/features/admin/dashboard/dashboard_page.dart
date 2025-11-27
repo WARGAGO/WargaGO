@@ -16,11 +16,14 @@
 
 import 'dart:math' as math;
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
 import 'package:jawara/core/widgets/admin_app_bottom_navigation.dart';
+import 'package:jawara/features/admin/profile/admin_profile_page.dart';
 import 'dashboard_detail_page.dart';
 import 'activity_detail_page.dart';
 import 'penanggung_jawab_detail_page.dart';
@@ -39,8 +42,41 @@ import 'widgets/dashboard_styles.dart';
 /// - Category Performance (Chart per kategori)
 /// - Monthly Activity (Bar chart bulanan)
 /// - Log Aktivitas (5 aktivitas terakhir)
-class DashboardPage extends StatelessWidget {
+class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
+
+  @override
+  State<DashboardPage> createState() => _DashboardPageState();
+}
+
+class _DashboardPageState extends State<DashboardPage> {
+  String _userName = 'Admin';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+
+        if (doc.exists && mounted) {
+          setState(() {
+            _userName = doc.data()?['nama'] ?? 'Admin';
+          });
+        }
+      }
+    } catch (e) {
+      print('Error loading user data: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -96,14 +132,14 @@ class DashboardPage extends StatelessWidget {
             ),
           ],
         ),
-        child: const Padding(
-          padding: EdgeInsets.fromLTRB(20, 24, 20, 32),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 24, 20, 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _DashboardHeader(),
-              SizedBox(height: 32),
-              _FinanceOverview(),
+              _DashboardHeader(userName: _userName),
+              const SizedBox(height: 32),
+              const _FinanceOverview(),
             ],
           ),
         ),
@@ -122,7 +158,9 @@ class DashboardPage extends StatelessWidget {
 // ============================================================================
 
 class _DashboardHeader extends StatelessWidget {
-  const _DashboardHeader();
+  final String userName;
+
+  const _DashboardHeader({required this.userName});
 
   @override
   Widget build(BuildContext context) {
@@ -134,7 +172,7 @@ class _DashboardHeader extends StatelessWidget {
         return Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            _buildAvatar(isNarrow: isNarrow),
+            _buildAvatar(context: context, isNarrow: isNarrow),
             SizedBox(width: isNarrow ? 8 : 12),
             _buildWelcomeText(isNarrow: isNarrow),
             SizedBox(width: isNarrow ? 6 : 8),
@@ -148,26 +186,39 @@ class _DashboardHeader extends StatelessWidget {
   }
 
   /// Build avatar dengan border dan shadow
-  Widget _buildAvatar({bool isNarrow = false}) {
-    return Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.3),
-          width: isNarrow ? 2 : 2.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: isNarrow ? 4 : 6,
-            offset: const Offset(0, 3),
+  Widget _buildAvatar({required BuildContext context, bool isNarrow = false}) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const AdminProfilePage(),
           ),
-        ],
-      ),
-      child: CircleAvatar(
-        radius: isNarrow ? 22 : 26,
-        backgroundImage: const AssetImage('assets/illustrations/LOGIN.png'),
-        backgroundColor: Colors.grey.shade200,
+        );
+      },
+      child: Hero(
+        tag: 'admin_avatar',
+        child: Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.3),
+              width: isNarrow ? 2 : 2.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: isNarrow ? 4 : 6,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: CircleAvatar(
+            radius: isNarrow ? 22 : 26,
+            backgroundImage: const AssetImage('assets/illustrations/LOGIN.png'),
+            backgroundColor: Colors.grey.shade200,
+          ),
+        ),
       ),
     );
   }
@@ -187,7 +238,7 @@ class _DashboardHeader extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           AutoSizeText(
-            'Admin Diana',
+            userName,
             style: DashboardStyles.headerTitle,
             maxLines: 1,
             minFontSize: 16,

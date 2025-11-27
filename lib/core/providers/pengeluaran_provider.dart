@@ -198,9 +198,11 @@ class PengeluaranProvider with ChangeNotifier {
 
       await _service.verifikasiPengeluaran(id, approved);
 
-      // Reload total after verifying to ensure UI is updated (this is important!)
-      await loadTotalTerverifikasi();
-      await loadSummary();
+      // ✅ OPTIMASI: Load total dan summary secara paralel untuk mengurangi waktu tunggu
+      await Future.wait([
+        loadTotalTerverifikasi(),
+        loadSummary(),
+      ]);
 
       _isLoading = false;
       notifyListeners();
@@ -223,9 +225,11 @@ class PengeluaranProvider with ChangeNotifier {
 
       await _service.deletePengeluaran(id);
 
-      // Reload total after deleting to ensure UI is updated
-      await loadTotalTerverifikasi();
-      await loadSummary();
+      // ✅ OPTIMASI: Load total dan summary secara paralel
+      await Future.wait([
+        loadTotalTerverifikasi(),
+        loadSummary(),
+      ]);
 
       _isLoading = false;
       notifyListeners();

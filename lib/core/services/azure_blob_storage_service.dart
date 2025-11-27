@@ -36,7 +36,7 @@ class AzureBlobStorageService {
 
   Future<StorageResponse?> uploadImage({
     required File file,
-    bool isPrivate = false,
+    bool isPrivate = true,
     String? prefixName,
     String? customFileName,
   }) async {

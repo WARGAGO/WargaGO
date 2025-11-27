@@ -1,0 +1,190 @@
+// ============================================================================
+// FIRESTORE SECURITY RULES - KELOLA LAPAK
+// ============================================================================
+// Tambahkan rules berikut ke file firestore.rules
+// ============================================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // ========================================================================
+    // PENDING SELLERS COLLECTION
+    // ========================================================================
+    match /pending_sellers/{sellerId} {
+
+      // READ RULES
+      // User can read their own pending seller OR admin can read all
+      allow read: if isAuthenticated() &&
+                     (resource.data.userId == request.auth.uid || isAdmin());
+
+      // CREATE RULES
+      // User can create their own pending seller
+      // - Must be authenticated
+      // - userId must match auth.uid
+      // - User must not already have a pending seller
+      // - All required fields must be present
+      allow create: if isAuthenticated() &&
+                       request.resource.data.userId == request.auth.uid &&
+                       !exists(/databases/$(database)/documents/pending_sellers/$(request.auth.uid)) &&
+                       request.resource.data.keys().hasAll([
+                         'userId', 'nik', 'namaLengkap', 'namaToko',
+                         'nomorTelepon', 'alamatToko', 'deskripsiUsaha',
+                         'kategoriProduk', 'fotoKTPUrl', 'fotoSelfieKTPUrl'
+                       ]) &&
+                       request.resource.data.nik.size() == 16 &&
+                       request.resource.data.kategoriProduk.size() > 0 &&
+                       request.resource.data.status == 'pending';
+
+      // UPDATE RULES
+      // Only admin can update (for verification)
+      allow update: if isAdmin() &&
+                       // Admin can only change these fields:
+                       request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['status', 'verifiedAt', 'verifiedBy',
+                                   'catatanAdmin', 'alasanPenolakan', 'updatedAt']);
+
+      // DELETE RULES
+      // Only admin can delete
+      allow delete: if isAdmin();
+    }
+
+    // ========================================================================
+    // APPROVED SELLERS COLLECTION
+    // ========================================================================
+    match /approved_sellers/{userId} {
+
+      // READ RULES
+      // Public can read (to see active sellers in marketplace)
+      allow read: if true;
+
+      // CREATE RULES
+      // Only admin can create (when approving seller)
+      allow create: if isAdmin() &&
+                       request.resource.data.userId == userId &&
+                       request.resource.data.status == 'active';
+
+      // UPDATE RULES
+      // Admin can update all fields
+      // Seller can update limited fields (for their profile)
+      allow update: if isAdmin() ||
+                       (isOwner(userId) &&
+                        request.resource.data.diff(resource.data).affectedKeys()
+                          .hasOnly(['namaToko', 'deskripsiUsaha', 'kategoriProduk',
+                                    'nomorTelepon', 'alamatToko', 'fotoTokoUrl', 'updatedAt']));
+
+      // DELETE RULES
+      // Only admin can delete
+      allow delete: if isAdmin();
+    }
+
+    // ========================================================================
+    // USERS COLLECTION (Update existing rules)
+    // ========================================================================
+    match /users/{userId} {
+      // Add to existing rules...
+
+      // Allow user to read their own data
+      allow read: if isAuthenticated() &&
+                     (request.auth.uid == userId || isAdmin());
+
+      // Allow user to update their own data (limited fields)
+      allow update: if isAuthenticated() && request.auth.uid == userId &&
+                       // Users cannot change their own role or isSeller
+                       !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'roles', 'isSeller']);
+
+      // Only admin can update roles and isSeller
+      // This is called when approving seller
+      allow update: if isAdmin();
+    }
+
+    // ========================================================================
+    // ADDITIONAL INDEXES NEEDED
+    // ========================================================================
+    // Run these commands in Firebase Console or add to firestore.indexes.json:
+
+    // 1. Index for pending_sellers by status and createdAt
+    // Collection: pending_sellers
+    // Fields: status (Ascending), createdAt (Descending)
+
+    // 2. Index for pending_sellers by userId
+    // Collection: pending_sellers
+    // Fields: userId (Ascending)
+
+    // 3. Index for approved_sellers by status
+    // Collection: approved_sellers
+    // Fields: status (Ascending), updatedAt (Descending)
+  }
+}
+
+// ============================================================================
+// TESTING COMMANDS (Firebase Console)
+// ============================================================================
+
+// Test 1: User can create pending seller
+/*
+const testCreate = {
+  userId: 'USER_ID_HERE',
+  nik: '1234567890123456',
+  namaLengkap: 'Test User',
+  namaToko: 'Test Toko',
+  nomorTelepon: '08123456789',
+  alamatToko: 'Test Address',
+  rt: '001',
+  rw: '002',
+  deskripsiUsaha: 'Test description',
+  kategoriProduk: ['sayuran'],
+  fotoKTPUrl: 'https://example.com/ktp.jpg',
+  fotoSelfieKTPUrl: 'https://example.com/selfie.jpg',
+  status: 'pending',
+  createdAt: new Date()
+};
+*/
+
+// Test 2: Admin can approve seller
+/*
+const testApprove = {
+  status: 'approved',
+  verifiedAt: new Date(),
+  verifiedBy: 'ADMIN_ID_HERE',
+  catatanAdmin: 'Approved',
+  updatedAt: new Date()
+};
+*/
+
+// Test 3: Admin can reject seller
+/*
+const testReject = {
+  status: 'rejected',
+  alasanPenolakan: 'Dokumen tidak jelas',
+  verifiedAt: new Date(),
+  verifiedBy: 'ADMIN_ID_HERE',
+  updatedAt: new Date()
+};
+*/
+
+// ============================================================================
+// NOTES
+// ============================================================================
+/*
+1. Make sure to update existing firestore.rules, don't replace entirely
+2. Test rules in Firebase Console before deploying to production
+3. Monitor security rules logs for any violations
+4. Update indexes as needed for better query performance
+5. Consider adding rate limiting for create operations (Cloud Functions)
+*/
+
