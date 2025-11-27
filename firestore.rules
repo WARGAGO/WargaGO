@@ -163,6 +163,57 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
     }
 
+    // ========================================================================
+    // KELOLA LAPAK - MARKETPLACE SELLER MANAGEMENT
+    // ========================================================================
+
+    // Pending Sellers - Seller yang menunggu verifikasi
+    match /pending_sellers/{sellerId} {
+      // Read: Admin bisa read semua, user bisa read data sendiri
+      allow read: if isSignedIn() &&
+                     (isAdmin() || request.auth.uid == resource.data.userId);
+
+      // Create: Warga yang login bisa daftar sebagai seller
+      allow create: if isSignedIn() &&
+                       hasValidData() &&
+                       'userId' in request.resource.data &&
+                       request.auth.uid == request.resource.data.userId &&
+                       'nik' in request.resource.data &&
+                       'namaLengkap' in request.resource.data &&
+                       'namaToko' in request.resource.data &&
+                       'nomorTelepon' in request.resource.data &&
+                       'alamatToko' in request.resource.data &&
+                       'fotoKTPUrl' in request.resource.data &&
+                       'fotoSelfieKTPUrl' in request.resource.data &&
+                       'status' in request.resource.data &&
+                       request.resource.data.status == 'pending';
+
+      // Update: Admin bisa approve/reject/suspend, User bisa update data sendiri (re-submit)
+      allow update: if isAdmin() ||
+                       (isSignedIn() &&
+                        request.auth.uid == resource.data.userId &&
+                        request.resource.data.status == 'pending');
+
+      // Delete: Hanya admin
+      allow delete: if isAdmin();
+    }
+
+    // Approved Sellers - Seller yang sudah disetujui
+    match /approved_sellers/{sellerId} {
+      // Read: Semua authenticated user bisa lihat (untuk marketplace)
+      allow read: if isSignedIn();
+
+      // Create: Hanya admin (saat approve seller)
+      allow create: if isAdmin();
+
+      // Update: Admin bisa update (suspend/reactivate), Seller bisa update info toko
+      allow update: if isAdmin() ||
+                       (isSignedIn() && request.auth.uid == resource.data.userId);
+
+      // Delete: Hanya admin
+      allow delete: if isAdmin();
+    }
+
     match /notifications/{notificationId} {
       // User bisa read notifikasi sendiri, create untuk diri sendiri
       allow read: if isSignedIn() && request.auth.uid == resource.data.userId;
