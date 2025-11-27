@@ -60,23 +60,15 @@ jobs:
           git pull --rebase origin ${{ github.ref_name }} || true
           git push origin HEAD:${{ github.ref }} || echo "Push failed, but continuing workflow"
 
-      # 5. Create .env file (required for build)
-      - name: Create .env file
-        run: |
-          echo "FIREBASE_API_KEY_WEB=${{ secrets.FIREBASE_API_KEY_WEB }}" > .env
-          echo "TEST_EMAIL=${{ secrets.TEST_EMAIL }}" >> .env
-          echo "TEST_PASSWORD=${{ secrets.TEST_PASSWORD }}" >> .env
-          echo ".env file created"
-
-      # 6. Get dependencies
+      # 5. Get dependencies
       - name: Get dependencies
         run: flutter pub get
 
-      # 7. Build release APK
+      # 6. Build release APK
       - name: Build APK
         run: flutter build apk --release
 
-      # 8. Upload APK to Firebase App Distribution
+      # 7. Upload APK to Firebase App Distribution
       - name: Upload APK to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
