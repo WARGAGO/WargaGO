@@ -57,7 +57,7 @@ flutter:
   assets:
     - assets/icons/
     - assets/illustrations/
-    - ./.env
+    - .env
 
   fonts:
     - family: Fendysa

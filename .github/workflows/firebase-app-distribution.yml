@@ -60,15 +60,23 @@ jobs:
           git pull --rebase origin ${{ github.ref_name }} || true
           git push origin HEAD:${{ github.ref }} || echo "Push failed, but continuing workflow"
 
-      # 5. Get dependencies
+      # 5. Create empty .env file for production build
+      - name: Create .env file
+        run: |
+          echo "# Production build - empty .env file" > .env
+          echo "# All configs should use Firebase Remote Config or build-time variables" >> .env
+          cat .env
+          echo ".env file created for flutter_dotenv package"
+
+      # 6. Get dependencies
       - name: Get dependencies
         run: flutter pub get
 
-      # 6. Build release APK
+      # 7. Build release APK
       - name: Build APK
         run: flutter build apk --release
 
-      # 7. Upload APK to Firebase App Distribution
+      # 8. Upload APK to Firebase App Distribution
       - name: Upload APK to Firebase App Distribution
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
