@@ -86,7 +86,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> with SingleTickerProviderSt
         'total': 'Rp. 20.000',
         'status': 'completed',
         'statusText': 'Selesai',
-        'statusColor': Color(0xFF10B981),
+        'statusColor': Color(0xFF2F80ED),
       },
     ];
 

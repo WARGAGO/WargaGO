@@ -18,8 +18,8 @@ class MarketplacePromoBanner extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [
-            Color(0xFF10B981),
-            Color(0xFF059669),
+            Color(0xFF2F80ED),
+            Color(0xFF1E6FD9),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -27,7 +27,7 @@ class MarketplacePromoBanner extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF10B981).withValues(alpha: 0.3),
+            color: const Color(0xFF2F80ED).withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -51,7 +51,7 @@ class MarketplacePromoBanner extends StatelessWidget {
             ),
             child: const Icon(
               Icons.local_offer,
-              color: Color(0xFF10B981),
+              color: Color(0xFF2F80ED),
               size: 28,
             ),
           ),

@@ -79,13 +79,13 @@ class OrderCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                  color: const Color(0xFF2F80ED).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: const Icon(
                   Icons.storefront,
                   size: 16,
-                  color: Color(0xFF10B981),
+                  color: Color(0xFF2F80ED),
                 ),
               ),
               const SizedBox(width: 8),

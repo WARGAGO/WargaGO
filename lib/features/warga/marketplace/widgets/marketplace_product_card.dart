@@ -77,14 +77,14 @@ class MarketplaceProductCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [
-                            Color(0xFF10B981),
-                            Color(0xFF059669),
+                            Color(0xFF2F80ED),
+                            Color(0xFF1E6FD9),
                           ],
                         ),
                         borderRadius: BorderRadius.circular(8),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF10B981).withValues(alpha: 0.3),
+                            color: const Color(0xFF2F80ED).withValues(alpha: 0.3),
                             blurRadius: 4,
                             offset: const Offset(0, 2),
                           ),

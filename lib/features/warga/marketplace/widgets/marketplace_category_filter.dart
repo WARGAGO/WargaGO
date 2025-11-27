@@ -57,10 +57,10 @@ class _MarketplaceCategoryFilterState extends State<MarketplaceCategoryFilter> {
                   color: isSelected ? Colors.white : const Color(0xFF1F2937),
                 ),
                 backgroundColor: Colors.white,
-                selectedColor: const Color(0xFF10B981),
+                selectedColor: const Color(0xFF2F80ED),
                 showCheckmark: false,
                 side: BorderSide(
-                  color: isSelected ? const Color(0xFF10B981) : const Color(0xFFE5E7EB),
+                  color: isSelected ? const Color(0xFF2F80ED) : const Color(0xFFE5E7EB),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 labelPadding: const EdgeInsets.symmetric(horizontal: 4),
