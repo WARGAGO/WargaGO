@@ -7,6 +7,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../pages/cart_page.dart';
+import '../pages/my_orders_page.dart';
 
 class MarketplaceAppBar extends StatelessWidget {
   final int cartCount;
@@ -43,8 +44,41 @@ class MarketplaceAppBar extends StatelessWidget {
               height: 1.2,
             ),
           ),
-          _buildCartButton(context),
+          Row(
+            children: [
+              _buildOrdersButton(context),
+              const SizedBox(width: 8),
+              _buildCartButton(context),
+            ],
+          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildOrdersButton(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const MyOrdersPage()),
+        );
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8F9FD),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Center(
+          child: Icon(
+            Icons.receipt_long_outlined,
+            size: 24,
+            color: Colors.black,
+          ),
+        ),
       ),
     );
   }
