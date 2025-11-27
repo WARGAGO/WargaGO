@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 // Import halaman profil yang sudah kita buat (statis)
-import '../profile/akun_screen.dart';
+import '../../profile/akun_screen.dart';
 
 class HomeAppBar extends StatelessWidget {
   final int notificationCount;
