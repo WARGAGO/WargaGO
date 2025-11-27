@@ -13,6 +13,24 @@ from api.services.classification.model_loader import model_manager
 from api.services.classification.inference import predict_image
 
 
+def unload_all_models():
+    """
+    Unload all models from memory
+    """
+    try:
+        loaded_models = model_manager.get_loaded_models().copy()
+        if len(loaded_models) == 0:
+            return "No models are currently loaded."
+        
+        success = model_manager.unload_all_models()
+        if success:
+            return f"Successfully unloaded {len(loaded_models)} model(s): {', '.join(loaded_models)}"
+        else:
+            return "Failed to unload models."
+    except Exception as e:
+        return f"Error unloading models: {str(e)}"
+
+
 def gradio_predict(
     image,
     use_segmentation,
@@ -36,13 +54,42 @@ def gradio_predict(
         # Start timing
         start_time = time.time()
         
-        # Check if model is loaded
+        # Load model if not already loaded
         if not model_manager.is_loaded(model_type):
-            return f"Error: Model '{model_type}' is not loaded", {}, None
+            print(f"Model {model_type} not loaded, loading now...")
+            success = model_manager.load_model(model_type)
+            if not success:
+                return f"Error: Failed to load model '{model_type}'", {}, None
         
         # Get model
         model = model_manager.get_model(model_type)
         
+        # EfficientNetV2 uses direct image without preprocessing
+        if model_type == "efficientnetv2":
+            # Convert to PIL Image if needed
+            if not isinstance(image, Image.Image):
+                image = Image.fromarray(image)
+            
+            # Perform prediction (no segmentation, no preprocessing)
+            predicted_class, confidence_value, all_confidences = predict_image(
+                model=model,
+                image=image,
+                use_segmentation=False,
+                seg_method="none",
+                apply_brightness_contrast=False,
+                model_type=model_type
+            )
+            
+            # Calculate prediction time
+            prediction_time_ms = (time.time() - start_time) * 1000
+            
+            # Format output
+            result_text = f"**Prediksi:** {predicted_class}\n\n**Confidence:** {confidence_value:.2%}\n\n**Model:** {model_type.upper()}\n\n**Waktu Prediksi:** {prediction_time_ms:.2f} ms"
+            
+            # Return original image as "segmented" output
+            return result_text, all_confidences, np.array(image)
+        
+        # Feature-based models (MLP variants)
         # Convert PIL Image to numpy array (BGR for OpenCV)
         if isinstance(image, Image.Image):
             image_np = np.array(image)
@@ -108,7 +155,9 @@ def gradio_predict(
             model=model,
             image=segmented_pil,
             use_segmentation=False,  # Already segmented above
-            seg_method="none"
+            seg_method="none",
+            apply_brightness_contrast=False,
+            model_type=model_type
         )
 
         # Calculate prediction time
@@ -153,13 +202,18 @@ def create_gradio_interface():
                 input_image = gr.Image(type="pil", label="Upload Gambar Sayuran")
 
                 predict_btn = gr.Button("🔍 Klasifikasi", variant="primary", size="lg")
+                
+                with gr.Row():
+                    unload_btn = gr.Button("🗑️ Unload All Models", variant="secondary", size="sm")
+                
+                unload_status = gr.Textbox(label="Status", interactive=False, visible=False)
                 with gr.Accordion("Pengaturan Model dan Segmentasi", open=True):
                     # Model selection
                     model_type = gr.Radio(
-                        choices=["mlp", "mlpv2", "mlpv2_auto-clahe"],
+                        choices=["mlpv2", "mlpv2_auto-clahe", "efficientnetv2"],
                         value="mlpv2_auto-clahe",
                         label="Pilih Model",
-                        info="MLP: Simple model, MLPv2: Advanced with residual connections, MLPv2 Auto-CLAHE: MLPv2 trained with automatic brightness/contrast enhancement"
+                        info="MLPv2: Advanced with residual connections, MLPv2 Auto-CLAHE: MLPv2 trained with automatic brightness/contrast enhancement, EfficientNetV2: CNN-based direct image processing (no preprocessing)"
                     )
                     
                     use_seg = gr.Checkbox(
@@ -323,7 +377,7 @@ def create_gradio_interface():
                 confidence_plot = gr.Label(label="Confidence Score", num_top_classes=4)
                 segmented_output = gr.Image(label="Gambar Setelah Segmentasi")
 
-        # Connect button to function
+        # Connect buttons to functions
         predict_btn.click(
             fn=gradio_predict,
             inputs=[
@@ -343,6 +397,15 @@ def create_gradio_interface():
                 apply_brightness_contrast,
             ],
             outputs=[result_text, confidence_plot, segmented_output],
+        )
+        
+        unload_btn.click(
+            fn=unload_all_models,
+            inputs=[],
+            outputs=[unload_status],
+        ).then(
+            fn=lambda: gr.update(visible=True),
+            outputs=[unload_status],
         )
         
         gr.Markdown("""

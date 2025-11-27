@@ -38,7 +38,8 @@ async def lifespan(app: FastAPI):
     print(f"Device: {DEVICE}")
     print("=" * 60)
     
-    success = model_manager.load_all_models()
+    # success = model_manager.load_all_models()
+    success = model_manager.load_model("mlpv2_auto-clahe")
     
     if not success:
         print("WARNING: No models were loaded!")

@@ -5,6 +5,7 @@ Inference logic for vegetable classification
 import cv2
 import numpy as np
 import torch
+import torchvision.transforms as T
 from PIL import Image
 import sys
 import os
@@ -116,12 +117,52 @@ def predict_from_features(
     return predicted_class, confidence_value, all_confidences
 
 
+def predict_from_tensor(
+    model: torch.nn.Module,
+    image_tensor: torch.Tensor
+) -> Tuple[str, float, Dict[str, float]]:
+    """
+    Perform prediction from image tensor (for EfficientNetV2)
+    
+    Args:
+        model: PyTorch model (EfficientNetV2)
+        image_tensor: Preprocessed image tensor
+    
+    Returns:
+        Tuple of (predicted_class, confidence, all_confidences)
+    """
+    # Add batch dimension if needed
+    if image_tensor.dim() == 3:
+        image_tensor = image_tensor.unsqueeze(0)
+    
+    image_tensor = image_tensor.to(DEVICE)
+    
+    # Predict
+    with torch.no_grad():
+        outputs = model(image_tensor)
+        probabilities = torch.softmax(outputs, dim=1)
+        confidence, predicted = torch.max(probabilities, 1)
+        
+        # Get all class probabilities
+        probs = probabilities[0].cpu().numpy()
+    
+    # Prepare results
+    predicted_class = CLASS_NAMES[predicted.item()]
+    confidence_value = float(confidence.item())
+    
+    # Create confidence dictionary for all classes
+    all_confidences = {CLASS_NAMES[i]: float(probs[i]) for i in range(len(CLASS_NAMES))}
+    
+    return predicted_class, confidence_value, all_confidences
+
+
 def predict_image(
     model: torch.nn.Module,
     image: Image.Image,
     use_segmentation: bool = True,
     seg_method: str = "hsv",
-    apply_brightness_contrast: bool = True
+    apply_brightness_contrast: bool = True,
+    model_type: str = "mlpv2"
 ) -> Tuple[str, float, Dict[str, float]]:
     """
     Complete prediction pipeline
@@ -132,10 +173,30 @@ def predict_image(
         use_segmentation: Whether to apply segmentation
         seg_method: Segmentation method
         apply_brightness_contrast: Whether to apply brightness and contrast enhancement
+        model_type: Type of model (mlpv2, mlpv2_auto-clahe, efficientnetv2)
     
     Returns:
         Tuple of (predicted_class, confidence, all_confidences)
     """
+    # EfficientNetV2 uses direct image tensor without feature extraction
+    if model_type == "efficientnetv2":
+        # Standard ImageNet preprocessing without any segmentation or enhancement
+        transform = T.Compose([
+            T.Resize((224, 224)),
+            T.ToTensor(),
+            T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        ])
+        
+        # Convert to RGB if needed
+        if image.mode != 'RGB':
+            image = image.convert('RGB')
+        
+        # Transform and predict
+        image_tensor = transform(image)
+        predicted_class, confidence, all_confidences = predict_from_tensor(model, image_tensor)
+        return predicted_class, confidence, all_confidences
+    
+    # Feature-based models (MLP variants)
     # Preprocess image
     image_bgr = preprocess_image(image)
     

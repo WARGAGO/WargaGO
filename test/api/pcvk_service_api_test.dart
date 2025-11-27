@@ -3,6 +3,7 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jawara/core/models/PCVK/batch_predict_response.dart';
 import 'package:jawara/core/models/PCVK/health_response.dart';
@@ -10,7 +11,8 @@ import 'package:jawara/core/models/PCVK/models_response.dart';
 import 'package:jawara/core/models/PCVK/predict_response.dart';
 import 'package:jawara/core/services/pcvk_service.dart';
 
-void main() {
+void main() async {
+  await dotenv.load(fileName: ".env");
   group('PcvkService - API Tests', () {
     late PcvkService pcvkService;
 

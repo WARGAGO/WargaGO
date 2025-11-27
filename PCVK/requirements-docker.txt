@@ -15,6 +15,10 @@ python-dotenv
 # onnxruntime
 matplotlib
 tensorboard
+gdown
+
+onnx
+onnxscript
 
 # Azure dependencies
 azure-storage-blob

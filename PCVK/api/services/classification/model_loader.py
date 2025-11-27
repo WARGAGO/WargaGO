@@ -12,8 +12,8 @@ lib_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'lib')
 if lib_path not in sys.path:
     sys.path.append(lib_path)
 
-from lib.model import ModelMLP
 from lib.model_v2 import ModelMLPV2
+from lib.model_effnet import EfficientNetV2Model
 from api.configs.pcvk_config import MODEL_PATHS, CLASS_NAMES, DEVICE, NUM_FEATURES
 
 
@@ -28,7 +28,7 @@ class ModelManager:
         Load a specific model
         
         Args:
-            model_type: Type of model to load ('mlp' or 'mlpv2')
+            model_type: Type of model to load 
         
         Returns:
             True if successful, False otherwise
@@ -46,14 +46,12 @@ class ModelManager:
                 return False
             
             # Create model instance based on type
-            if model_type == "mlp":
-                model = ModelMLP(num_classes=len(CLASS_NAMES), dropout_rate=0.5)
-            elif model_type == "mlpv2":
+            if model_type == "mlpv2":
                 model = ModelMLPV2(
                     num_features=NUM_FEATURES,
                     num_classes=len(CLASS_NAMES),
                     hidden_dims=[256, 512, 256, 128],
-                    dropout_rate=0.3,
+                    dropout_rate=0.5,
                     use_residual=True
                 )
             elif model_type == "mlpv2_auto-clahe":
@@ -61,8 +59,15 @@ class ModelManager:
                     num_features=NUM_FEATURES,
                     num_classes=len(CLASS_NAMES),
                     hidden_dims=[256, 512, 256, 128],
-                    dropout_rate=0.3,
+                    dropout_rate=0.5,
                     use_residual=True
+                )
+            elif model_type == "efficientnetv2":
+                model = EfficientNetV2Model(
+                    num_classes=len(CLASS_NAMES),
+                    dropout_rate=0.3,
+                    pretrained=False,
+                    freeze_backbone=False
                 )
             else:
                 raise ValueError(f"Unknown model type: {model_type}")
@@ -95,9 +100,9 @@ class ModelManager:
         Returns:
             True if at least one model loaded successfully
         """
-        self.load_model("mlp")
         self.load_model("mlpv2")
         self.load_model("mlpv2_auto-clahe")
+        self.load_model("efficientnetv2")
         return True
     
     def get_model(self, model_type: str) -> Optional[torch.nn.Module]:
@@ -123,6 +128,75 @@ class ModelManager:
     def get_models_status(self) -> Dict[str, bool]:
         """Get loading status of all models"""
         return {model_type: self.is_loaded(model_type) for model_type in MODEL_PATHS.keys()}
+    
+    def _clear_u2netp_session(self) -> None:
+        """Clear U2Net-P ONNX session from segment module"""
+        try:
+            import lib.segment as segment_module
+            if hasattr(segment_module, '_u2netp_session') and segment_module._u2netp_session is not None:
+                del segment_module._u2netp_session
+                segment_module._u2netp_session = None
+                print("U2Net-P ONNX session cleared")
+        except Exception as e:
+            print(f"Error clearing U2Net-P session: {e}")
+    
+    def unload_model(self, model_type: str) -> bool:
+        """
+        Unload a specific model from memory
+        
+        Args:
+            model_type: Type of model to unload
+        
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            if model_type not in self.models:
+                print(f"Model {model_type} is not loaded")
+                return False
+            
+            # Delete the model and free up memory
+            del self.models[model_type]
+            
+            # Clear U2Net-P ONNX session
+            self._clear_u2netp_session()
+            
+            # Clear GPU cache if using CUDA
+            if DEVICE == 'cuda':
+                torch.cuda.empty_cache()
+            
+            print(f"Model {model_type} unloaded successfully")
+            return True
+        
+        except Exception as e:
+            print(f"Error unloading model {model_type}: {e}")
+            return False
+    
+    def unload_all_models(self) -> bool:
+        """
+        Unload all models from memory
+        
+        Returns:
+            True if successful
+        """
+        try:
+            model_types = list(self.models.keys())
+            for model_type in model_types:
+                del self.models[model_type]
+            
+            # Clear U2Net-P ONNX session
+            self._clear_u2netp_session()
+            
+            # Clear GPU cache if using CUDA
+            if DEVICE == 'cuda':
+                torch.cuda.empty_cache()
+            
+            print("All models unloaded successfully")
+            return True
+        
+        except Exception as e:
+            print(f"Error unloading all models: {e}")
+            return False
 
 
 # Global model manager instance

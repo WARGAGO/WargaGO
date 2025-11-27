@@ -40,3 +40,5 @@ Thumbs.db
 # Test files
 test_*.py
 *_test.py
+
+efficientnetv2.pth

@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:jawara/core/constants/url_constant.dart';
+import 'package:jawara/core/configs/url_pcvk_api.dart';
 import 'package:jawara/core/models/BlobStorage/storage_response.dart';
 import 'package:jawara/core/models/BlobStorage/user_images_response.dart';
 
@@ -43,7 +43,7 @@ class AzureBlobStorageService {
     try {
       var request = http.MultipartRequest(
         'POST',
-        UrlConstant.buildAzureEndpoint(
+        UrlPCVKAPI.buildAzureEndpoint(
           isPrivate ? _uploadPrivateEndpoint : _uploadPublicEndpoint,
           queryParameters: {
             'prefix_name': prefixName,
@@ -152,7 +152,7 @@ class AzureBlobStorageService {
       // }
 
       final response = await _client.delete(
-        UrlConstant.buildAzureEndpoint(
+        UrlPCVKAPI.buildAzureEndpoint(
           '${isPrivate ? _deletePrivateEndpoint : _deletePublicEndpoint}/$blobName',
         ),
         headers: await _getHeaders(),
@@ -183,7 +183,7 @@ class AzureBlobStorageService {
   }) async {
     try {
       final response = await _client.get(
-        UrlConstant.buildAzureEndpoint(
+        UrlPCVKAPI.buildAzureEndpoint(
           isPrivate ? _getPrivateImagesEndpoint : _getPublicImagesEndpoint,
           queryParameters: {'uid': uid, 'filename_prefix': filenamePrefix},
         ),

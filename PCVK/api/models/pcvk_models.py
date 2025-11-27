@@ -62,3 +62,12 @@ class BatchPredictionResponse(BaseModel):
 
     results: List[BatchPredictionResult]
     total_time_ms: float
+
+
+class UnloadModelResponse(BaseModel):
+    """Response model for unload model endpoint"""
+
+    success: bool
+    message: str
+    unloaded_models: List[str]
+    remaining_models: List[str]

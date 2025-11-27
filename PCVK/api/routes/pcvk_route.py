@@ -16,7 +16,8 @@ from api.models.pcvk_models import (
     ModelsInfoResponse,
     ModelInfo,
     BatchPredictionResponse,
-    BatchPredictionResult
+    BatchPredictionResult,
+    UnloadModelResponse
 )
 from api.configs.pcvk_config import (
     CLASS_NAMES,
@@ -64,12 +65,7 @@ async def get_models_info():
             "loaded": model_loaded,
         }
         
-        if model_type == "mlp":
-            info_dict["architecture"] = "Simple MLP"
-            info_dict["hidden_layers"] = "512 -> 256"
-            info_dict["dropout"] = 0.5
-            info_dict["features"] = ["Simple Linear Layers"]
-        elif model_type == "mlpv2":
+        if model_type == "mlpv2":
             info_dict["architecture"] = "MLP with Residual Connections"
             info_dict["hidden_layers"] = "256 -> 512 -> 256 -> 128"
             info_dict["dropout"] = "Progressive (0.3 -> 0.15 -> 0.075 -> 0.0375)"
@@ -79,6 +75,11 @@ async def get_models_info():
             info_dict["hidden_layers"] = "256 -> 512 -> 256 -> 128"
             info_dict["dropout"] = "Progressive (0.3 -> 0.15 -> 0.075 -> 0.0375)"
             info_dict["features"] = ["Residual Blocks", "BatchNorm", "Kaiming Init", "Auto Brightness/Contrast", "CLAHE Enhancement"]
+        elif model_type == "efficientnetv2":
+            info_dict["architecture"] = "EfficientNetV2-S"
+            info_dict["hidden_layers"] = "CNN-based (no hidden layers)"
+            info_dict["dropout"] = 0.3
+            info_dict["features"] = ["Direct Image Processing", "No Segmentation", "No Preprocessing", "ImageNet Normalization"]
         
         models_info[model_type] = ModelInfo(**info_dict)
     
@@ -94,7 +95,7 @@ async def predict(
     file: UploadFile = File(..., description="Image file to classify"),
     use_segmentation: bool = Query(True, description="Whether to use segmentation"),
     seg_method: str = Query("u2netp", description="Segmentation method: hsv, grabcut, adaptive, u2netp, none"),
-    model_type: str = Query("mlpv2_auto-clahe", description="Model type to use: mlp, mlpv2, mlpv2_auto-clahe"),
+    model_type: str = Query("mlpv2_auto-clahe", description="Model type to use: mlpv2, mlpv2_auto-clahe, efficientnetv2"),
     apply_brightness_contrast: bool = Query(True, description="Apply brightness and contrast enhancement (CLAHE)")
 ):
     """
@@ -104,22 +105,20 @@ async def predict(
         file: Image file (JPG, PNG, etc.)
         use_segmentation: Whether to apply segmentation
         seg_method: Segmentation method (hsv, grabcut, adaptive, u2netp, none)
-        model_type: Type of model to use for prediction (mlp or mlpv2)
+        model_type: Type of model to use for prediction 
     
     Returns:
         Prediction results with confidence scores
     """
-    # Check if any models are loaded
-    if len(model_manager.get_loaded_models()) == 0:
-        raise HTTPException(status_code=503, detail="No models loaded")
-    
-    # Validate model type
+    # Load model if not already loaded
     if not model_manager.is_loaded(model_type):
-        available = model_manager.get_loaded_models()
-        raise HTTPException(
-            status_code=400,
-            detail=f"Model type '{model_type}' not available. Available models: {available}"
-        )
+        print(f"Model {model_type} not loaded, loading now...")
+        success = model_manager.load_model(model_type)
+        if not success:
+            raise HTTPException(
+                status_code=503,
+                detail=f"Failed to load model '{model_type}'"
+            )
     
     # Validate file type
     if not file.content_type.startswith("image/"):
@@ -149,7 +148,8 @@ async def predict(
             image=image,
             use_segmentation=use_segmentation,
             seg_method=seg_method,
-            apply_brightness_contrast=apply_brightness_contrast
+            apply_brightness_contrast=apply_brightness_contrast,
+            model_type=model_type
         )
         
         # Calculate prediction time
@@ -180,7 +180,7 @@ async def batch_predict(
     files: List[UploadFile] = File(..., description="Multiple image files to classify"),
     use_segmentation: bool = Query(True, description="Whether to use segmentation"),
     seg_method: str = Query("u2netp", description="Segmentation method: hsv, grabcut, adaptive, u2netp, none"),
-    model_type: str = Query("mlpv2_auto-clahe", description="Model type to use: mlp, mlpv2"),
+    model_type: str = Query("mlpv2_auto-clahe", description="Model type to use: mlpv2, mlpv2_auto-clahe, efficientnetv2"),
     apply_brightness_contrast: bool = Query(True, description="Apply brightness and contrast enhancement (CLAHE)")
 ):
     """
@@ -190,22 +190,20 @@ async def batch_predict(
         files: List of image files
         use_segmentation: Whether to apply segmentation
         seg_method: Segmentation method
-        model_type: Type of model to use for prediction (mlp or mlpv2)
+        model_type: Type of model to use for prediction
     
     Returns:
         List of prediction results
     """
-    # Check if any models are loaded
-    if len(model_manager.get_loaded_models()) == 0:
-        raise HTTPException(status_code=503, detail="No models loaded")
-    
-    # Validate model type
+    # Load model if not already loaded
     if not model_manager.is_loaded(model_type):
-        available = model_manager.get_loaded_models()
-        raise HTTPException(
-            status_code=400,
-            detail=f"Model type '{model_type}' not available. Available models: {available}"
-        )
+        print(f"Model {model_type} not loaded, loading now...")
+        success = model_manager.load_model(model_type)
+        if not success:
+            raise HTTPException(
+                status_code=503,
+                detail=f"Failed to load model '{model_type}'"
+            )
     
     # Get model
     model = model_manager.get_model(model_type)
@@ -238,7 +236,8 @@ async def batch_predict(
                 image=image,
                 use_segmentation=use_segmentation,
                 seg_method=seg_method,
-                apply_brightness_contrast=apply_brightness_contrast
+                apply_brightness_contrast=apply_brightness_contrast,
+                model_type=model_type
             )
             
             # Calculate prediction time
@@ -276,3 +275,57 @@ async def batch_predict(
     total_time_ms = (time.time() - batch_start_time) * 1000
     
     return BatchPredictionResponse(results=results, total_time_ms=total_time_ms)
+
+
+@router.post("/unload", response_model=UnloadModelResponse)
+async def unload_model(
+    model_type: str = Query("", description="Model type to unload (mlpv2, mlpv2_auto-clahe, efficientnetv2). Empty to unload all")
+):
+    """
+    Unload model(s) from memory
+    
+    Args:
+        model_type: Type of model to unload. If empty, unloads all models.
+    
+    Returns:
+        Unload status and information
+    """
+    unloaded = []
+    
+    try:
+        if model_type == "":
+            # Unload all models
+            unloaded = model_manager.get_loaded_models().copy()
+            success = model_manager.unload_all_models()
+            message = "All models unloaded successfully" if success else "Failed to unload all models"
+        else:
+            # Validate model type
+            if model_type not in MODEL_PATHS:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid model type '{model_type}'. Valid types: {list(MODEL_PATHS.keys())}"
+                )
+            
+            # Unload specific model
+            if model_manager.is_loaded(model_type):
+                success = model_manager.unload_model(model_type)
+                if success:
+                    unloaded = [model_type]
+                    message = f"Model '{model_type}' unloaded successfully"
+                else:
+                    message = f"Failed to unload model '{model_type}'"
+            else:
+                success = True
+                message = f"Model '{model_type}' was not loaded"
+        
+        return UnloadModelResponse(
+            success=success,
+            message=message,
+            unloaded_models=unloaded,
+            remaining_models=model_manager.get_loaded_models()
+        )
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error unloading model: {str(e)}")

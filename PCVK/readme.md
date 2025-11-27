@@ -17,7 +17,7 @@ pip install -r requirements.txt
 1. Copy environment template:
 
 ```bash
-cp ..env.example ..env
+cp .env.example .env
 ```
 
 2. Configure Azure and Firebase credentials in `.env`

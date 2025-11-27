@@ -9,13 +9,13 @@ _MODEL_PREFIX = os.path.join(
     "models",
 )
 MODEL_PATHS = {
-    "mlp": os.path.join(_MODEL_PREFIX, "mlp.pth"),
     "mlpv2": os.path.join(_MODEL_PREFIX, "mlpv2.pth"),
     "mlpv2_auto-clahe": os.path.join(_MODEL_PREFIX, "mlpv2_auto-clahe.pth"),
+    "efficientnetv2": os.path.join(_MODEL_PREFIX, "efficientnetv2.pth"),
     "u2netp": os.path.join(_MODEL_PREFIX, "u2netp.onnx"),
 }
 
-CLASS_NAMES = ["Sayur Akar", "Sayur Buah", "Sayur Daun", "Sayur Polong"]
+CLASS_NAMES = ["Sayur Akar", "Sayur Buah", "Sayur_Bunga", "Sayur Daun", "Sayur Polong"]
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
