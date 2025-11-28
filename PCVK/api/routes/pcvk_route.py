@@ -30,7 +30,7 @@ from api.services.classification.inference import predict_image
 
 
 # Create router
-router = APIRouter(tags=["PCVK"])
+router = APIRouter(prefix="/pcvk", tags=["PCVK"])
 
 
 @router.get("/health", response_model=HealthResponse)
