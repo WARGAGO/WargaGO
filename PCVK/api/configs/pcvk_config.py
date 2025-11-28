@@ -3,15 +3,14 @@ import torch
 
 # Model configuration
 _MODEL_PREFIX = os.path.join(
-    os.path.dirname(os.path.dirname(__file__)),
-    "services",
-    "classification",
+    os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
     "models",
 )
+
 MODEL_PATHS = {
-    "mlpv2": os.path.join(_MODEL_PREFIX, "mlpv2.pth"),
-    "mlpv2_auto-clahe": os.path.join(_MODEL_PREFIX, "mlpv2_auto-clahe.pth"),
-    "efficientnetv2": os.path.join(_MODEL_PREFIX, "efficientnetv2.pth"),
+    "mlpv2": os.path.join(_MODEL_PREFIX, "classification", "mlpv2.pth"),
+    "mlpv2_auto-clahe": os.path.join(_MODEL_PREFIX, "classification", "mlpv2_auto-clahe.pth"),
+    "efficientnetv2": os.path.join(_MODEL_PREFIX, "classification", "efficientnetv2.pth"),
     "u2netp": os.path.join(_MODEL_PREFIX, "u2netp.onnx"),
 }
 
