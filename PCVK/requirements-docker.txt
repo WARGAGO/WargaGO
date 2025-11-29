@@ -26,3 +26,7 @@ azure-identity
 
 # Firebase dependencies
 firebase-admin
+
+# PaddleOCR
+paddleocr 
+paddlepaddle

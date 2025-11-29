@@ -7,7 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:jawara/core/models/kyc_document_model.dart';
+import 'package:jawara/core/models/KYC/kyc_document_model.dart';
 import 'package:jawara/core/services/kyc_service.dart';
 import 'package:jawara/features/admin/core_widgets/kyc_document_preview.dart';
 

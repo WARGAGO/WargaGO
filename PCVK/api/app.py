@@ -23,8 +23,10 @@ from api.configs.pcvk_config import DEVICE
 from api.routes.pcvk_route import router
 from api.routes.storage_public_route import public_storage_router
 from api.routes.storage_private_route import private_storage_router
+from api.routes.paddle_ocr_route import router as ocr_router
 from api.services.classification.gradio_interface import create_gradio_interface
 from api.services.classification.model_loader import model_manager
+from api.services.ocr_service import ocr_service
 
 
 @asynccontextmanager
@@ -38,14 +40,23 @@ async def lifespan(app: FastAPI):
     print(f"Device: {DEVICE}")
     print("=" * 60)
     
+    # Load classification models
     # success = model_manager.load_all_models()
     success = model_manager.load_model("mlpv2_auto-clahe")
     
     if not success:
-        print("WARNING: No models were loaded!")
+        print("WARNING: No classification models were loaded!")
     else:
         loaded_models = model_manager.get_loaded_models()
-        print(f"Successfully loaded {len(loaded_models)} model(s): {loaded_models}")
+        print(f"Successfully loaded {len(loaded_models)} classification model(s): {loaded_models}")
+    
+    # Load OCR model
+    print("-" * 60)
+    ocr_success = ocr_service.load_model()
+    if ocr_success:
+        print("OCR model loaded successfully")
+    else:
+        print("WARNING: OCR model failed to load!")
     
     print("=" * 60)
     
@@ -53,6 +64,10 @@ async def lifespan(app: FastAPI):
     
     # Shutdown
     print("Shutting down API...")
+    print("Unloading models...")
+    model_manager.unload_all_models()
+    ocr_service.unload_model()
+    print("Shutdown complete")
 
 
 def create_app() -> FastAPI:
@@ -80,6 +95,7 @@ def create_app() -> FastAPI:
     )
     
     app.include_router(router, prefix="/api")
+    app.include_router(ocr_router, prefix="/api")
     app.include_router(public_storage_router, prefix="/api")
     app.include_router(private_storage_router, prefix="/api")
     

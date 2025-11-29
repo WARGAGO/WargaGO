@@ -8,7 +8,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
-import '../models/kyc_document_model.dart';
+import 'package:jawara/core/models/KYC/face_detection.dart';
 
 class FaceDetectionService {
   // Face detector instance with options
@@ -207,4 +207,3 @@ class FaceDetectionService {
     await _faceDetector.close();
   }
 }
-

@@ -143,7 +143,7 @@ class AzureBlobStorageService {
 
   Future<void> deleteFile({
     required String blobName,
-    bool isPrivate = false,
+    bool isPrivate = true,
   }) async {
     try {
       // if (kDebugMode) {
@@ -179,7 +179,7 @@ class AzureBlobStorageService {
   Future<UserImagesResponse?> getImages({
     String? uid,
     String? filenamePrefix,
-    bool isPrivate = false,
+    bool isPrivate = true,
   }) async {
     try {
       final response = await _client.get(

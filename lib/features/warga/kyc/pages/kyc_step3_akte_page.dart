@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../../core/models/kyc_document_model.dart';
+import 'package:jawara/core/models/KYC/ktp_model.dart';
 
 class KYCStep3AktePage extends StatelessWidget {
-  final Function(OCRResult?) onNext;
+  final Function(KTPModel?) onNext;
   final VoidCallback onSkip;
 
   const KYCStep3AktePage({
@@ -19,10 +19,7 @@ class KYCStep3AktePage extends StatelessWidget {
         children: [
           const Text('Step 3: Upload Akte Kelahiran (Optional)'),
           const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: onSkip,
-            child: const Text('Lewati'),
-          ),
+          ElevatedButton(onPressed: onSkip, child: const Text('Lewati')),
         ],
       ),
     );

@@ -8,8 +8,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:jawara/core/models/KYC/ktp_model.dart' as model;
 import 'package:jawara/core/services/ocr_service.dart';
-import 'package:jawara/core/models/kyc_document_model.dart' as model;
 
 class OCRTestPage extends StatefulWidget {
   const OCRTestPage({super.key});
@@ -23,7 +23,7 @@ class _OCRTestPageState extends State<OCRTestPage> {
   final ImagePicker _picker = ImagePicker();
 
   File? _selectedImage;
-  model.OCRResult? _ocrResult;
+  model.KTPModel? _ocrResult;
   bool _isProcessing = false;
   String? _errorMessage;
 
@@ -56,27 +56,27 @@ class _OCRTestPageState extends State<OCRTestPage> {
   }
 
   Future<void> _processImage() async {
-    if (_selectedImage == null) return;
+    // if (_selectedImage == null) return;
 
-    setState(() {
-      _isProcessing = true;
-      _errorMessage = null;
-    });
+    // setState(() {
+    //   _isProcessing = true;
+    //   _errorMessage = null;
+    // });
 
-    try {
-      // Process OCR
-      final ocrResult = await _ocrService.processImage(_selectedImage!);
+    // try {
+    //   // Process OCR
+    //   final ocrResult = await _ocrService.processImage(_selectedImage!);
 
-      setState(() {
-        _ocrResult = ocrResult;
-        _isProcessing = false;
-      });
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Error processing: $e';
-        _isProcessing = false;
-      });
-    }
+    //   setState(() {
+    //     _ocrResult = ocrResult;
+    //     _isProcessing = false;
+    //   });
+    // } catch (e) {
+    //   setState(() {
+    //     _errorMessage = 'Error processing: $e';
+    //     _isProcessing = false;
+    //   });
+    // }
   }
 
   @override
@@ -119,10 +119,14 @@ class _OCRTestPageState extends State<OCRTestPage> {
                             ? const SizedBox(
                                 width: 16,
                                 height: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : const Icon(Icons.play_arrow),
-                        label: Text(_isProcessing ? 'Processing...' : 'Process Image'),
+                        label: Text(
+                          _isProcessing ? 'Processing...' : 'Process Image',
+                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green,
                         ),
@@ -182,18 +186,24 @@ class _OCRTestPageState extends State<OCRTestPage> {
                       _buildResultRow('NIK', _ocrResult!.nik),
                       _buildResultRow('Nama', _ocrResult!.nama),
                       _buildResultRow('Tempat Lahir', _ocrResult!.tempatLahir),
-                      _buildResultRow('Tanggal Lahir', _ocrResult!.tanggalLahir),
+                      _buildResultRow(
+                        'Tanggal Lahir',
+                        _ocrResult!.tanggalLahir,
+                      ),
                       _buildResultRow('Alamat', _ocrResult!.alamat),
-                      if (_ocrResult!.additionalFields != null) ...[
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Additional Fields:',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        ..._ocrResult!.additionalFields!.entries.map(
-                          (entry) => _buildResultRow(entry.key, entry.value?.toString()),
-                        ),
-                      ],
+                      // if (_ocrResult!.additionalFields != null) ...[
+                      //   const SizedBox(height: 8),
+                      //   const Text(
+                      //     'Additional Fields:',
+                      //     style: TextStyle(fontWeight: FontWeight.bold),
+                      //   ),
+                      //   ..._ocrResult!.additionalFields!.entries.map(
+                      //     (entry) => _buildResultRow(
+                      //       entry.key,
+                      //       entry.value?.toString(),
+                      //     ),
+                      //   ),
+                      // ],
                       const SizedBox(height: 8),
                       _buildConfidenceBar(),
                     ],
@@ -253,8 +263,8 @@ class _OCRTestPageState extends State<OCRTestPage> {
             confidence > 0.7
                 ? Colors.green
                 : confidence > 0.4
-                    ? Colors.orange
-                    : Colors.red,
+                ? Colors.orange
+                : Colors.red,
           ),
           minHeight: 10,
         ),
@@ -263,7 +273,7 @@ class _OCRTestPageState extends State<OCRTestPage> {
   }
 
   /// Calculate confidence score based on completeness of OCR result
-  double _getConfidenceScore(model.OCRResult result) {
+  double _getConfidenceScore(model.KTPModel result) {
     int score = 0;
     int total = 0;
 
@@ -300,4 +310,3 @@ class _OCRTestPageState extends State<OCRTestPage> {
     return total > 0 ? (score / total) : 0.0;
   }
 }
-
