@@ -1,33 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:jawara/core/widgets/admin_app_bottom_navigation.dart';
+import 'package:jawara/core/widgets/warga_app_bottom_navigation.dart';
 import 'package:jawara/features/admin/data_warga/data_warga_main_page.dart';
 import 'package:jawara/features/admin/kelola_lapak/kelola_lapak_page.dart';
 import 'package:jawara/features/admin/keuangan/keuangan_page.dart';
 import 'package:jawara/features/common/auth/presentation/pages/warga/lupa_page.dart';
-
-// Common Pages
 import 'package:jawara/features/common/splash/splash_page.dart';
 import 'package:jawara/features/common/onboarding/onboarding_page.dart';
 import 'package:jawara/features/common/pre_auth/pre_auth_page.dart';
-
-// Auth Pages
 import 'package:jawara/features/common/auth/presentation/pages/unified_login_page.dart';
 import 'package:jawara/features/common/auth/presentation/pages/warga/warga_register_page.dart';
 import 'package:jawara/features/common/auth/presentation/pages/warga/kyc_upload_page.dart';
-
-// Status Pages
 import 'package:jawara/features/common/auth/presentation/pages/status/pending_approval_page.dart';
 import 'package:jawara/features/common/auth/presentation/pages/status/rejected_page.dart';
-
-// Admin Pages
 import 'package:jawara/features/admin/dashboard/dashboard_page.dart';
-
-// Warga Pages
-
-// Constants
 import 'package:jawara/core/constants/app_routes.dart';
-import 'package:jawara/features/warga/warga_main_page.dart';
+import 'package:jawara/features/warga/home/pages/warga_home_page.dart';
+import 'package:jawara/features/warga/marketplace/pages/cart_page.dart';
+import 'package:jawara/features/warga/marketplace/pages/my_orders_page.dart';
+import 'package:jawara/features/warga/marketplace/pages/product_detail_page.dart';
+import 'package:jawara/features/warga/marketplace/pages/warga_marketplace_page.dart';
+import 'package:jawara/features/warga/profile/akun_screen.dart';
+import 'package:jawara/features/warga/profile/edit_profil_screen.dart';
+import 'package:jawara/features/warga/profile/toko_saya_screen.dart';
 
 class AppRouterConfig {
   static final GlobalKey<NavigatorState> _rootNavigatorKey =
@@ -105,16 +102,16 @@ class AppRouterConfig {
         },
       ),
 
-      GoRoute(
-        path: AppRoutes.wargaDashboard,
-        name: 'wargaDashboard',
-        builder: (context, state) => const WargaMainPage(),
-      ),
+      // GoRoute(
+      //   path: AppRoutes.wargaDashboard,
+      //   name: 'wargaDashboard',
+      //   builder: (context, state) => const WargaMainPage(),
+      // ),
 
       // ========== ADMIN SHELL WITH BOTTOM NAVIGATION ==========
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
-          return AppBottomNavigation(navigationShell: navigationShell);
+          return AdminAppBottomNavigation(navigationShell: navigationShell);
         },
         branches: [
           // Branch 0: Dashboard
@@ -162,42 +159,141 @@ class AppRouterConfig {
       ),
 
       // ========== WARGA SHELL WITH BOTTOM NAVIGATION ==========
-      // StatefulShellRoute.indexedStack(
-      //   builder: (context, state, navigationShell) {
-      //     return WargaShell(navigationShell: navigationShell);
-      //   },
-      //   branches: [
-      //     // Branch 0: Home
-      //     StatefulShellBranch(
-      //       navigatorKey: _wargaShellNavigatorKey,
-      //       routes: [
-      //         GoRoute(
-      //           path: AppRoutes.wargaDashboard,
-      //           name: 'wargaDashboard',
-      //           builder: (context, state) => const WargaHomePage(),
-      //         ),
-      //       ],
-      //     ),
-
-      //     StatefulShellBranch(routes: [
-
-      //       ],
-      //     ),
-
-      //     StatefulShellBranch(routes: [
-
-      //       ],
-      //     ),
-
-      //     StatefulShellBranch(routes: [
-
-      //       ],
-      //     ),
-      //   ],
-      // ),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) {
+          return WargaAppBottomNavigation(navigationShell: navigationShell);
+        },
+        branches: [
+          // Branch 0: Home
+          StatefulShellBranch(
+            navigatorKey: _wargaShellNavigatorKey,
+            routes: [
+              GoRoute(
+                path: AppRoutes.wargaDashboard,
+                name: 'wargaDashboard',
+                builder: (context, state) => const WargaHomePage(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.wargaMarketplace,
+                name: 'wargaMarketplace',
+                builder: (context, state) => const WargaMarketplacePage(),
+              ),
+              GoRoute(
+                path: AppRoutes.wargaPesananSaya,
+                name: 'wargaPesananSaya',
+                builder: (context, state) => const MyOrdersPage(),
+              ),
+              GoRoute(
+                path: AppRoutes.wargaKeranjangSaya,
+                name: 'wargaKeranjangSaya',
+                builder: (context, state) => const CartPage(),
+              ),
+              GoRoute(
+                path: AppRoutes.wargaItemDetail,
+                name: 'wargaItemDetail',
+                builder: (context, state) {
+                  print(state.extra);
+                  final extras = Map<String, dynamic>.from(state.extra as Map);
+                  return ProductDetailPage(
+                    productName: extras['productName'],
+                    price: extras['price'],
+                    imageUrl: extras['imageUrl'],
+                  );
+                },
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.wargaIuran,
+                name: 'wargaIuran',
+                builder: (context, state) => const _PlaceHolderPage('Iuran'),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.wargaAkun,
+                name: 'wargaAkun',
+                builder: (context, state) => AkunScreen(),
+              ),
+              GoRoute(
+                path: AppRoutes.wargaEditProfile,
+                name: 'wargaEditProfile',
+                builder: (context, state) => EditProfilScreen(),
+              ),
+              GoRoute(
+                path: AppRoutes.wargaTokoSaya,
+                name: 'wargaTokoSaya',
+                builder: (context, state) => TokoSayaScreen(),
+              ),
+            ],
+          ),
+        ],
+      ),
     ],
     errorBuilder: (context, state) => Scaffold(
       body: Center(child: Text('Route tidak ditemukan: ${state.uri.path}')),
     ),
   );
+}
+
+class _PlaceHolderPage extends StatelessWidget {
+  const _PlaceHolderPage(this.title);
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FD),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: Text(
+          title,
+          style: GoogleFonts.poppins(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF1F2937),
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.receipt_long_rounded,
+              size: 80,
+              color: const Color(0xFF2F80ED).withValues(alpha: 0.3),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              title,
+              style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF1F2937),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Fitur dalam pengembangan',
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: const Color(0xFF6B7280),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

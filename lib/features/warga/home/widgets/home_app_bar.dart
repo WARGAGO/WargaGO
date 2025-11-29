@@ -5,10 +5,9 @@
 // ============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-
-// Import halaman profil yang sudah kita buat (statis)
-import '../../profile/akun_screen.dart';
+import 'package:jawara/core/constants/app_routes.dart';
 
 class HomeAppBar extends StatelessWidget {
   final int notificationCount;
@@ -134,13 +133,7 @@ class HomeAppBar extends StatelessWidget {
   // Update: langsung navigasi ke AkunScreen
   Widget _buildProfileButton({required BuildContext context}) {
     return InkWell(
-      onTap: () {
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => const AkunScreen(), // Langsung ke halaman Akun
-          ),
-        );
-      },
+      onTap: () => context.go(AppRoutes.wargaAkun),
       borderRadius: BorderRadius.circular(12),
       child: Container(
         width: 44,

@@ -4,15 +4,16 @@ import 'package:google_fonts/google_fonts.dart';
 
 /// Unified Bottom Navigation Bar untuk semua halaman
 /// Menggunakan desain modern dengan gradient pada active state
-class AppBottomNavigation extends StatefulWidget {
+class AdminAppBottomNavigation extends StatefulWidget {
   final StatefulNavigationShell navigationShell;
-  const AppBottomNavigation({super.key, required this.navigationShell});
+  const AdminAppBottomNavigation({super.key, required this.navigationShell});
 
   @override
-  State<AppBottomNavigation> createState() => _AppBottomNavigationState();
+  State<AdminAppBottomNavigation> createState() =>
+      _AdminAppBottomNavigationState();
 }
 
-class _AppBottomNavigationState extends State<AppBottomNavigation>
+class _AdminAppBottomNavigationState extends State<AdminAppBottomNavigation>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _fade;

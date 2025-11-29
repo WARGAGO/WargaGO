@@ -1,44 +1,36 @@
 /// Konstanta untuk semua route dalam aplikasi
 /// Terpusat di satu tempat untuk memudahkan maintenance
 class AppRoutes {
-  AppRoutes._(); // Private constructor untuk prevent instantiation
+  AppRoutes._();
 
   // ========== COMMON ROUTES ==========
-  /// Route awal aplikasi (Splash Screen)
   static const String splash = '/';
-
-  /// Route onboarding (pengenalan app)
   static const String onboarding = '/onboarding';
-
-  /// Route pre-auth
   static const String preAuth = '/pre-auth';
 
   // ========== AUTH ROUTES (UNIFIED) ==========
-  /// Route login unified untuk Admin & Warga
   static const String login = '/login';
-
   static const String forgotPassword = '/login/forgot';
-
-  /// Route dashboard admin
   static const String adminDashboard = '/admin/dashboard';
-
-  /// Route verifikasi warga oleh admin
   static const String adminVerifyWarga = '/admin/verify-warga';
 
   // ========== WARGA ROUTES ==========
-  /// Route registrasi warga baru
   static const String wargaRegister = '/warga/register';
-
-  /// Route upload KYC (KTP & Selfie)
   static const String wargaKYC = '/warga/kyc';
-
-  /// Route dashboard warga
   static const String wargaDashboard = '/warga/dashboard';
 
-  // ========== STATUS ROUTES ==========
-  /// Route halaman menunggu persetujuan
-  static const String pending = '/pending';
+  static const String wargaMarketplace = '/warga/marketplace';
+  static const String wargaPesananSaya = '/warga/marketplace/pesanan';
+  static const String wargaKeranjangSaya = '/warga/marketplace/keranjang';
+  static const String wargaItemDetail = '/warga/marketplace/detail';
 
-  /// Route halaman akun ditolak
+  static const String wargaIuran = '/warga/iuran';
+
+  static const String wargaAkun = '/warga/akun';
+  static const String wargaEditProfile = '/warga/edit-profil';
+  static const String wargaTokoSaya = '/warga/toko-saya';
+
+  // ========== STATUS ROUTES ==========
+  static const String pending = '/pending';
   static const String rejected = '/rejected';
 }

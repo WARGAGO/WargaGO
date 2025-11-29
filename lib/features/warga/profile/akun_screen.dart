@@ -1,7 +1,8 @@
 // lib/pages/profile/akun_screen.dart
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'edit_profil_screen.dart';
+import 'package:jawara/core/constants/app_routes.dart';
 import 'toko_saya_screen.dart';
 
 class AkunScreen extends StatelessWidget {
@@ -65,19 +66,13 @@ class AkunScreen extends StatelessWidget {
             leading: const Icon(Icons.person_outline),
             title: Text('Edit Profil', style: GoogleFonts.poppins()),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const EditProfilScreen()),
-            ),
+            onTap: () => context.push(AppRoutes.wargaEditProfile),
           ),
           ListTile(
             leading: const Icon(Icons.store_outlined),
             title: Text('Toko Saya', style: GoogleFonts.poppins()),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const TokoSayaScreen()),
-            ),
+            onTap: () => context.push(AppRoutes.wargaTokoSaya),
           ),
           ListTile(
             leading: const Icon(Icons.help_outline),
@@ -118,45 +113,6 @@ class AkunScreen extends StatelessWidget {
           ),
           const SizedBox(height: 30),
         ],
-      ),
-
-      // Navigation Bar
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
-        currentIndex: 3, // Akun aktif (index ke-4)
-        selectedLabelStyle: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-        unselectedLabelStyle: GoogleFonts.poppins(),
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.storefront_outlined),
-            activeIcon: Icon(Icons.storefront),
-            label: 'Marketplace',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.receipt_long_outlined),
-            activeIcon: Icon(Icons.receipt_long),
-            label: 'Iuran',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            activeIcon: Icon(Icons.person),
-            label: 'Akun',
-          ),
-        ],
-        onTap: (index) {
-          if (index == 0) {
-            // Kembali ke Home (beranda utama)
-            Navigator.of(context).popUntil((route) => route.isFirst);
-          }
-          // Marketplace //
-        },
       ),
     );
   }
