@@ -273,7 +273,7 @@ class DashboardValueBadge extends StatelessWidget {
           Text(
             value,
             style: GoogleFonts.poppins(
-              fontSize: 24,
+              fontSize: 20,
               fontWeight: FontWeight.w700,
               color: textColor ?? DashboardColors.primaryBlue,
               letterSpacing: -0.5,

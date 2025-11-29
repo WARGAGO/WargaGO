@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:io';
 import 'package:intl/intl.dart';
+import 'package:open_file/open_file.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:path/path.dart' as path;
 import '../services/export_service.dart';
 
 class ExportDialog {
@@ -176,30 +180,40 @@ class ExportDialog {
     String format,
     String title,
   ) async {
+    if (!context.mounted) return;
+
+    bool success = false;
+    File? resultFile;
+    String? errorMessage;
+
     // Show loading
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => Center(
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const CircularProgressIndicator(),
-              const SizedBox(height: 16),
-              Text(
-                'Membuat file...',
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+      useRootNavigator: false,
+      builder: (dialogContext) => PopScope(
+        canPop: false,
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(height: 16),
+                Text(
+                  'Membuat file...',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -209,36 +223,67 @@ class ExportDialog {
       final timestamp = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
       final filename = '${title}_$timestamp';
 
-      File? file;
+      // Export with timeout (10 seconds max)
       switch (format) {
         case 'excel':
-          file = await ExportService.exportToExcel(data, filename);
+          resultFile = await ExportService.exportToExcel(data, filename).timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              errorMessage = 'Timeout: Operasi terlalu lama';
+              return null;
+            },
+          );
           break;
         case 'pdf':
-          file = await ExportService.exportToPDF(data, filename);
+          resultFile = await ExportService.exportToPDF(data, filename).timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              errorMessage = 'Timeout: Operasi terlalu lama';
+              return null;
+            },
+          );
           break;
         case 'csv':
-          file = await ExportService.exportToCSV(data, filename);
+          resultFile = await ExportService.exportToCSV(data, filename).timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              errorMessage = 'Timeout: Operasi terlalu lama';
+              return null;
+            },
+          );
           break;
       }
 
-      // Close loading
-      Navigator.pop(context);
-
-      if (file != null) {
-        // Show success dialog
-        _showSuccessDialog(context, file, format.toUpperCase());
-      } else {
-        _showErrorSnackBar(context, 'Gagal membuat file');
-      }
+      success = resultFile != null;
     } catch (e) {
-      // Close loading
-      Navigator.pop(context);
-      _showErrorSnackBar(context, 'Terjadi kesalahan: $e');
+      errorMessage = e.toString();
+      success = false;
+      debugPrint('❌ Export error: $e');
+    }
+
+    // FORCE CLOSE LOADING DIALOG - NO MATTER WHAT
+    if (context.mounted) {
+      try {
+        Navigator.of(context, rootNavigator: false).pop();
+      } catch (e) {
+        debugPrint('⚠️  Error closing dialog: $e');
+      }
+    }
+
+    // Show result AFTER dialog closed
+    if (!context.mounted) return;
+
+    if (success && resultFile != null) {
+      // Show success dialog
+      _showSuccessDialog(context, resultFile, format.toUpperCase());
+    } else {
+      _showErrorSnackBar(context, errorMessage ?? 'Gagal membuat file');
     }
   }
 
   static void _showSuccessDialog(BuildContext context, File file, String format) {
+    final fileName = path.basename(file.path);
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -260,7 +305,7 @@ class ExportDialog {
             ),
             const SizedBox(height: 20),
             Text(
-              'Export Berhasil!',
+              'File Berhasil Didownload!',
               style: GoogleFonts.poppins(
                 fontSize: 20,
                 fontWeight: FontWeight.w700,
@@ -268,7 +313,7 @@ class ExportDialog {
             ),
             const SizedBox(height: 8),
             Text(
-              'File $format berhasil dibuat',
+              'File $format tersimpan di folder Downloads',
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                 fontSize: 14,
@@ -285,53 +330,133 @@ class ExportDialog {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Lokasi File:',
-                    style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF6B7280),
-                    ),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.insert_drive_file,
+                        size: 16,
+                        color: const Color(0xFF6B7280),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          fileName,
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF1F2937),
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 8),
                   Text(
-                    file.path,
+                    'Lokasi: ${file.path}',
                     style: GoogleFonts.poppins(
-                      fontSize: 11,
-                      color: const Color(0xFF1F2937),
+                      fontSize: 10,
+                      color: const Color(0xFF9CA3AF),
                     ),
-                    maxLines: 3,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 12),
-            Text(
-              'File dapat diakses melalui File Manager',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                color: const Color(0xFF9CA3AF),
-                fontStyle: FontStyle.italic,
-              ),
+            const SizedBox(height: 20),
+
+            // Action Buttons
+            Row(
+              children: [
+                // Buka File Button
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      try {
+                        final result = await OpenFile.open(file.path);
+                        if (result.type != ResultType.done) {
+                          if (context.mounted) {
+                            _showErrorSnackBar(context, 'Tidak dapat membuka file. Gunakan File Manager.');
+                          }
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          _showErrorSnackBar(context, 'Error: $e');
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.open_in_new, size: 18),
+                    label: Text(
+                      'Buka',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2988EA),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+
+                // Bagikan Button
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      try {
+                        await Share.shareXFiles(
+                          [XFile(file.path)],
+                          subject: 'Laporan $format',
+                          text: 'Berikut file laporan dalam format $format',
+                        );
+                      } catch (e) {
+                        if (context.mounted) {
+                          _showErrorSnackBar(context, 'Error: $e');
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.share, size: 18),
+                    label: Text(
+                      'Bagikan',
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF2988EA),
+                      side: const BorderSide(
+                        color: Color(0xFF2988EA),
+                        width: 1.5,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
         actions: [
-          ElevatedButton(
+          TextButton(
             onPressed: () => Navigator.pop(context),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF2988EA),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              minimumSize: const Size(double.infinity, 45),
-            ),
             child: Text(
-              'OK',
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+              'Tutup',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF6B7280),
+              ),
             ),
           ),
         ],

@@ -18,6 +18,9 @@ class KeluargaList extends StatefulWidget {
 }
 
 class _KeluargaListState extends State<KeluargaList> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
   @override
   void initState() {
     super.initState();
@@ -25,6 +28,12 @@ class _KeluargaListState extends State<KeluargaList> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<KeluargaProvider>().fetchKeluarga();
     });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -116,22 +125,158 @@ class _KeluargaListState extends State<KeluargaList> {
           }
 
           // Data list
+          // Filter dan sort data
+          var filteredList = provider.keluargaList.where((keluarga) {
+            if (_searchQuery.isEmpty) return true;
+            final query = _searchQuery.toLowerCase();
+            return keluarga.namaKepalaKeluarga.toLowerCase().contains(query) ||
+                keluarga.nomorKK.toLowerCase().contains(query) ||
+                keluarga.fullAddress.toLowerCase().contains(query);
+          }).toList();
+
+          // Sort by createdAt atau nomorKK (terbaru di atas)
+          filteredList.sort((a, b) {
+            // Jika ada createdAt, sort by that
+            // Jika tidak, sort by nomorKK descending
+            return b.nomorKK.compareTo(a.nomorKK);
+          });
+
           return RefreshIndicator(
             onRefresh: () => provider.refresh(),
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
+            child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
-              itemCount: provider.keluargaList.length,
-              itemBuilder: (context, index) {
-                final keluarga = provider.keluargaList[index];
-                return KeluargaExpandableCard(
-                  namaKepalaKeluarga: keluarga.namaKepalaKeluarga,
-                  alamat: keluarga.fullAddress,
-                  status: keluarga.status,
-                  nomorKK: keluarga.nomorKK,
-                  jumlahAnggota: keluarga.jumlahAnggota,
-                );
-              },
+              slivers: [
+                // Search Bar
+                SliverToBoxAdapter(
+                  child: Container(
+                    margin: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (value) {
+                        setState(() {
+                          _searchQuery = value;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Cari nama KK, nomor KK, atau alamat...',
+                        hintStyle: GoogleFonts.poppins(
+                          color: Colors.grey[400],
+                          fontSize: 14,
+                        ),
+                        prefixIcon: const Icon(
+                          Icons.search_rounded,
+                          color: Color(0xFF2F80ED),
+                        ),
+                        suffixIcon: _searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear_rounded),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() {
+                                    _searchQuery = '';
+                                  });
+                                },
+                              )
+                            : null,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey[50],
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 16,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Info banner
+                SliverToBoxAdapter(
+                  child: Container(
+                    margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF10B981), Color(0xFF059669)],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF10B981).withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.family_restroom,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Data Terbaru di Atas',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              Text(
+                                '${filteredList.length} dari ${provider.keluargaList.length} keluarga ditampilkan',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // List data keluarga
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final keluarga = filteredList[index];
+                        return KeluargaExpandableCard(
+                          namaKepalaKeluarga: keluarga.namaKepalaKeluarga,
+                          alamat: keluarga.fullAddress,
+                          status: keluarga.status,
+                          nomorKK: keluarga.nomorKK,
+                          jumlahAnggota: keluarga.jumlahAnggota,
+                        );
+                      },
+                      childCount: filteredList.length,
+                    ),
+                  ),
+                ),
+              ],
             ),
           );
         },

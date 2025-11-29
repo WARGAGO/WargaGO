@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class UserModel {
   final String id;
   final String email;
@@ -27,6 +29,27 @@ class UserModel {
     this.updatedAt,
   });
 
+  /// Helper method to parse DateTime from various formats
+  static DateTime? _parseDateTime(dynamic value) {
+    if (value == null) return null;
+
+    if (value is Timestamp) {
+      return value.toDate();
+    } else if (value is String) {
+      try {
+        return DateTime.parse(value);
+      } catch (e) {
+        print('Warning: Failed to parse DateTime from string: $value');
+        return null;
+      }
+    } else if (value is DateTime) {
+      return value;
+    }
+
+    print('Warning: Unknown DateTime format: ${value.runtimeType}');
+    return null;
+  }
+
   factory UserModel.fromMap(Map<String, dynamic> map, String id) {
     try {
       print('UserModel.fromMap called');
@@ -37,19 +60,15 @@ class UserModel {
         id: id,
         email: map['email'] ?? '',
         nama: map['nama'] ?? '',
-        nik: map['nik'],
+        nik: map['nik']?.toString(),
         jenisKelamin: map['jenisKelamin'],
         noTelepon: map['noTelepon'],
         alamat: map['alamat'],
         role: map['role'] ?? 'user',
         status: map['status'] ?? 'pending',
         password: map['password'],
-        createdAt: map['createdAt'] != null
-            ? DateTime.parse(map['createdAt'])
-            : DateTime.now(),
-        updatedAt: map['updatedAt'] != null
-            ? DateTime.parse(map['updatedAt'])
-            : null,
+        createdAt: _parseDateTime(map['createdAt']) ?? DateTime.now(),
+        updatedAt: _parseDateTime(map['updatedAt']),
       );
       
       print('✅ UserModel created successfully');

@@ -237,8 +237,9 @@ class KelolaPemasukanTabbedContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        // Tab Bar dengan padding atas
         Container(
-          margin: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+          margin: const EdgeInsets.fromLTRB(20, 20, 20, 16),
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -307,10 +308,14 @@ class KelolaPemasukanTabbedContent extends StatelessWidget {
                 .toList(),
           ),
         ),
+        // TabBarView dengan full height dan scroll behavior
         Expanded(
-          child: TabBarView(
-            controller: tabController,
-            children: views,
+          child: Container(
+            color: const Color(0xFFF8FAFC), // Background putih penuh
+            child: TabBarView(
+              controller: tabController,
+              children: views,
+            ),
           ),
         ),
       ],

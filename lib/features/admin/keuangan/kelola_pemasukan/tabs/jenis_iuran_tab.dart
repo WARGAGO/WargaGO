@@ -43,59 +43,6 @@ class _JenisIuranTabState extends State<JenisIuranTab> {
 
         return Column(
           children: [
-            // Search Bar
-            Container(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: const Color(0xFFE8EAF2),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: TextField(
-                      onChanged: (value) {
-                        setState(() {
-                          _searchQuery = value;
-                        });
-                      },
-                      decoration: InputDecoration(
-                        hintText: 'Cari jenis iuran...',
-                        hintStyle: GoogleFonts.poppins(
-                          fontSize: 14,
-                          color: const Color(0xFF9CA3AF),
-                        ),
-                        prefixIcon: const Icon(
-                          Icons.search_rounded,
-                          color: Color(0xFF6B7280),
-                          size: 22,
-                        ),
-                        border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(
-                          vertical: 16,
-                          horizontal: 16,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // List
             Expanded(
               child: isLoading
                   ? const Center(
@@ -104,12 +51,21 @@ class _JenisIuranTabState extends State<JenisIuranTab> {
                       ),
                     )
                   : filteredList.isEmpty
-                      ? _buildEmptyState()
+                      ? Column(
+                          children: [
+                            _buildSearchBar(),
+                            Expanded(child: _buildEmptyState()),
+                          ],
+                        )
                       : RefreshIndicator(
                           onRefresh: () => provider.fetchAllJenisIuran(),
                           child: ListView(
-                            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                            padding: const EdgeInsets.fromLTRB(20, 16, 20, 100), // Bottom padding untuk FAB
                             children: [
+                              // Search bar sebagai item pertama
+                              _buildSearchBar(),
+                              const SizedBox(height: 16),
+
                               // Jenis Iuran Bulanan Section
                               if (filteredList.any((item) => item.kategoriIuran == 'bulanan')) ...[
                                 _buildSectionHeader('Jenis Iuran Bulanan',
@@ -139,6 +95,43 @@ class _JenisIuranTabState extends State<JenisIuranTab> {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildSearchBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: const Color(0xFFE8EAF2),
+          width: 1.5,
+        ),
+      ),
+      child: TextField(
+        onChanged: (value) {
+          setState(() {
+            _searchQuery = value;
+          });
+        },
+        decoration: InputDecoration(
+          hintText: 'Cari jenis iuran...',
+          hintStyle: GoogleFonts.poppins(
+            fontSize: 14,
+            color: const Color(0xFF9CA3AF),
+          ),
+          prefixIcon: const Icon(
+            Icons.search_rounded,
+            color: Color(0xFF6B7280),
+            size: 22,
+          ),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 16,
+            horizontal: 16,
+          ),
+        ),
+      ),
     );
   }
 

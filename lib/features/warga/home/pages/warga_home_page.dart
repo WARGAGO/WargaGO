@@ -11,11 +11,14 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/providers/auth_provider.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../widgets/home_app_bar.dart';
-import '../widgets/home_welcome_card.dart';
 import '../widgets/home_kyc_alert.dart';
 import '../widgets/home_info_cards.dart';
 import '../widgets/home_quick_access_grid.dart';
 import '../widgets/home_feature_list.dart';
+import '../widgets/home_news_carousel.dart';
+import '../widgets/home_upcoming_events.dart';
+import '../widgets/home_emergency_contacts.dart';
+import '../widgets/home_quick_report.dart';
 
 class WargaHomePage extends StatelessWidget {
   const WargaHomePage({super.key});
@@ -44,22 +47,12 @@ class WargaHomePage extends StatelessWidget {
             child: Column(
               children: [
                 // 1. App Bar (Header)
-                const HomeAppBar(notificationCount: 3),
+                HomeAppBar(
+                  notificationCount: 3,
+                  userName: userName,
+                ),
 
-                // 2. KYC Alert - HANYA 1 ALERT DI SINI! (Fixed di bawah header)
-                if (!isApproved)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-                    child: HomeKycAlert(
-                      isKycComplete: isApproved,
-                      isKycPending: isPending,
-                      onUploadTap: () {
-                        context.push(AppRoutes.wargaKYC);
-                      },
-                    ),
-                  ),
-
-                // 3. Scrollable Content (TIDAK ADA ALERT DI SINI!)
+                // 2. Scrollable Content (termasuk KYC Alert di dalamnya)
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: () async {
@@ -68,28 +61,48 @@ class WargaHomePage extends StatelessWidget {
                     color: const Color(0xFF2F80ED),
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const SizedBox(height: 16),
+                          // KYC Alert - Sekarang di dalam scroll (ikut scroll)
+                          if (!isApproved)
+                            HomeKycAlert(
+                              isKycComplete: isApproved,
+                              isKycPending: isPending,
+                              onUploadTap: () {
+                                context.push(AppRoutes.wargaKYC);
+                              },
+                            ),
 
-                          // Welcome Card (BUKAN alert)
-                          HomeWelcomeCard(
-                            userName: userName,
-                            isKycVerified: isApproved,
-                          ),
-                          const SizedBox(height: 20),
+                          if (!isApproved) const SizedBox(height: 16),
 
-                          // Info Cards (BUKAN alert)
+                          // News Carousel - Berita & Pengumuman
+                          const HomeNewsCarousel(),
+                          const SizedBox(height: 24),
+
+
+                          // Info Cards
                           const HomeInfoCards(),
                           const SizedBox(height: 28),
 
+                          // Quick Report - Lapor Masalah
+                          const HomeQuickReport(),
+                          const SizedBox(height: 24),
+
                           // Quick Access Section
-                          _buildSectionTitle('Akses cepat'),
+                          _buildSectionTitle('Akses Cepat'),
                           const SizedBox(height: 16),
                           const HomeQuickAccessGrid(),
-                          const SizedBox(height: 32),
+                          const SizedBox(height: 28),
+
+                          // Upcoming Events - Kegiatan Mendatang
+                          const HomeUpcomingEvents(),
+                          const SizedBox(height: 24),
+
+                          // Emergency Contacts - Kontak Darurat
+                          const HomeEmergencyContacts(),
+                          const SizedBox(height: 24),
 
                           // Feature List Section
                           _buildSectionTitle('Fitur Lainnya'),

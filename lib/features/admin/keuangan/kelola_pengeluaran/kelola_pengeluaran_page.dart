@@ -41,9 +41,13 @@ class _KelolaPengeluaranPageState extends State<KelolaPengeluaranPage> {
 
   List<PengeluaranModel> _getFilteredList(List<PengeluaranModel> list) {
     var filtered = list;
+
+    // Filter by status
     if (_selectedStatus != 'Semua') {
       filtered = filtered.where((item) => item.status == _selectedStatus).toList();
     }
+
+    // Filter by search query
     if (_searchQuery.isNotEmpty) {
       filtered = filtered.where((item) {
         return item.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
@@ -51,6 +55,17 @@ class _KelolaPengeluaranPageState extends State<KelolaPengeluaranPage> {
             (item.penerima?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false);
       }).toList();
     }
+
+    // Filter by selected date (compare year, month, day only)
+    filtered = filtered.where((item) {
+      final itemDate = item.tanggal;
+      final selectedDate = _selectedDate;
+
+      return itemDate.year == selectedDate.year &&
+             itemDate.month == selectedDate.month &&
+             itemDate.day == selectedDate.day;
+    }).toList();
+
     return filtered;
   }
 

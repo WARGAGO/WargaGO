@@ -1,7 +1,7 @@
 name: jawara
 description: "A new Flutter project."
 publish_to: "none"
-version: 0.1.0+47
+version: 0.1.0+48
 
 environment:
   sdk: ^3.9.2
@@ -38,7 +38,11 @@ dependencies:
   csv: ^6.0.0
   path_provider: ^2.1.5
   permission_handler: ^11.3.1
+  device_info_plus: ^11.3.0
+  open_file: ^3.5.9
+  share_plus: ^10.1.2
   google_sign_in: ^6.2.1
+  url_launcher: ^6.3.1
 
   # UI Enhancement for KYC
   flutter_test:

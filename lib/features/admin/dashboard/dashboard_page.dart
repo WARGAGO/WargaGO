@@ -885,13 +885,13 @@ class _ActivityListTile extends StatelessWidget {
                   AutoSizeText(
                     value,
                     style: GoogleFonts.poppins(
-                      fontSize: 24,
+                      fontSize: 20,
                       fontWeight: FontWeight.w700,
                       color: const Color(0xFF2F80ED),
                       letterSpacing: -0.5,
                     ),
                     maxLines: 1,
-                    minFontSize: 18,
+                    minFontSize: 16,
                   ),
                   const SizedBox(height: 6),
                   const Icon(

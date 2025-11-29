@@ -27,17 +27,25 @@ class _EditPemasukanNonIuranPageState extends State<EditPemasukanNonIuranPage> {
   DateTime? _selectedDate;
   String? _selectedKategori;
 
-  final List<String> _kategoriList = [
-    'Donasi',
-    'Dana Bantuan Pemerintah',
-    'Sumbangan Swadaya',
-    'Hasil Usaha Kampung',
-    'Pendapatan Lainnya',
-  ];
+  // Use late final untuk initialize sekali di initState
+  late final List<String> _kategoriList;
 
   @override
   void initState() {
     super.initState();
+
+    // Initialize kategori list SEKALI dengan base categories
+    _kategoriList = [
+      'Donasi',
+      'Bantuan',
+      'Kegiatan',
+      'Sosial',
+      'Dana Bantuan Pemerintah',
+      'Sumbangan Swadaya',
+      'Hasil Usaha Kampung',
+      'Pendapatan Lainnya',
+    ];
+
     // Pre-fill dengan data existing
     _namaPemasukanController =
         TextEditingController(text: widget.pemasukanData.name);
@@ -46,7 +54,13 @@ class _EditPemasukanNonIuranPageState extends State<EditPemasukanNonIuranPage> {
     _deskripsiController =
         TextEditingController(text: widget.pemasukanData.deskripsi ?? '');
     _selectedDate = widget.pemasukanData.tanggal;
-    _selectedKategori = widget.pemasukanData.category;
+
+    // PENTING: Pastikan kategori dari data ada di list (tanpa duplikasi)
+    final existingCategory = widget.pemasukanData.category;
+    if (!_kategoriList.contains(existingCategory)) {
+      _kategoriList.insert(0, existingCategory);
+    }
+    _selectedKategori = existingCategory;
   }
 
   @override

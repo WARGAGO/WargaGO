@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as xlsio;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -6,7 +7,6 @@ import 'package:csv/csv.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/foundation.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class ExportService {
   static final currencyFormat = NumberFormat.currency(
@@ -17,115 +17,136 @@ class ExportService {
 
   static final dateFormat = DateFormat('dd/MM/yyyy');
 
-  /// Request storage permission
-  static Future<bool> _requestPermission() async {
-    if (Platform.isAndroid) {
-      final status = await Permission.storage.request();
-      return status.isGranted;
+  /// Get Downloads directory for saving files (public access)
+  static Future<Directory> _getExportDirectory() async {
+    try {
+      debugPrint('📁 Getting Downloads directory...');
+
+      if (Platform.isAndroid) {
+        // Use public Downloads directory - directly accessible by user
+        final downloadsPath = '/storage/emulated/0/Download';
+        final directory = Directory(downloadsPath);
+
+        if (!await directory.exists()) {
+          debugPrint('⚠️  Downloads directory not found, creating...');
+          await directory.create(recursive: true);
+        }
+
+        debugPrint('✅ Downloads directory: ${directory.path}');
+        return directory;
+      } else {
+        // For iOS/other platforms, use documents directory
+        final directory = await getApplicationDocumentsDirectory();
+        debugPrint('✅ Documents directory: ${directory.path}');
+        return directory;
+      }
+    } catch (e) {
+      debugPrint('⚠️  Error accessing Downloads: $e');
+      debugPrint('   Falling back to app directory...');
+      // Fallback to app documents directory
+      final directory = await getApplicationDocumentsDirectory();
+      debugPrint('✅ Fallback directory: ${directory.path}');
+      return directory;
     }
-    return true; // iOS doesn't need explicit permission for app documents
   }
 
   /// Export to Excel
   static Future<File?> exportToExcel(List<Map<String, dynamic>> data, String filename) async {
     try {
-      // Request permission
-      final hasPermission = await _requestPermission();
-      if (!hasPermission) {
-        debugPrint('❌ Storage permission denied');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('📊 EXCEL EXPORT START');
+      debugPrint('   📦 Items to export: ${data.length}');
+      debugPrint('   📄 Filename: $filename');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      // STEP 1: Get directory FIRST (with timeout)
+      debugPrint('   1️⃣  Getting export directory...');
+      Directory directory;
+      try {
+        directory = await _getExportDirectory();
+        debugPrint('   ✅ Directory obtained: ${directory.path}');
+      } catch (e) {
+        debugPrint('   ❌ Failed to get directory: $e');
         return null;
       }
 
-      // Create workbook
+      // STEP 2: Create workbook
+      debugPrint('   2️⃣  Creating workbook...');
       final xlsio.Workbook workbook = xlsio.Workbook();
       final xlsio.Worksheet sheet = workbook.worksheets[0];
-      sheet.name = 'Laporan Pemasukan';
+      sheet.name = 'Laporan';
+      debugPrint('   ✅ Workbook created');
 
-      // Header style
-      final xlsio.Style headerStyle = workbook.styles.add('HeaderStyle');
-      headerStyle.bold = true;
-      headerStyle.backColor = '#2988EA';
-      headerStyle.fontColor = '#FFFFFF';
-      headerStyle.hAlign = xlsio.HAlignType.center;
-      headerStyle.vAlign = xlsio.VAlignType.center;
-
-      // Headers
-      final headers = ['No', 'Tanggal', 'Nama', 'Kategori', 'Nominal', 'Penerima', 'Deskripsi', 'Status'];
+      // STEP 3: Headers (minimal)
+      debugPrint('   3️⃣  Adding headers...');
+      final headers = ['No', 'Tanggal', 'Nama', 'Kategori', 'Nominal', 'Status'];
       for (int i = 0; i < headers.length; i++) {
         sheet.getRangeByIndex(1, i + 1).setText(headers[i]);
-        sheet.getRangeByIndex(1, i + 1).cellStyle = headerStyle;
       }
+      debugPrint('   ✅ Headers added');
 
-      // Data rows
+      // STEP 4: Data rows (simplified)
+      debugPrint('   4️⃣  Adding ${data.length} data rows...');
       double total = 0;
-      int jenisIuranCount = 0;
-      int pemasukanLainCount = 0;
-      double totalJenisIuran = 0;
-      double totalPemasukanLain = 0;
-
       for (int i = 0; i < data.length; i++) {
         final item = data[i];
-        final row = i + 2; // Start from row 2
-
-        // Get nominal value
-        final nominal = (item['nominal'] is num)
-            ? (item['nominal'] as num).toDouble()
-            : 0.0;
+        final row = i + 2;
+        final nominal = (item['nominal'] is num) ? (item['nominal'] as num).toDouble() : 0.0;
         total += nominal;
-
-        // Count by category
-        final category = item['category'] ?? '';
-        if (category == 'Iuran') {
-          jenisIuranCount++;
-          totalJenisIuran += nominal;
-        } else {
-          pemasukanLainCount++;
-          totalPemasukanLain += nominal;
-        }
 
         sheet.getRangeByIndex(row, 1).setNumber(i + 1);
         sheet.getRangeByIndex(row, 2).setText(item['tanggal'] ?? '-');
         sheet.getRangeByIndex(row, 3).setText(item['name'] ?? '-');
         sheet.getRangeByIndex(row, 4).setText(item['category'] ?? '-');
-        sheet.getRangeByIndex(row, 5).setText(item['nominalFormatted'] ?? currencyFormat.format(nominal));
-        sheet.getRangeByIndex(row, 6).setText(item['penerima'] ?? '-');
-        sheet.getRangeByIndex(row, 7).setText(item['deskripsi'] ?? '-');
-        sheet.getRangeByIndex(row, 8).setText(item['status'] ?? '-');
+        sheet.getRangeByIndex(row, 5).setText(currencyFormat.format(nominal));
+        sheet.getRangeByIndex(row, 6).setText(item['status'] ?? '-');
       }
+      debugPrint('   ✅ Data rows added');
 
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      debugPrint('📊 Excel Export Service - Data Verification:');
-      debugPrint('   📦 Total items received: ${data.length}');
-      debugPrint('   📊 Jenis Iuran: $jenisIuranCount items = ${currencyFormat.format(totalJenisIuran)}');
-      debugPrint('   📊 Pemasukan Lain: $pemasukanLainCount items = ${currencyFormat.format(totalPemasukanLain)}');
-      debugPrint('   💰 TOTAL CALCULATED: ${currencyFormat.format(total)}');
-      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-
-      // Add total row
+      // STEP 5: Total row
+      debugPrint('   5️⃣  Adding total...');
       final totalRow = data.length + 2;
       sheet.getRangeByIndex(totalRow, 4).setText('TOTAL:');
-      sheet.getRangeByIndex(totalRow, 4).cellStyle.bold = true;
       sheet.getRangeByIndex(totalRow, 5).setText(currencyFormat.format(total));
-      sheet.getRangeByIndex(totalRow, 5).cellStyle.bold = true;
+      debugPrint('   ✅ Total: ${currencyFormat.format(total)}');
 
-      // Auto-fit columns
-      for (int i = 1; i <= headers.length; i++) {
-        sheet.autoFitColumn(i);
-      }
-
-      // Save file
+      // STEP 6: Save to bytes
+      debugPrint('   6️⃣  Converting to bytes...');
       final List<int> bytes = workbook.saveAsStream();
       workbook.dispose();
+      debugPrint('   ✅ Converted to ${bytes.length} bytes');
 
-      final directory = await getApplicationDocumentsDirectory();
+      // STEP 7: Write file (with timeout)
       final path = '${directory.path}/$filename.xlsx';
-      final file = File(path);
-      await file.writeAsBytes(bytes, flush: true);
+      debugPrint('   7️⃣  Writing to: $path');
+      try {
+        final file = File(path);
+        await file.writeAsBytes(bytes, flush: true).timeout(
+          const Duration(seconds: 5),
+          onTimeout: () {
+            throw TimeoutException('Timeout writing file');
+          },
+        );
+        debugPrint('   ✅ File written: ${file.lengthSync()} bytes');
 
-      debugPrint('✅ Excel exported: $path');
-      return file;
-    } catch (e) {
-      debugPrint('❌ Error exporting to Excel: $e');
+        debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        debugPrint('✅ EXCEL EXPORT SUCCESS!');
+        debugPrint('   📁 ${file.path}');
+        debugPrint('   💰 Total: ${currencyFormat.format(total)}');
+        debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+        return file;
+      } catch (e) {
+        debugPrint('   ❌ Failed to write file: $e');
+        return null;
+      }
+
+    } catch (e, stackTrace) {
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('❌ EXCEL EXPORT FAILED');
+      debugPrint('   Error: $e');
+      debugPrint('   Stack: $stackTrace');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       return null;
     }
   }
@@ -246,7 +267,7 @@ class ExportService {
       );
 
       // Save file
-      final directory = await getApplicationDocumentsDirectory();
+      final directory = await _getExportDirectory();
       final path = '${directory.path}/$filename.pdf';
       final file = File(path);
       await file.writeAsBytes(await pdf.save());
@@ -312,7 +333,7 @@ class ExportService {
       String csv = const ListToCsvConverter().convert(rows);
 
       // Save file
-      final directory = await getApplicationDocumentsDirectory();
+      final directory = await _getExportDirectory();
       final path = '${directory.path}/$filename.csv';
       final file = File(path);
       await file.writeAsString(csv);

@@ -15,45 +15,45 @@ class DashboardStyles {
 
   // Text Styles
   static TextStyle headerTitle = GoogleFonts.poppins(
-    fontSize: 24,
+    fontSize: 18,
     fontWeight: FontWeight.w800,
     color: Colors.white,
     letterSpacing: -0.5,
   );
 
   static TextStyle headerSubtitle = GoogleFonts.poppins(
-    fontSize: 14,
+    fontSize: 13,
     color: Colors.white.withValues(alpha: 0.9),
     fontWeight: FontWeight.w600,
     letterSpacing: 0.3,
   );
 
   static TextStyle sectionTitle = GoogleFonts.poppins(
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: FontWeight.w700,
     letterSpacing: -0.5,
   );
 
   static TextStyle cardTitle = GoogleFonts.poppins(
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: FontWeight.w800,
     letterSpacing: -0.3,
   );
 
   static TextStyle cardValue = GoogleFonts.poppins(
-    fontSize: 30,
+    fontSize: 26,
     fontWeight: FontWeight.w700,
     letterSpacing: -1,
   );
 
   static TextStyle cardLabel = GoogleFonts.poppins(
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: FontWeight.w700,
     letterSpacing: 0.3,
   );
 
   static TextStyle cardSubtitle = GoogleFonts.poppins(
-    fontSize: 13,
+    fontSize: 12,
     height: 1.4,
     fontWeight: FontWeight.w500,
   );

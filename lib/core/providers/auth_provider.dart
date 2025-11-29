@@ -765,6 +765,63 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  // Update user profile
+  Future<bool> updateUserProfile(UserModel updatedUser) async {
+    try {
+      if (kDebugMode) {
+        print('\n=== UPDATE USER PROFILE ===');
+        print('User ID: ${updatedUser.id}');
+        print('Nama: ${updatedUser.nama}');
+        print('NIK: ${updatedUser.nik}');
+        print('No Telepon: ${updatedUser.noTelepon}');
+        print('Alamat: ${updatedUser.alamat}');
+      }
+
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+
+      // Update to Firestore
+      final updateData = {
+        'nama': updatedUser.nama,
+        'nik': updatedUser.nik,
+        'jenisKelamin': updatedUser.jenisKelamin,
+        'noTelepon': updatedUser.noTelepon,
+        'alamat': updatedUser.alamat,
+        'updatedAt': DateTime.now().toIso8601String(),
+      };
+
+      final success = await _firestoreService.updateUser(updatedUser.id, updateData);
+
+      if (success) {
+        // Update local state
+        _userModel = updatedUser.copyWith(updatedAt: DateTime.now());
+        _isLoading = false;
+        notifyListeners();
+
+        if (kDebugMode) {
+          print('✅ Profile updated successfully');
+        }
+        return true;
+      } else {
+        _errorMessage = 'Gagal memperbarui profil';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e, stackTrace) {
+      if (kDebugMode) {
+        print('=== UPDATE PROFILE ERROR ===');
+        print('Error: $e');
+        print('StackTrace: $stackTrace');
+      }
+      _errorMessage = 'Terjadi kesalahan: $e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   // Clear error message
   void clearError() {
     _errorMessage = null;

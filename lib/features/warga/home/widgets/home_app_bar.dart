@@ -11,8 +11,13 @@ import 'package:jawara/core/constants/app_routes.dart';
 
 class HomeAppBar extends StatelessWidget {
   final int notificationCount;
+  final String userName;
 
-  const HomeAppBar({super.key, this.notificationCount = 3});
+  const HomeAppBar({
+    super.key,
+    this.notificationCount = 3,
+    this.userName = 'Warga',
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +27,7 @@ class HomeAppBar extends StatelessWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 12,
             offset: const Offset(0, 3),
           ),
@@ -31,30 +36,34 @@ class HomeAppBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Beranda Warga',
-                style: GoogleFonts.poppins(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF1F2937),
-                  letterSpacing: -0.5,
-                  height: 1.2,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Selamat datang 👋',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF6B7280),
+                    letterSpacing: 0.2,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                'RT 01 / RW 02',
-                style: GoogleFonts.poppins(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: const Color(0xFF6B7280),
-                  letterSpacing: 0.2,
+                const SizedBox(height: 4),
+                Text(
+                  userName,
+                  style: GoogleFonts.poppins(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF1F2937),
+                    letterSpacing: -0.5,
+                    height: 1.2,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           Row(
             children: [
@@ -141,12 +150,12 @@ class HomeAppBar extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: const Color(0xFF2F80ED).withOpacity(0.3),
+            color: const Color(0xFF2F80ED).withValues(alpha: 0.3),
             width: 2,
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF2F80ED).withOpacity(0.15),
+              color: const Color(0xFF2F80ED).withValues(alpha: 0.15),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),

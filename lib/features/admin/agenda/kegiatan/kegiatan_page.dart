@@ -481,6 +481,62 @@ class DaftarKegiatanList extends StatefulWidget {
 
 class _DaftarKegiatanListState extends State<DaftarKegiatanList> {
   final Map<String, bool> _expandedMap = {};
+  String _searchQuery = '';
+  DateTime _selectedDate = DateTime.now();
+
+  // Filter method untuk kegiatan
+  List _getFilteredKegiatan(List kegiatanList) {
+    var filtered = kegiatanList;
+
+    // Filter by search query
+    if (_searchQuery.isNotEmpty) {
+      filtered = filtered.where((item) {
+        return item.judul.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+            (item.lokasi?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false) ||
+            (item.deskripsi?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false);
+      }).toList();
+    }
+
+    // Filter by selected date (compare year, month, day only)
+    filtered = filtered.where((item) {
+      final itemDate = item.tanggal;
+      final selectedDate = _selectedDate;
+
+      return itemDate.year == selectedDate.year &&
+             itemDate.month == selectedDate.month &&
+             itemDate.day == selectedDate.day;
+    }).toList();
+
+    return filtered;
+  }
+
+  // Show date picker dialog
+  Future<void> _showDateFilterDialog() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Color(0xFF2988EA),
+              onPrimary: Colors.white,
+              onSurface: Color(0xFF1F2937),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -582,6 +638,11 @@ class _DaftarKegiatanListState extends State<DaftarKegiatanList> {
                           ],
                         ),
                         child: TextFormField(
+                          onChanged: (value) {
+                            setState(() {
+                              _searchQuery = value;
+                            });
+                          },
                           decoration: InputDecoration(
                             hintText: "Cari kegiatan...",
                             hintStyle: GoogleFonts.poppins(
@@ -625,9 +686,6 @@ class _DaftarKegiatanListState extends State<DaftarKegiatanList> {
                               vertical: 14,
                             ),
                           ),
-                          onChanged: (value) {
-                            // TODO: Implement search
-                          },
                         ),
                       ),
                     ),
@@ -652,9 +710,7 @@ class _DaftarKegiatanListState extends State<DaftarKegiatanList> {
                       child: Material(
                         color: Colors.transparent,
                         child: InkWell(
-                          onTap: () {
-                            // TODO: Implement date filter
-                          },
+                          onTap: _showDateFilterDialog,
                           borderRadius: BorderRadius.circular(16),
                           child: Container(
                             padding: const EdgeInsets.all(14),
@@ -721,7 +777,8 @@ class _DaftarKegiatanListState extends State<DaftarKegiatanList> {
                   );
                 }
 
-                final kegiatanList = provider.kegiatanList;
+                // Apply filters
+                final kegiatanList = _getFilteredKegiatan(provider.kegiatanList);
 
                 // Empty state
                 if (kegiatanList.isEmpty) {

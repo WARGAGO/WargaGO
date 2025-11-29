@@ -1,9 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:jawara/core/models/user_model.dart';
 
 import 'detail_pengguna_page.dart';
 import 'tambah_pengguna_page.dart';
+import 'repositories/user_repository.dart';
 
+/// Kelola Pengguna Page - Manajemen akun login aplikasi
+///
+/// Fungsi:
+/// - Kelola akun login (email, password, role)
+/// - Filter berdasarkan role (Admin/User)
+/// - Filter berdasarkan status (Pending/Approved)
+/// - Tambah admin baru
 class KelolaPenggunaPage extends StatefulWidget {
   const KelolaPenggunaPage({super.key});
 
@@ -14,6 +23,8 @@ class KelolaPenggunaPage extends StatefulWidget {
 class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
   String _selectedFilter = 'Semua';
   final List<String> _filterOptions = ['Semua', 'Admin', 'User', 'Pending'];
+  final UserRepository _userRepository = UserRepository();
+  String _searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
@@ -162,6 +173,9 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
               ),
             ),
 
+            // SEARCH BAR
+            _buildSearchBar(),
+
             // LIST
             Expanded(
               child: _buildPenggunaList(),
@@ -181,7 +195,7 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
         backgroundColor: const Color(0xFF2F80ED),
         icon: const Icon(Icons.add, color: Colors.white),
         label: Text(
-          'Tambah Pengguna',
+          'Tambah Admin',
           style: GoogleFonts.poppins(
             color: Colors.white,
             fontWeight: FontWeight.w600,
@@ -191,77 +205,228 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
     );
   }
 
-  Widget _buildPenggunaList() {
-    final List<Map<String, dynamic>> penggunaData = [
-      {
-        'nama': 'Admin Jawara',
-        'email': 'admin@jawara.com',
-        'role': 'Admin',
-        'status': 'approved',
-        'avatar': 'A',
-      },
-      {
-        'nama': 'Budi Santoso',
-        'email': 'budi@example.com',
-        'role': 'User',
-        'status': 'approved',
-        'avatar': 'B',
-      },
-      {
-        'nama': 'Siti Aminah',
-        'email': 'siti@example.com',
-        'role': 'User',
-        'status': 'pending',
-        'avatar': 'S',
-      },
-    ];
-
-    final filteredData = _selectedFilter == 'Semua'
-        ? penggunaData
-        : penggunaData.where((item) {
-            if (_selectedFilter == 'Pending') {
-              return item['status'] == 'pending';
-            }
-            return item['role'] == _selectedFilter;
-          }).toList();
-
-    if (filteredData.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.person_off_outlined,
-              size: 80,
-              color: Colors.grey[300],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Tidak ada pengguna',
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[400],
-              ),
-            ),
-          ],
+  /// Search Bar Widget
+  Widget _buildSearchBar() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: TextField(
+        onChanged: (value) {
+          setState(() {
+            _searchQuery = value;
+          });
+        },
+        decoration: InputDecoration(
+          hintText: 'Cari nama atau email...',
+          hintStyle: GoogleFonts.poppins(
+            color: Colors.grey[400],
+            fontSize: 14,
+          ),
+          prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
-      );
+        style: GoogleFonts.poppins(fontSize: 14),
+      ),
+    );
+  }
+
+  /// Build user list with StreamBuilder connected to Firestore
+  Widget _buildPenggunaList() {
+    // Determine which stream to use based on filter
+    Stream<List<UserModel>> userStream;
+
+    if (_selectedFilter == 'Semua') {
+      userStream = _userRepository.getAllUsers();
+    } else if (_selectedFilter == 'Admin') {
+      userStream = _userRepository.getUsersByRole('admin');
+    } else if (_selectedFilter == 'User') {
+      userStream = _userRepository.getUsersByRole('user');
+    } else if (_selectedFilter == 'Pending') {
+      userStream = _userRepository.getPendingUsers();
+    } else {
+      userStream = _userRepository.getAllUsers();
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-      itemCount: filteredData.length,
-      itemBuilder: (context, index) {
-        final user = filteredData[index];
-        return _buildPenggunaCard(user);
+    return StreamBuilder<List<UserModel>>(
+      stream: userStream,
+      builder: (context, snapshot) {
+        // Loading state
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2F80ED)),
+            ),
+          );
+        }
+
+        // Error state
+        if (snapshot.hasError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 80,
+                  color: Colors.grey[300],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Terjadi kesalahan',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[400],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  snapshot.error.toString(),
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Colors.grey[400],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        }
+
+        // No data
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.person_off_outlined,
+                  size: 80,
+                  color: Colors.grey[300],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Tidak ada pengguna',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[400],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  _selectedFilter == 'Semua'
+                      ? 'Belum ada pengguna terdaftar'
+                      : 'Tidak ada pengguna dengan filter $_selectedFilter',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Colors.grey[400],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // Filter by search query
+        List<UserModel> users = snapshot.data!;
+        if (_searchQuery.isNotEmpty) {
+          users = users.where((user) {
+            final nameLower = user.nama.toLowerCase();
+            final emailLower = user.email.toLowerCase();
+            final queryLower = _searchQuery.toLowerCase();
+            return nameLower.contains(queryLower) ||
+                emailLower.contains(queryLower);
+          }).toList();
+        }
+
+        // Display filtered list
+        if (users.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.search_off,
+                  size: 80,
+                  color: Colors.grey[300],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Tidak ditemukan',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey[400],
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Coba kata kunci lain',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Colors.grey[400],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+          itemCount: users.length,
+          itemBuilder: (context, index) {
+            final user = users[index];
+            return _buildPenggunaCard(user);
+          },
+        );
       },
     );
   }
 
-  Widget _buildPenggunaCard(Map<String, dynamic> user) {
-    final isAdmin = user['role'] == 'Admin';
-    final isPending = user['status'] == 'pending';
+  Widget _buildPenggunaCard(UserModel user) {
+    final isAdmin = user.role.toLowerCase() == 'admin';
+    final isPending = user.status.toLowerCase() == 'pending' ||
+        user.status.toLowerCase() == 'unverified';
+    final isApproved = user.status.toLowerCase() == 'approved';
+
+    // Get first letter for avatar
+    final avatarLetter = user.nama.isNotEmpty
+        ? user.nama[0].toUpperCase()
+        : 'U';
+
+    // Determine status badge
+    String statusText;
+    Color statusColor;
+
+    if (user.status.toLowerCase() == 'unverified') {
+      statusText = 'Belum Verifikasi';
+      statusColor = const Color(0xFFEF4444);
+    } else if (user.status.toLowerCase() == 'pending') {
+      statusText = 'Menunggu';
+      statusColor = const Color(0xFFFBBF24);
+    } else if (user.status.toLowerCase() == 'approved') {
+      statusText = 'Approved';
+      statusColor = const Color(0xFF10B981);
+    } else if (user.status.toLowerCase() == 'rejected') {
+      statusText = 'Ditolak';
+      statusColor = const Color(0xFFEF4444);
+    } else {
+      statusText = user.status;
+      statusColor = Colors.grey;
+    }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -283,9 +448,12 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => DetailPenggunaPage(userData: user),
+                builder: (context) => DetailPenggunaPage(user: user),
               ),
-            );
+            ).then((_) {
+              // Refresh when coming back
+              setState(() {});
+            });
           },
           borderRadius: BorderRadius.circular(16),
           child: Padding(
@@ -306,7 +474,7 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
                   ),
                   child: Center(
                     child: Text(
-                      user['avatar'],
+                      avatarLetter,
                       style: GoogleFonts.poppins(
                         fontSize: 24,
                         fontWeight: FontWeight.w700,
@@ -325,43 +493,42 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
                         children: [
                           Expanded(
                             child: Text(
-                              user['nama'],
+                              user.nama,
                               style: GoogleFonts.poppins(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
                                 color: const Color(0xFF1F2937),
                               ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
+                          const SizedBox(width: 8),
+                          // Role badge
                           Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
+                              horizontal: 8,
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: isPending
-                                  ? const Color(0xFFFBBF24).withValues(alpha: 0.1)
-                                  : isAdmin
-                                      ? const Color(0xFF2F80ED).withValues(alpha: 0.1)
-                                      : const Color(0xFF10B981).withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
+                              color: isAdmin
+                                  ? const Color(0xFF2F80ED).withValues(alpha: 0.1)
+                                  : const Color(0xFF10B981).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
-                              isPending ? 'Pending' : user['role'],
+                              isAdmin ? 'Admin' : 'User',
                               style: GoogleFonts.poppins(
-                                fontSize: 11,
+                                fontSize: 10,
                                 fontWeight: FontWeight.w600,
-                                color: isPending
-                                    ? const Color(0xFFFBBF24)
-                                    : isAdmin
-                                        ? const Color(0xFF2F80ED)
-                                        : const Color(0xFF10B981),
+                                color: isAdmin
+                                    ? const Color(0xFF2F80ED)
+                                    : const Color(0xFF10B981),
                               ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 6),
                       Row(
                         children: [
                           Icon(
@@ -372,12 +539,36 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
-                              user['email'],
+                              user.email,
                               style: GoogleFonts.poppins(
-                                fontSize: 13,
+                                fontSize: 12,
                                 color: Colors.grey[600],
                                 fontWeight: FontWeight.w500,
                               ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      // Status badge
+                      Row(
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: statusColor,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            statusText,
+                            style: GoogleFonts.poppins(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: statusColor,
                             ),
                           ),
                         ],

@@ -125,7 +125,7 @@ class _WelcomeText extends StatelessWidget {
         AutoSizeText(
           'Selamat Datang 👋',
           style: GoogleFonts.poppins(
-            fontSize: 14,
+            fontSize: 13,
             color: Colors.white.withValues(alpha: 0.9),
             fontWeight: FontWeight.w600,
             letterSpacing: 0.3,
@@ -138,13 +138,13 @@ class _WelcomeText extends StatelessWidget {
         AutoSizeText(
           userName,
           style: GoogleFonts.poppins(
-            fontSize: 24,
+            fontSize: 18,
             fontWeight: FontWeight.w800,
             color: Colors.white,
             letterSpacing: -0.5,
           ),
           maxLines: 1,
-          minFontSize: 16,
+          minFontSize: 14,
           overflow: TextOverflow.ellipsis,
         ),
       ],

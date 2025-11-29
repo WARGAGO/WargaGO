@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:jawara/core/providers/warga_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/warga_expandable_card.dart';
-import '../widgets/debug_warga_data_widget.dart';
 
 /// List widget untuk menampilkan daftar data warga
 ///
@@ -19,6 +18,9 @@ class DataWargaList extends StatefulWidget {
 }
 
 class _DataWargaListState extends State<DataWargaList> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+
   @override
   void initState() {
     super.initState();
@@ -26,6 +28,12 @@ class _DataWargaListState extends State<DataWargaList> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<WargaProvider>().loadWarga();
     });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -121,6 +129,25 @@ class _DataWargaListState extends State<DataWargaList> {
         }
 
         // Data list
+        // Filter dan sort data
+        var filteredList = provider.wargaList.where((warga) {
+          if (_searchQuery.isEmpty) return true;
+          final query = _searchQuery.toLowerCase();
+          return warga.name.toLowerCase().contains(query) ||
+              warga.nik.toLowerCase().contains(query) ||
+              warga.alamat.toLowerCase().contains(query);
+        }).toList();
+
+        // Sort by createdAt (terbaru di atas)
+        filteredList.sort((a, b) {
+          final aDate = a.createdAt;
+          final bDate = b.createdAt;
+          if (aDate == null && bDate == null) return 0;
+          if (aDate == null) return 1;
+          if (bDate == null) return -1;
+          return bDate.compareTo(aDate); // Descending (terbaru di atas)
+        });
+
         return Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
@@ -134,75 +161,129 @@ class _DataWargaListState extends State<DataWargaList> {
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
-                // Debug Widget (optional - can be removed in production)
+                // Search Bar
                 SliverToBoxAdapter(
-                  child: Column(
-                    children: [
-                      // Info banner showing data is dynamic
-                      Container(
-                        margin: const EdgeInsets.all(16),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF10B981), Color(0xFF059669)],
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF10B981).withValues(alpha: 0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
+                  child: Container(
+                    margin: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
                         ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.cloud_done_rounded,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Data Dinamis dari Firebase',
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  Text(
-                                    '${provider.wargaList.length} warga tersinkronisasi',
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.white.withValues(alpha: 0.9),
-                                      fontSize: 11,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                      ],
+                    ),
+                    child: TextField(
+                      controller: _searchController,
+                      onChanged: (value) {
+                        setState(() {
+                          _searchQuery = value;
+                        });
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'Cari nama, NIK, atau alamat...',
+                        hintStyle: GoogleFonts.poppins(
+                          color: Colors.grey[400],
+                          fontSize: 14,
+                        ),
+                        prefixIcon: const Icon(
+                          Icons.search_rounded,
+                          color: Color(0xFF2F80ED),
+                        ),
+                        suffixIcon: _searchQuery.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear_rounded),
+                                onPressed: () {
+                                  _searchController.clear();
+                                  setState(() {
+                                    _searchQuery = '';
+                                  });
+                                },
+                              )
+                            : null,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey[50],
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 16,
                         ),
                       ),
-                      // Uncomment untuk debug mode
-                      // const DebugWargaDataWidget(),
-                    ],
+                    ),
                   ),
                 ),
+
+                // Info banner showing data is dynamic
+                SliverToBoxAdapter(
+                  child: Container(
+                    margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF10B981), Color(0xFF059669)],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF10B981).withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.cloud_done_rounded,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Data Terbaru di Atas',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              Text(
+                                '${filteredList.length} dari ${provider.wargaList.length} warga ditampilkan',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
                 // List data warga
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
-                        final warga = provider.wargaList[index];
-                        return WargaExpandableCard(warga: warga);
+                        final warga = filteredList[index];
+                        return WargaExpandableCard(
+                          warga: warga,
+                        );
                       },
-                      childCount: provider.wargaList.length,
+                      childCount: filteredList.length,
                     ),
                   ),
                 ),

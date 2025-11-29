@@ -80,32 +80,41 @@ class _EditKegiatanPageState extends State<EditKegiatanPage> {
       return;
     }
 
+    if (!mounted) return;
+
+    bool success = false;
+    String? errorMessage;
+
     // Show loading
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => Center(
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2988EA)),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Memperbarui kegiatan...',
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+      useRootNavigator: false,
+      builder: (dialogContext) => PopScope(
+        canPop: false,
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2988EA)),
                 ),
-              ),
-            ],
+                const SizedBox(height: 16),
+                Text(
+                  'Memperbarui kegiatan...',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -124,97 +133,82 @@ class _EditKegiatanPageState extends State<EditKegiatanPage> {
         'updatedAt': DateTime.now(),
       };
 
-      // Update menggunakan provider
+      // Update menggunakan provider with timeout
       final provider = Provider.of<AgendaProvider>(context, listen: false);
-      final success = await provider.updateAgenda(widget.kegiatan.id, updateData);
-
-      // Close loading dialog
-      if (mounted) Navigator.pop(context);
-
-      if (success) {
-        // Show success message
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  const Icon(Icons.check_circle, color: Colors.white),
-                  const SizedBox(width: 12),
-                  Text(
-                    'Kegiatan berhasil diperbarui!',
-                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-                  ),
-                ],
-              ),
-              backgroundColor: const Color(0xFF10B981),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          );
-
-          // Navigate back
-          Future.delayed(const Duration(milliseconds: 500), () {
-            if (mounted) Navigator.pop(context);
-          });
-        }
-      } else {
-        // Show error from provider
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  const Icon(Icons.error, color: Colors.white),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      provider.error ?? 'Gagal memperbarui kegiatan',
-                      style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                ],
-              ),
-              backgroundColor: Colors.red,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          );
-        }
-      }
+      success = await provider.updateAgenda(widget.kegiatan.id, updateData).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          errorMessage = 'Timeout: Operasi terlalu lama';
+          return false;
+        },
+      );
     } catch (e) {
-      // Close loading dialog
-      if (mounted) Navigator.pop(context);
+      errorMessage = e.toString();
+      success = false;
+    }
 
-      // Show error message
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error, color: Colors.white),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Error: ${e.toString()}',
-                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ],
-            ),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
+    // FORCE CLOSE DIALOG - NO MATTER WHAT
+    if (mounted) {
+      try {
+        Navigator.of(context, rootNavigator: false).pop();
+      } catch (_) {
+        // Ignore if already closed
       }
+    }
 
-      debugPrint('❌ Error updating kegiatan: $e');
+    // Show result AFTER dialog closed
+    if (!mounted) return;
+
+    if (success) {
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white),
+              const SizedBox(width: 12),
+              Text(
+                'Kegiatan berhasil diperbarui!',
+                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFF10B981),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+
+      // Navigate back
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) Navigator.pop(context, true);
+      });
+    } else {
+      // Show error
+      final provider = Provider.of<AgendaProvider>(context, listen: false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  errorMessage ?? provider.error ?? 'Gagal memperbarui kegiatan',
+                  style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
     }
   }
 

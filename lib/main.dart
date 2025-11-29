@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'firebase_options.dart';
 import 'app/app.dart';
@@ -16,6 +17,29 @@ import 'core/providers/pemasukan_lain_provider.dart';
 import 'core/providers/pengeluaran_provider.dart';
 import 'core/providers/laporan_keuangan_detail_provider.dart';
 import 'create_admin.dart'; // ✨ TEMPORARY - Untuk membuat admin2
+
+/// Request storage permissions for export features
+Future<void> _requestStoragePermissions() async {
+  try {
+    print('\n📁 Requesting storage permissions...');
+
+    // Request basic storage permission
+    final status = await Permission.storage.request();
+
+    if (status.isGranted) {
+      print('✅ Storage permission granted');
+    } else if (status.isDenied) {
+      print('⚠️  Storage permission denied - Export features may be limited');
+      print('   Files will be saved to app directory only');
+    } else if (status.isPermanentlyDenied) {
+      print('❌ Storage permission permanently denied');
+      print('   User needs to enable it manually in Settings');
+    }
+  } catch (e) {
+    print('⚠️  Error requesting storage permission: $e');
+    print('   App will continue with limited storage access');
+  }
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -76,6 +100,12 @@ void main() async {
   */
 
   print('✅ Firebase initialized successfully');
+
+  // ============================================================================
+  // 📁 REQUEST STORAGE PERMISSIONS
+  // Untuk fitur export PDF/Excel/CSV di halaman Keuangan
+  // ============================================================================
+  await _requestStoragePermissions();
 
   // ============================================================================
   // ✨ TEMPORARY: CREATE ADMIN2@JAWARA.COM

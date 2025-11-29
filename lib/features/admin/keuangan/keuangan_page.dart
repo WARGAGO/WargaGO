@@ -964,9 +964,11 @@ class _KeuanganPageState extends State<KeuanganPage> {
             backgroundColor1: const Color(0xFF2988EA), // Biru
             backgroundColor2: const Color(0xFF2988EA), // Biru
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const AgendaPage()),
+              Navigator.of(context, rootNavigator: true).push(
+                MaterialPageRoute(
+                  builder: (context) => const AgendaPage(),
+                  fullscreenDialog: true,
+                ),
               );
             },
             height: 130, // SAMA TINGGI dengan card Pemasukan & Pengeluaran

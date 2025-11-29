@@ -17,8 +17,16 @@ class DataMutasiWargaPage extends StatefulWidget {
 
 class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
   final MutasiRepository _repository = MutasiRepository();
+  final TextEditingController _searchController = TextEditingController();
   String _selectedFilter = 'Semua';
+  String _searchQuery = '';
   final List<String> _filterOptions = ['Semua', 'Mutasi Masuk', 'Mutasi Keluar'];
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -169,6 +177,62 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
               ),
             ),
 
+            // SEARCH BAR
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
+                },
+                decoration: InputDecoration(
+                  hintText: 'Cari nama, NIK, atau alasan mutasi...',
+                  hintStyle: GoogleFonts.poppins(
+                    color: Colors.grey[400],
+                    fontSize: 14,
+                  ),
+                  prefixIcon: const Icon(
+                    Icons.search_rounded,
+                    color: Color(0xFF2F80ED),
+                  ),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear_rounded),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() {
+                              _searchQuery = '';
+                            });
+                          },
+                        )
+                      : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[50],
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
+                ),
+              ),
+            ),
+
             // LIST SECTION
             Expanded(
               child: _buildMutasiList(),
@@ -246,7 +310,7 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
         // No data
         final allMutasi = snapshot.data ?? [];
 
-        // Filter data berdasarkan pilihan
+        // Filter data berdasarkan pilihan filter
         List<MutasiModel> filteredData;
         if (_selectedFilter == 'Semua') {
           filteredData = allMutasi;
@@ -262,6 +326,22 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
           filteredData = allMutasi;
         }
 
+        // Filter berdasarkan search query
+        if (_searchQuery.isNotEmpty) {
+          final query = _searchQuery.toLowerCase();
+          filteredData = filteredData.where((item) {
+            return item.nama.toLowerCase().contains(query) ||
+                item.nik.toLowerCase().contains(query) ||
+                item.alasanMutasi.toLowerCase().contains(query) ||
+                item.jenisMutasi.toLowerCase().contains(query);
+          }).toList();
+        }
+
+        // Sort by tanggalMutasi (terbaru di atas)
+        filteredData.sort((a, b) {
+          return b.tanggalMutasi.compareTo(a.tanggalMutasi); // Descending (terbaru di atas)
+        });
+
         if (filteredData.isEmpty) {
           return Center(
             child: Column(
@@ -274,7 +354,9 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Tidak ada data mutasi',
+                  _searchQuery.isNotEmpty
+                      ? 'Tidak ditemukan'
+                      : 'Tidak ada data mutasi',
                   style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -283,9 +365,11 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  _selectedFilter == 'Semua'
-                      ? 'Belum ada data mutasi'
-                      : 'Tidak ada data $_selectedFilter',
+                  _searchQuery.isNotEmpty
+                      ? 'Coba kata kunci lain'
+                      : (_selectedFilter == 'Semua'
+                          ? 'Belum ada data mutasi'
+                          : 'Tidak ada data $_selectedFilter'),
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     color: Colors.grey[500],
@@ -296,13 +380,74 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
           );
         }
 
-        return ListView.builder(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
-          itemCount: filteredData.length,
-          itemBuilder: (context, index) {
-            final mutasi = filteredData[index];
-            return _buildMutasiCard(mutasi);
-          },
+        return CustomScrollView(
+          slivers: [
+            // Info Banner
+            SliverToBoxAdapter(
+              child: Container(
+                margin: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF10B981), Color(0xFF059669)],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF10B981).withValues(alpha: 0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.swap_horiz_rounded,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Data Terbaru di Atas',
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          Text(
+                            '${filteredData.length} dari ${allMutasi.length} mutasi ditampilkan',
+                            style: GoogleFonts.poppins(
+                              color: Colors.white.withValues(alpha: 0.9),
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            // List data mutasi
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                    final mutasi = filteredData[index];
+                    return _buildMutasiCard(mutasi);
+                  },
+                  childCount: filteredData.length,
+                ),
+              ),
+            ),
+          ],
         );
       },
     );

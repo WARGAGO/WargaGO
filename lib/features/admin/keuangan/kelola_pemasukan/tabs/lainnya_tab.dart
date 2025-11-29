@@ -28,139 +28,164 @@ class _LainnyaTabState extends State<LainnyaTab> {
   Widget build(BuildContext context) {
     return Consumer<PemasukanLainProvider>(
       builder: (context, provider, child) {
-        final filteredList = _searchQuery.isEmpty
-            ? provider.pemasukanList
-            : provider.pemasukanList.where((item) {
-                return item.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                    item.category.toLowerCase().contains(_searchQuery.toLowerCase());
-              }).toList();
+        // Filter berdasarkan search query DAN tanggal
+        var filteredList = provider.pemasukanList;
 
-        return Column(
-          children: [
-            // Search Bar and Date Filter
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        // Filter by search query
+        if (_searchQuery.isNotEmpty) {
+          filteredList = filteredList.where((item) {
+            return item.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                item.category.toLowerCase().contains(_searchQuery.toLowerCase());
+          }).toList();
+        }
+
+        // Filter by selected date (hanya tampilkan data dengan tanggal yang sama)
+        filteredList = filteredList.where((item) {
+          final itemDate = item.tanggal;
+          final selectedDate = _selectedDate;
+
+          // Compare year, month, and day only (ignore time)
+          return itemDate.year == selectedDate.year &&
+                 itemDate.month == selectedDate.month &&
+                 itemDate.day == selectedDate.day;
+        }).toList();
+
+        // SATU SCROLLABLE AREA untuk semua konten (search bar + list)
+        return filteredList.isEmpty
+            ? Column(
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          onChanged: (value) {
-                            setState(() {
-                              _searchQuery = value;
-                            });
-                          },
-                          decoration: InputDecoration(
-                            hintText: 'Search pemasukan...',
-                            hintStyle: GoogleFonts.poppins(
-                              fontSize: 14,
-                              color: const Color(0xFF9CA3AF),
-                            ),
-                            prefixIcon: const Icon(
-                              Icons.search,
-                              color: Color(0xFF9CA3AF),
-                              size: 20,
-                            ),
-                            filled: true,
-                            fillColor: const Color(0xFFF8F9FC),
-                            contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(
-                                color: Color(0xFFE8EAF2),
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(
-                                color: Color(0xFFE8EAF2),
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(
-                                color: Color(0xFF1E54F4),
-                                width: 2,
-                              ),
-                            ),
-                          ),
-                        ),
+                  _buildSearchBar(),
+                  Expanded(child: _buildEmptyState()),
+                ],
+              )
+            : ListView.builder(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 100), // Bottom padding untuk FAB
+                itemCount: filteredList.length + 1, // +1 untuk search bar
+                itemBuilder: (context, index) {
+                  // Item pertama adalah search bar (sticky-like)
+                  if (index == 0) {
+                    return _buildSearchBar();
+                  }
+
+                  // Item sisanya adalah data pemasukan
+                  final item = filteredList[index - 1];
+                  return _buildLainnyaCard(item);
+                },
+              );
+      },
+    );
+  }
+
+  // Search Bar Widget (akan jadi item pertama di ListView)
+  Widget _buildSearchBar() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  onChanged: (value) {
+                    setState(() {
+                      _searchQuery = value;
+                    });
+                  },
+                  decoration: InputDecoration(
+                    hintText: 'Search pemasukan...',
+                    hintStyle: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: const Color(0xFF9CA3AF),
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.search,
+                      color: Color(0xFF9CA3AF),
+                      size: 20,
+                    ),
+                    filled: true,
+                    fillColor: const Color(0xFFF8F9FC),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFFE8EAF2),
                       ),
-                      const SizedBox(width: 12),
-                      GestureDetector(
-                        onTap: () => _showDatePicker(),
-                        child: Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                Color(0xFF2988EA),
-                                Color(0xFF2988EA),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Color(0xFF2988EA),
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(Icons.calendar_today,
-                                  color: Colors.white, size: 18),
-                              const SizedBox(width: 8),
-                              Text(
-                                DateFormat('d MMM yyyy').format(_selectedDate),
-                                style: GoogleFonts.poppins(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFFE8EAF2),
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF1E54F4),
+                        width: 2,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              GestureDetector(
+                onTap: () => _showDatePicker(),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xFF2988EA),
+                        Color(0xFF2988EA),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF2988EA).withValues(alpha: 0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.calendar_today,
+                          color: Colors.white, size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        DateFormat('d MMM yyyy').format(_selectedDate),
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
-                  // Title below search box
-                  Text(
-                    'Pemasukan Lainnya',
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF1F1F1F),
-                    ),
-                  ),
-                ],
+                ),
               ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Title
+          Text(
+            'Pemasukan Lainnya',
+            style: GoogleFonts.poppins(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF1F1F1F),
             ),
-            // List
-            Expanded(
-              child: filteredList.isEmpty
-                  ? _buildEmptyState()
-                  : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                      itemCount: filteredList.length,
-                      itemBuilder: (context, index) {
-                        final item = filteredList[index];
-                        return _buildLainnyaCard(item);
-                      },
-                    ),
-            ),
-          ],
-        );
-      },
+          ),
+          const SizedBox(height: 4),
+        ],
+      ),
     );
   }
+
   Widget _buildLainnyaCard(item) {
     final currencyFormat = NumberFormat.currency(
       locale: 'id_ID',
@@ -235,26 +260,32 @@ class _LainnyaTabState extends State<LainnyaTab> {
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: categoryColor.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                item.category,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  color: categoryColor,
+                            Flexible(
+                              flex: 2,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: categoryColor.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  item.category,
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: categoryColor,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
                                 ),
                               ),
                             ),
                             const SizedBox(width: 8),
                             Flexible(
+                              flex: 1,
                               child: Text(
                                 DateFormat('d MMM yyyy', 'id_ID').format(item.tanggal),
                                 style: GoogleFonts.poppins(
@@ -976,114 +1007,130 @@ class _LainnyaTabState extends State<LainnyaTab> {
   }
 
   Future<void> _deletePemasukan(item) async {
+    if (!mounted) return;
+
+    final provider = context.read<PemasukanLainProvider>();
+    bool success = false;
+    String? errorMessage;
+
     // Show loading
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => Center(
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const CircularProgressIndicator(),
-              const SizedBox(height: 16),
-              Text(
-                'Menghapus data...',
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: const Color(0xFF1F1F1F),
+      useRootNavigator: false,
+      builder: (dialogContext) => PopScope(
+        canPop: false,
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(height: 16),
+                Text(
+                  'Menghapus data...',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: const Color(0xFF1F1F1F),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
 
     try {
-      final provider = context.read<PemasukanLainProvider>();
-
-      // Soft delete via provider
-      final success = await provider.updatePemasukanLain(
+      // Soft delete with timeout (max 10 seconds)
+      success = await provider.updatePemasukanLain(
         item.id,
         {'isActive': false},
+      ).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          errorMessage = 'Timeout: Operasi terlalu lama';
+          return false;
+        },
       );
-
-      // Close loading
-      if (mounted) Navigator.pop(context);
-
-      if (success) {
-        // Collapse card
-        if (mounted) {
-          setState(() {
-            _expandedCardId = null;
-          });
-        }
-
-        // Show success message
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Pemasukan berhasil dihapus',
-                style: GoogleFonts.poppins(),
-              ),
-              backgroundColor: const Color(0xFF10B981),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          );
-        }
-
-        // Refresh data
-        if (mounted) {
-          context.read<PemasukanLainProvider>().loadPemasukanLain();
-        }
-      } else {
-        // Show error
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                provider.error ?? 'Gagal menghapus pemasukan',
-                style: GoogleFonts.poppins(),
-              ),
-              backgroundColor: const Color(0xFFEF4444),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          );
-        }
-      }
     } catch (e) {
-      // Close loading if still open
-      if (mounted) Navigator.pop(context);
+      errorMessage = e.toString();
+      success = false;
+    }
 
-      // Show error
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Terjadi kesalahan: $e',
-              style: GoogleFonts.poppins(),
-            ),
-            backgroundColor: const Color(0xFFEF4444),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        );
+    // FORCE CLOSE DIALOG - NO MATTER WHAT
+    if (mounted) {
+      try {
+        Navigator.of(context, rootNavigator: false).pop();
+      } catch (_) {
+        // Ignore
       }
+    }
+
+    // Show result AFTER dialog closed
+    if (!mounted) return;
+
+    if (success) {
+      // Collapse card
+      setState(() {
+        _expandedCardId = null;
+      });
+
+      // Refresh data
+      provider.loadPemasukanLain();
+
+      // Show success
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Pemasukan berhasil dihapus',
+                  style: GoogleFonts.poppins(),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFF10B981),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } else {
+      // Show error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  errorMessage ?? provider.error ?? 'Gagal menghapus pemasukan',
+                  style: GoogleFonts.poppins(),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: const Color(0xFFEF4444),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          duration: const Duration(seconds: 3),
+        ),
+      );
     }
   }
 
