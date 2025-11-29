@@ -16,7 +16,9 @@ class PcvkService {
   }
 
   Future<HealthModelResponse> getHealth() async {
-    final response = await _client.get(UrlPCVKAPI.buildAzureEndpoint('health'));
+    final response = await _client.get(
+      UrlPCVKAPI.buildAzureEndpoint('pcvk/health'),
+    );
     if (response.statusCode == 200) {
       return HealthModelResponse.fromJson(json.decode(response.body));
     } else {
@@ -26,7 +28,7 @@ class PcvkService {
 
   Future<List<String>> getClasses() async {
     final response = await _client.get(
-      UrlPCVKAPI.buildAzureEndpoint('classes'),
+      UrlPCVKAPI.buildAzureEndpoint('pcvk/classes'),
     );
     if (response.statusCode == 200) {
       return List<String>.from(json.decode(response.body)['classes']);
@@ -36,7 +38,9 @@ class PcvkService {
   }
 
   Future<ModelsModelResponse> getModels() async {
-    final response = await _client.get(UrlPCVKAPI.buildAzureEndpoint('models'));
+    final response = await _client.get(
+      UrlPCVKAPI.buildAzureEndpoint('pcvk/models'),
+    );
     if (response.statusCode == 200) {
       return ModelsModelResponse.fromJson(json.decode(response.body));
     } else {
@@ -51,7 +55,7 @@ class PcvkService {
     String modelType = 'mlpv2_auto-clahe',
     bool applyBrightnessContrast = true,
   }) async {
-    final uri = UrlPCVKAPI.buildAzureEndpoint('predict').replace(
+    final uri = UrlPCVKAPI.buildAzureEndpoint('pcvk/predict').replace(
       queryParameters: {
         'use_segmentation': useSegmentation.toString(),
         'seg_method': segMethod,
@@ -83,7 +87,7 @@ class PcvkService {
     String modelType = 'mlpv2_auto-clahe',
     bool applyBrightnessContrast = true,
   }) async {
-    final uri = UrlPCVKAPI.buildAzureEndpoint('batch-predict').replace(
+    final uri = UrlPCVKAPI.buildAzureEndpoint('pcvk/batch-predict').replace(
       queryParameters: {
         'use_segmentation': useSegmentation.toString(),
         'seg_method': segMethod,

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:jawara/core/models/BlobStorage/storage_response.dart';
@@ -15,7 +16,8 @@ import 'azure_blob_storage_service_test.mocks.dart';
 import '../fixtures/azure_blob_mock_responses.dart';
 
 @GenerateMocks([http.Client])
-void main() {
+void main() async {
+  await dotenv.load(fileName: ".env");
   group('AzureBlobStorageService', () {
     late AzureBlobStorageService service;
     late MockClient mockClient;

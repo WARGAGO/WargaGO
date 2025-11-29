@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:jawara/core/models/PCVK/batch_predict_response.dart';
@@ -17,7 +18,8 @@ import 'pcvk_service_test.mocks.dart';
 import '../fixtures/pcvk_mock_responses.dart';
 
 @GenerateMocks([http.Client])
-void main() {
+void main() async {
+  await dotenv.load(fileName: ".env");
   group('PcvkService', () {
     late PcvkService pcvkService;
     late MockClient mockClient;

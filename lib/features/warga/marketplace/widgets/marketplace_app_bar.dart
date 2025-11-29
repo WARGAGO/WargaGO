@@ -5,17 +5,14 @@
 // ============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../pages/cart_page.dart';
-import '../pages/my_orders_page.dart';
+import 'package:jawara/core/constants/app_routes.dart';
 
 class MarketplaceAppBar extends StatelessWidget {
   final int cartCount;
 
-  const MarketplaceAppBar({
-    super.key,
-    this.cartCount = 0,
-  });
+  const MarketplaceAppBar({super.key, this.cartCount = 0});
 
   @override
   Widget build(BuildContext context) {
@@ -58,12 +55,7 @@ class MarketplaceAppBar extends StatelessWidget {
 
   Widget _buildOrdersButton(BuildContext context) {
     return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const MyOrdersPage()),
-        );
-      },
+      onTap: () => context.push(AppRoutes.wargaPesananSaya),
       borderRadius: BorderRadius.circular(12),
       child: Container(
         width: 44,
@@ -85,12 +77,7 @@ class MarketplaceAppBar extends StatelessWidget {
 
   Widget _buildCartButton(BuildContext context) {
     return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const CartPage()),
-        );
-      },
+      onTap: () => context.push(AppRoutes.wargaPesananSaya),
       borderRadius: BorderRadius.circular(12),
       child: Container(
         width: 44,

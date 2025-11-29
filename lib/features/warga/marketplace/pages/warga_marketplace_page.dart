@@ -23,28 +23,26 @@ class WargaMarketplacePage extends StatelessWidget {
           children: [
             // Custom App Bar
             const MarketplaceAppBar(cartCount: 2),
-            
+
             const SizedBox(height: 12),
-            
+
             // Search Bar
             const MarketplaceSearchBar(),
-            
+
             const SizedBox(height: 8),
-            
+
             // Category Filter
             const MarketplaceCategoryFilter(),
-            
+
             const SizedBox(height: 12),
-            
+
             // Promo Banner
             const MarketplacePromoBanner(),
-            
+
             const SizedBox(height: 12),
-            
+
             // Product Grid
-            Expanded(
-              child: _buildProductGrid(),
-            ),
+            Expanded(child: _buildProductGrid()),
           ],
         ),
       ),
