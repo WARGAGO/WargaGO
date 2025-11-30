@@ -7,7 +7,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:jawara/core/constants/app_routes.dart';
+import 'package:wargago/core/constants/app_routes.dart';
 
 class HomeAppBar extends StatelessWidget {
   final int notificationCount;

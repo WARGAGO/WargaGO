@@ -1,4 +1,4 @@
-import 'package:jawara/core/models/PCVK/predict_response.dart';
+import 'package:wargago/core/models/PCVK/predict_response.dart';
 
 class BatchPerPredictionResponse {
   final String? error;

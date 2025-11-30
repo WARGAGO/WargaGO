@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:jawara/core/models/KYC/kyc_document_model.dart';
-import 'package:jawara/core/services/kyc_service.dart';
+import 'package:wargago/core/models/KYC/kyc_document_model.dart';
+import 'package:wargago/core/services/kyc_service.dart';
 
 /// Widget untuk menampilkan preview KYC document
 /// Menggunakan URL yang di-generate on-demand untuk menghindari expired URL

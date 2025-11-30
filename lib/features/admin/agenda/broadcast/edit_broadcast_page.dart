@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-import 'package:jawara/core/models/agenda_model.dart';
-import 'package:jawara/core/providers/agenda_provider.dart';
+import 'package:wargago/core/models/agenda_model.dart';
+import 'package:wargago/core/providers/agenda_provider.dart';
 
 class EditBroadcastPage extends StatefulWidget {
   final AgendaModel broadcast;

@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import '../broadcast/broadcast_page.dart';
 import 'tambah_kegiatan_page.dart';
 import 'edit_kegiatan_page.dart';
-import 'package:jawara/core/providers/agenda_provider.dart';
+import 'package:wargago/core/providers/agenda_provider.dart';
 
 class AgendaPage extends StatefulWidget {
   const AgendaPage({super.key});
@@ -488,7 +488,7 @@ class _DaftarKegiatanListState extends State<DaftarKegiatanList> {
   List _getFilteredKegiatan(List kegiatanList) {
     var filtered = kegiatanList;
 
-    // Filter by search query
+    // Filter by search query only
     if (_searchQuery.isNotEmpty) {
       filtered = filtered.where((item) {
         return item.judul.toLowerCase().contains(_searchQuery.toLowerCase()) ||
@@ -497,15 +497,8 @@ class _DaftarKegiatanListState extends State<DaftarKegiatanList> {
       }).toList();
     }
 
-    // Filter by selected date (compare year, month, day only)
-    filtered = filtered.where((item) {
-      final itemDate = item.tanggal;
-      final selectedDate = _selectedDate;
-
-      return itemDate.year == selectedDate.year &&
-             itemDate.month == selectedDate.month &&
-             itemDate.day == selectedDate.day;
-    }).toList();
+    // NO DATE FILTER - Show all data
+    // Filter tanggal dihapus agar semua data muncul
 
     return filtered;
   }

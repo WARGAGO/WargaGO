@@ -4,7 +4,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:permission_handler/permission_handler.dart';
-
 import 'firebase_options.dart';
 import 'app/app.dart';
 import 'core/providers/auth_provider.dart';

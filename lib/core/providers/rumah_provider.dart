@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:jawara/core/services/rumah_service.dart';
-import 'package:jawara/core/models/rumah_model.dart';
+import 'package:wargago/core/services/rumah_service.dart';
+import 'package:wargago/core/models/rumah_model.dart';
 
 /// Rumah Provider
 /// Provider untuk manage state data rumah dengan CRUD lengkap

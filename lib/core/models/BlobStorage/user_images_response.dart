@@ -1,4 +1,4 @@
-import 'package:jawara/core/models/BlobStorage/storage_response.dart';
+import 'package:wargago/core/models/BlobStorage/storage_response.dart';
 
 class UserImagesResponse {
   final String userId;

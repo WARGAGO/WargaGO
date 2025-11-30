@@ -4,14 +4,14 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-import 'package:jawara/core/widgets/admin_app_bottom_navigation.dart';
-import 'package:jawara/core/widgets/export_dialog.dart';
-import 'package:jawara/core/services/keuangan_summary_service.dart';
-import 'package:jawara/core/providers/jenis_iuran_provider.dart';
-import 'package:jawara/core/providers/pemasukan_lain_provider.dart';
-import 'package:jawara/core/providers/pengeluaran_provider.dart';
-import 'package:jawara/core/providers/laporan_keuangan_detail_provider.dart';
-import 'package:jawara/core/models/laporan_keuangan_detail_model.dart';
+import 'package:wargago/core/widgets/admin_app_bottom_navigation.dart';
+import 'package:wargago/core/widgets/publish_laporan_dialog.dart';
+import 'package:wargago/core/services/keuangan_summary_service.dart';
+import 'package:wargago/core/providers/jenis_iuran_provider.dart';
+import 'package:wargago/core/providers/pemasukan_lain_provider.dart';
+import 'package:wargago/core/providers/pengeluaran_provider.dart';
+import 'package:wargago/core/providers/laporan_keuangan_detail_provider.dart';
+import 'package:wargago/core/models/laporan_keuangan_detail_model.dart';
 import '../agenda/kegiatan/kegiatan_page.dart';
 import 'kelola_pemasukan/kelola_pemasukan_page.dart';
 import 'kelola_pengeluaran/kelola_pengeluaran_page.dart';
@@ -43,7 +43,7 @@ class _KeuanganPageState extends State<KeuanganPage> {
       'jumlah': 'Rp 50.000,00',
       'nominal': 'Rp 50.000,00',
       'kategori': 'Pemeliharaan Fasilitas',
-      'verifikator': 'Admin Jawara',
+      'verifikator': 'Admin WargaGo',
     },
     {
       'id': 2,
@@ -54,7 +54,7 @@ class _KeuanganPageState extends State<KeuanganPage> {
       'jumlah': 'Rp 200.000,00',
       'nominal': 'Rp 200.000,00',
       'kategori': 'Iuran Warga',
-      'verifikator': 'Admin Jawara',
+      'verifikator': 'Admin WargaGo',
     },
     {
       'id': 3,
@@ -65,7 +65,7 @@ class _KeuanganPageState extends State<KeuanganPage> {
       'jumlah': 'Rp 500.000,00',
       'nominal': 'Rp 500.000,00',
       'kategori': 'Donasi',
-      'verifikator': 'Admin Jawara',
+      'verifikator': 'Admin WargaGo',
     },
   ];
 
@@ -80,7 +80,7 @@ class _KeuanganPageState extends State<KeuanganPage> {
       'jumlah': 'Rp 11.000',
       'nominal': 'Rp 11.000',
       'kategori': 'Dana Bantuan Pemerintah',
-      'verifikator': 'Admin Jawara',
+      'verifikator': 'Admin WargaGo',
     },
     {
       'id': 2,
@@ -91,7 +91,7 @@ class _KeuanganPageState extends State<KeuanganPage> {
       'jumlah': 'Rp 50.000',
       'nominal': 'Rp 50.000',
       'kategori': 'Iuran Warga',
-      'verifikator': 'Admin Jawara',
+      'verifikator': 'Admin WargaGo',
     },
     {
       'id': 3,
@@ -102,7 +102,7 @@ class _KeuanganPageState extends State<KeuanganPage> {
       'jumlah': 'Rp 25.000',
       'nominal': 'Rp 25.000',
       'kategori': 'Dana Kegiatan',
-      'verifikator': 'Admin Jawara',
+      'verifikator': 'Admin WargaGo',
     },
     {
       'id': 4,
@@ -113,7 +113,7 @@ class _KeuanganPageState extends State<KeuanganPage> {
       'jumlah': 'Rp 100.000',
       'nominal': 'Rp 100.000',
       'kategori': 'Donasi',
-      'verifikator': 'Admin Jawara',
+      'verifikator': 'Admin WargaGo',
     },
     {
       'id': 5,
@@ -124,7 +124,7 @@ class _KeuanganPageState extends State<KeuanganPage> {
       'jumlah': 'Rp 75.000',
       'nominal': 'Rp 75.000',
       'kategori': 'Iuran Bulanan',
-      'verifikator': 'Admin Jawara',
+      'verifikator': 'Admin WargaGo',
     },
   ];
 
@@ -1622,155 +1622,129 @@ class _KeuanganPageState extends State<KeuanganPage> {
   }
 
   void _showPrintModal({bool isPemasukan = true}) async {
-    // Ambil data dari PROVIDER yang sama dengan kelola_pemasukan
+    // Load BOTH pemasukan and pengeluaran data for PublishLaporanDialog
     try {
-      List<Map<String, dynamic>> exportData = [];
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      debugPrint('📊 LOADING DATA FOR PUBLISH LAPORAN');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
-      if (isPemasukan) {
-        print('📊 Fetching pemasukan data for export from PROVIDERS...');
-        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+      List<Map<String, dynamic>> pemasukanData = [];
+      List<Map<String, dynamic>> pengeluaranData = [];
 
-        // Get data from JenisIuranProvider (same as kelola_pemasukan)
-        final jenisIuranProvider = context.read<JenisIuranProvider>();
-        final jenisIuranList = jenisIuranProvider.allJenisIuranList;
+      // 1. LOAD PEMASUKAN DATA
+      debugPrint('1️⃣  Loading Pemasukan data...');
 
-        print('   ✓ Jenis Iuran from Provider: ${jenisIuranList.length} items');
-        for (var item in jenisIuranList) {
-          exportData.add({
-            'tanggal': item.createdAt != null
-                ? DateFormat('dd/MM/yyyy').format(item.createdAt!)
-                : '-',
-            'name': item.namaIuran,
-            'category': 'Iuran',
-            'nominal': item.jumlahIuran, // Send as number
-            'nominalFormatted': currencyFormat.format(
-              item.jumlahIuran,
-            ), // For display
-            'penerima': item.createdBy.isNotEmpty ? item.createdBy : '-',
-            'deskripsi': '-',
-            'status': 'Terverifikasi',
-          });
-        }
-        print('   📦 exportData after Jenis Iuran: ${exportData.length} items');
+      // Get Jenis Iuran
+      final jenisIuranProvider = context.read<JenisIuranProvider>();
+      final jenisIuranList = jenisIuranProvider.allJenisIuranList;
+      debugPrint('   ✅ Jenis Iuran: ${jenisIuranList.length} items');
 
-        // Get data from PemasukanLainProvider (same as kelola_pemasukan)
-        final pemasukanLainProvider = context.read<PemasukanLainProvider>();
-        final pemasukanList = pemasukanLainProvider.allPemasukanList;
-
-        print(
-          '   ✓ Pemasukan Lain from Provider: ${pemasukanList.length} items',
-        );
-        for (var item in pemasukanList) {
-          exportData.add({
-            'tanggal': DateFormat('dd/MM/yyyy').format(item.tanggal),
-            'name': item.name,
-            'category': item.category,
-            'nominal': item.nominal, // Send as number
-            'nominalFormatted': currencyFormat.format(
-              item.nominal,
-            ), // For display
-            'penerima': '-',
-            'deskripsi': item.deskripsi ?? '-',
-            'status': item.status,
-          });
-        }
-        print(
-          '   📦 exportData after Pemasukan Lain: ${exportData.length} items',
-        );
-
-        // Calculate total (same calculation as kelola_pemasukan)
-        final totalJenisIuran = jenisIuranList.fold<double>(
-          0,
-          (sum, item) => sum + item.jumlahIuran,
-        );
-        final totalPemasukanLain = pemasukanList.fold<double>(
-          0,
-          (sum, item) => sum + item.nominal,
-        );
-        final totalPemasukan = totalJenisIuran + totalPemasukanLain;
-
-        // Verify total from exportData
-        final totalFromExportData = exportData.fold<double>(
-          0,
-          (sum, item) => sum + (item['nominal'] as double),
-        );
-
-        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        print('💰 VERIFIKASI TOTAL CALCULATION:');
-        print(
-          '   📊 Jenis Iuran: Rp ${currencyFormat.format(totalJenisIuran)} (${jenisIuranList.length} items)',
-        );
-        print(
-          '   📊 Pemasukan Lain: Rp ${currencyFormat.format(totalPemasukanLain)} (${pemasukanList.length} items)',
-        );
-        print(
-          '   ➕ TOTAL GABUNGAN: Rp ${currencyFormat.format(totalPemasukan)}',
-        );
-        print(
-          '   ✅ Total dari exportData: Rp ${currencyFormat.format(totalFromExportData)} (${exportData.length} items)',
-        );
-        print(
-          '   🔍 Match: ${totalPemasukan == totalFromExportData ? "✅ YA" : "❌ TIDAK"}',
-        );
-        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-      } else {
-        print('📊 Fetching pengeluaran data for export...');
-
-        // Get data from pengeluaran
-        final pengeluaranSnapshot = await FirebaseFirestore.instance
-            .collection('pengeluaran')
-            .where('isActive', isEqualTo: true)
-            .where('status', isEqualTo: 'Terverifikasi')
-            .get();
-
-        print('   ✓ Pengeluaran: ${pengeluaranSnapshot.docs.length} items');
-        for (var doc in pengeluaranSnapshot.docs) {
-          final data = doc.data();
-          final nominal = (data['nominal'] as num?)?.toDouble() ?? 0;
-          exportData.add({
-            'tanggal': data['tanggal'] != null
-                ? DateFormat(
-                    'dd/MM/yyyy',
-                  ).format((data['tanggal'] as Timestamp).toDate())
-                : '-',
-            'name': data['judul'] ?? '-',
-            'category': data['kategori'] ?? 'Pengeluaran',
-            'nominal': nominal, // Send as number, not formatted string
-            'nominalFormatted': currencyFormat.format(nominal), // For display
-            'penerima': data['penerima'] ?? '-',
-            'deskripsi': data['deskripsi'] ?? '-',
-            'status': data['status'] ?? 'Terverifikasi',
-          });
-        }
-
-        // Calculate and print total for verification
-        double totalPengeluaran = exportData.fold(
-          0,
-          (sum, item) => sum + (item['nominal'] as double),
-        );
-        print(
-          '💰 Total Pengeluaran untuk Export: Rp ${currencyFormat.format(totalPengeluaran)}',
-        );
+      for (var item in jenisIuranList) {
+        pemasukanData.add({
+          'tanggal': item.createdAt != null
+              ? DateFormat('dd/MM/yyyy').format(item.createdAt!)
+              : '-',
+          'name': item.namaIuran,
+          'category': 'Iuran',
+          'nominal': item.jumlahIuran,
+          'status': 'Terverifikasi',
+          'deskripsi': '-',
+        });
       }
 
-      // Show export dialog with real data
+      // Get Pemasukan Lain
+      final pemasukanLainProvider = context.read<PemasukanLainProvider>();
+      final pemasukanList = pemasukanLainProvider.allPemasukanList;
+      debugPrint('   ✅ Pemasukan Lain: ${pemasukanList.length} items');
+
+      for (var item in pemasukanList) {
+        pemasukanData.add({
+          'tanggal': DateFormat('dd/MM/yyyy').format(item.tanggal),
+          'name': item.name,
+          'category': item.category,
+          'nominal': item.nominal,
+          'status': item.status,
+          'deskripsi': item.deskripsi ?? '-',
+        });
+      }
+
+      final totalPemasukan = pemasukanData.fold<double>(
+        0,
+        (sum, item) => sum + (item['nominal'] as double),
+      );
+      debugPrint('   💰 Total Pemasukan: ${currencyFormat.format(totalPemasukan)}');
+
+      // 2. LOAD PENGELUARAN DATA
+      debugPrint('2️⃣  Loading Pengeluaran data...');
+
+      final pengeluaranSnapshot = await FirebaseFirestore.instance
+          .collection('pengeluaran')
+          .where('isActive', isEqualTo: true)
+          .where('status', isEqualTo: 'Terverifikasi')
+          .get();
+
+      debugPrint('   ✅ Pengeluaran: ${pengeluaranSnapshot.docs.length} items');
+
+      for (var doc in pengeluaranSnapshot.docs) {
+        final data = doc.data();
+        final nominal = (data['nominal'] as num?)?.toDouble() ?? 0;
+        pengeluaranData.add({
+          'tanggal': data['tanggal'] != null
+              ? DateFormat('dd/MM/yyyy').format((data['tanggal'] as Timestamp).toDate())
+              : '-',
+          'name': data['judul'] ?? '-',
+          'category': data['kategori'] ?? 'Pengeluaran',
+          'nominal': nominal,
+          'status': data['status'] ?? 'Terverifikasi',
+          'deskripsi': data['deskripsi'] ?? '-',
+        });
+      }
+
+      final totalPengeluaran = pengeluaranData.fold<double>(
+        0,
+        (sum, item) => sum + (item['nominal'] as double),
+      );
+      debugPrint('   💸 Total Pengeluaran: ${currencyFormat.format(totalPengeluaran)}');
+      debugPrint('   📊 Saldo: ${currencyFormat.format(totalPemasukan - totalPengeluaran)}');
+      debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+      // 3. SHOW PUBLISH DIALOG
       if (mounted) {
-        ExportDialog.show(
+        final bulan = DateFormat.MMMM('id_ID').format(DateTime.now());
+        final tahun = DateTime.now().year;
+
+        await showDialog(
           context: context,
-          data: exportData,
-          title: isPemasukan ? 'Laporan Pemasukan' : 'Laporan Pengeluaran',
+          builder: (context) => PublishLaporanDialog(
+            dataPemasukan: pemasukanData,
+            dataPengeluaran: pengeluaranData,
+            defaultTitle: 'Laporan Keuangan $bulan $tahun',
+          ),
         );
       }
-    } catch (e) {
-      debugPrint('❌ Error loading data for export: $e');
+    } catch (e, stackTrace) {
+      debugPrint('❌ Error loading data for publish: $e');
+      debugPrint('   Stack: $stackTrace');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'Gagal memuat data. Silakan coba lagi.',
-              style: GoogleFonts.poppins(),
+            content: Row(
+              children: [
+                const Icon(Icons.error, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Gagal memuat data. Silakan coba lagi.',
+                    style: GoogleFonts.poppins(),
+                  ),
+                ),
+              ],
             ),
             backgroundColor: const Color(0xFFEF4444),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }

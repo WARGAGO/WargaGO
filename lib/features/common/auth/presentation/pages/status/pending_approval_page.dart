@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:jawara/core/constants/app_routes.dart';
+import 'package:wargago/core/constants/app_routes.dart';
 
 /// Halaman yang ditampilkan saat akun warga masih menunggu persetujuan admin
 class PendingApprovalPage extends StatelessWidget {

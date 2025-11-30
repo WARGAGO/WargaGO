@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:jawara/core/models/warga_model.dart';
+import 'package:wargago/core/models/warga_model.dart';
 import 'firebase_service.dart';
 
 /// Warga Service

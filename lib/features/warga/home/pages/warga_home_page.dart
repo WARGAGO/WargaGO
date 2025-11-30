@@ -18,7 +18,6 @@ import '../widgets/home_feature_list.dart';
 import '../widgets/home_news_carousel.dart';
 import '../widgets/home_upcoming_events.dart';
 import '../widgets/home_emergency_contacts.dart';
-import '../widgets/home_quick_report.dart';
 
 class WargaHomePage extends StatelessWidget {
   const WargaHomePage({super.key});
@@ -86,9 +85,6 @@ class WargaHomePage extends StatelessWidget {
                           const HomeInfoCards(),
                           const SizedBox(height: 28),
 
-                          // Quick Report - Lapor Masalah
-                          const HomeQuickReport(),
-                          const SizedBox(height: 24),
 
                           // Quick Access Section
                           _buildSectionTitle('Akses Cepat'),

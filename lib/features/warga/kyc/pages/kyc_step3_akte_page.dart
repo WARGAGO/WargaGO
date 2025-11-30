@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:jawara/core/models/KYC/ktp_model.dart';
+import 'package:wargago/core/models/KYC/ktp_model.dart';
 
 class KYCStep3AktePage extends StatelessWidget {
   final Function(KTPModel?) onNext;

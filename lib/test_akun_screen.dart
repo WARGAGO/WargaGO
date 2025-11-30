@@ -1,8 +1,8 @@
 // Test AkunScreen standalone
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:jawara/core/providers/auth_provider.dart';
-import 'package:jawara/features/warga/profile/akun_screen.dart';
+import 'package:wargago/core/providers/auth_provider.dart';
+import 'package:wargago/features/warga/profile/akun_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 void main() async {

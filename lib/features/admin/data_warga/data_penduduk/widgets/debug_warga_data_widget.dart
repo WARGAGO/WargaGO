@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:jawara/core/providers/warga_provider.dart';
-import 'package:jawara/core/services/warga_service.dart';
+import 'package:wargago/core/providers/warga_provider.dart';
+import 'package:wargago/core/services/warga_service.dart';
 
 /// Debug Widget untuk memverifikasi bahwa data warga benar-benar dari Firebase
 ///

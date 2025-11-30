@@ -2,11 +2,11 @@ import 'dart:convert';
 import 'dart:io' show File;
 
 import 'package:http/http.dart' as http;
-import 'package:jawara/core/configs/url_pcvk_api.dart';
-import 'package:jawara/core/models/PCVK/batch_predict_response.dart';
-import 'package:jawara/core/models/PCVK/health_response.dart';
-import 'package:jawara/core/models/PCVK/models_response.dart';
-import 'package:jawara/core/models/PCVK/predict_response.dart';
+import 'package:wargago/core/configs/url_pcvk_api.dart';
+import 'package:wargago/core/models/PCVK/batch_predict_response.dart';
+import 'package:wargago/core/models/PCVK/health_response.dart';
+import 'package:wargago/core/models/PCVK/models_response.dart';
+import 'package:wargago/core/models/PCVK/predict_response.dart';
 
 class PcvkService {
   late final http.Client _client;

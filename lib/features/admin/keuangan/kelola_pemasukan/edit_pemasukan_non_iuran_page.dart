@@ -4,8 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:jawara/core/providers/pemasukan_lain_provider.dart';
-import 'package:jawara/core/models/pemasukan_lain_model.dart';
+import 'package:wargago/core/providers/pemasukan_lain_provider.dart';
+import 'package:wargago/core/models/pemasukan_lain_model.dart';
 
 class EditPemasukanNonIuranPage extends StatefulWidget {
   final PemasukanLainModel pemasukanData;
@@ -34,8 +34,17 @@ class _EditPemasukanNonIuranPageState extends State<EditPemasukanNonIuranPage> {
   void initState() {
     super.initState();
 
-    // Initialize kategori list SEKALI dengan base categories
-    _kategoriList = [
+    // Pre-fill dengan data existing
+    _namaPemasukanController =
+        TextEditingController(text: widget.pemasukanData.name);
+    _nominalController = TextEditingController(
+        text: widget.pemasukanData.nominal.toInt().toString());
+    _deskripsiController =
+        TextEditingController(text: widget.pemasukanData.deskripsi ?? '');
+    _selectedDate = widget.pemasukanData.tanggal;
+
+    // Initialize kategori list dengan base categories
+    final basekategoriList = [
       'Donasi',
       'Bantuan',
       'Kegiatan',
@@ -46,21 +55,24 @@ class _EditPemasukanNonIuranPageState extends State<EditPemasukanNonIuranPage> {
       'Pendapatan Lainnya',
     ];
 
-    // Pre-fill dengan data existing
-    _namaPemasukanController =
-        TextEditingController(text: widget.pemasukanData.name);
-    _nominalController = TextEditingController(
-        text: widget.pemasukanData.nominal.toInt().toString());
-    _deskripsiController =
-        TextEditingController(text: widget.pemasukanData.deskripsi ?? '');
-    _selectedDate = widget.pemasukanData.tanggal;
-
-    // PENTING: Pastikan kategori dari data ada di list (tanpa duplikasi)
+    // Get existing category and ensure it's in the list (NO DUPLICATES)
     final existingCategory = widget.pemasukanData.category;
-    if (!_kategoriList.contains(existingCategory)) {
-      _kategoriList.insert(0, existingCategory);
+
+    // Build final list with unique values only
+    if (basekategoriList.contains(existingCategory)) {
+      // Category already exists, use as is
+      _kategoriList = basekategoriList;
+    } else {
+      // Add existing category at the top
+      _kategoriList = [existingCategory, ...basekategoriList];
     }
+
+    // Set selected value
     _selectedKategori = existingCategory;
+
+    debugPrint('✅ EditPemasukanNonIuran: Kategori initialized');
+    debugPrint('   Selected: $existingCategory');
+    debugPrint('   List items: ${_kategoriList.length}');
   }
 
   @override

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:jawara/core/services/dashboard_service.dart';
+import 'package:wargago/core/services/dashboard_service.dart';
 
 /// Dashboard CRUD Test Page
 /// Halaman untuk test semua fungsi Dashboard CRUD

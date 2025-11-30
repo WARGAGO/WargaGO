@@ -5,8 +5,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 
-import 'package:jawara/core/models/agenda_model.dart';
-import 'package:jawara/core/providers/agenda_provider.dart';
+import 'package:wargago/core/models/agenda_model.dart';
+import 'package:wargago/core/providers/agenda_provider.dart';
 
 class TambahBroadcastPage extends StatefulWidget {
   const TambahBroadcastPage({super.key});
@@ -108,14 +108,24 @@ class _TambahBroadcastPageState extends State<TambahBroadcastPage> {
       success = false;
     }
 
-    // FORCE CLOSE DIALOG - NO MATTER WHAT
+    // FORCE CLOSE DIALOG - CRITICAL FIX
     if (mounted) {
       try {
-        Navigator.of(context, rootNavigator: false).pop();
-      } catch (_) {
-        // Ignore if already closed
+        // Try normal pop first
+        Navigator.of(context).pop();
+      } catch (e) {
+        debugPrint('❌ Error closing dialog normally: $e');
+        try {
+          // Force with rootNavigator
+          Navigator.of(context, rootNavigator: true).pop();
+        } catch (e2) {
+          debugPrint('❌ Error closing dialog with rootNavigator: $e2');
+        }
       }
     }
+
+    // Wait a bit to ensure dialog closed
+    await Future.delayed(const Duration(milliseconds: 100));
 
     // Show result AFTER dialog closed
     if (!mounted) return;
