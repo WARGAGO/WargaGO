@@ -22,8 +22,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
-import 'package:jawara/core/widgets/admin_app_bottom_navigation.dart';
-import 'package:jawara/features/admin/profile/admin_profile_page.dart';
+import 'package:wargago/core/widgets/admin_app_bottom_navigation.dart';
+import 'package:wargago/features/admin/profile/admin_profile_page.dart';
 import 'dashboard_detail_page.dart';
 import 'activity_detail_page.dart';
 import 'penanggung_jawab_detail_page.dart';

@@ -1,31 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:jawara/core/widgets/admin_app_bottom_navigation.dart';
-import 'package:jawara/core/widgets/warga_app_bottom_navigation.dart';
-import 'package:jawara/features/admin/data_warga/data_warga_main_page.dart';
-import 'package:jawara/features/admin/kelola_lapak/kelola_lapak_page.dart';
-import 'package:jawara/features/admin/keuangan/keuangan_page.dart';
-import 'package:jawara/features/common/auth/presentation/pages/warga/lupa_page.dart';
-import 'package:jawara/features/common/classification/classification_camera.dart';
-import 'package:jawara/features/common/splash/splash_page.dart';
-import 'package:jawara/features/common/onboarding/onboarding_page.dart';
-import 'package:jawara/features/common/pre_auth/pre_auth_page.dart';
-import 'package:jawara/features/common/auth/presentation/pages/unified_login_page.dart';
-import 'package:jawara/features/common/auth/presentation/pages/warga/warga_register_page.dart';
-import 'package:jawara/features/common/auth/presentation/pages/warga/kyc_upload_page.dart';
-import 'package:jawara/features/common/auth/presentation/pages/status/pending_approval_page.dart';
-import 'package:jawara/features/common/auth/presentation/pages/status/rejected_page.dart';
-import 'package:jawara/features/admin/dashboard/dashboard_page.dart';
-import 'package:jawara/core/constants/app_routes.dart';
-import 'package:jawara/features/warga/home/pages/warga_home_page.dart';
-import 'package:jawara/features/warga/marketplace/pages/cart_page.dart';
-import 'package:jawara/features/warga/marketplace/pages/my_orders_page.dart';
-import 'package:jawara/features/warga/marketplace/pages/product_detail_page.dart';
-import 'package:jawara/features/warga/marketplace/pages/warga_marketplace_page.dart';
-import 'package:jawara/features/warga/profile/akun_screen.dart';
-import 'package:jawara/features/warga/profile/edit_profil_screen.dart';
-import 'package:jawara/features/warga/profile/toko_saya_screen.dart';
+import 'package:wargago/core/widgets/admin_app_bottom_navigation.dart';
+import 'package:wargago/core/widgets/warga_app_bottom_navigation.dart';
+import 'package:wargago/features/admin/data_warga/data_warga_main_page.dart';
+import 'package:wargago/features/admin/kelola_lapak/kelola_lapak_page.dart';
+import 'package:wargago/features/admin/keuangan/keuangan_page.dart';
+import 'package:wargago/features/common/auth/presentation/pages/warga/lupa_page.dart';
+import 'package:wargago/features/common/splash/splash_page.dart';
+import 'package:wargago/features/common/onboarding/onboarding_page.dart';
+import 'package:wargago/features/common/pre_auth/pre_auth_page.dart';
+import 'package:wargago/features/common/auth/presentation/pages/unified_login_page.dart';
+import 'package:wargago/features/common/auth/presentation/pages/warga/warga_register_page.dart';
+import 'package:wargago/features/common/auth/presentation/pages/warga/kyc_upload_page.dart';
+import 'package:wargago/features/common/auth/presentation/pages/status/pending_approval_page.dart';
+import 'package:wargago/features/common/auth/presentation/pages/status/rejected_page.dart';
+import 'package:wargago/features/admin/dashboard/dashboard_page.dart';
+import 'package:wargago/core/constants/app_routes.dart';
+import 'package:wargago/features/warga/home/pages/warga_home_page.dart';
+import 'package:wargago/features/warga/marketplace/pages/cart_page.dart';
+import 'package:wargago/features/warga/marketplace/pages/my_orders_page.dart';
+import 'package:wargago/features/warga/marketplace/pages/product_detail_page.dart';
+import 'package:wargago/features/warga/marketplace/pages/warga_marketplace_page.dart';
+import 'package:wargago/features/warga/profile/akun_screen.dart';
+import 'package:wargago/features/warga/profile/edit_profil_screen.dart';
+import 'package:wargago/features/warga/profile/toko_saya_screen.dart';
 
 class AppRouterConfig {
   static final GlobalKey<NavigatorState> _rootNavigatorKey =
@@ -55,11 +54,6 @@ class AppRouterConfig {
         path: AppRoutes.preAuth,
         name: 'preAuth',
         builder: (context, state) => const PreAuthPage(),
-      ),
-      GoRoute(
-        path: AppRoutes.classificationCamera,
-        name: 'classificationCamera',
-        builder: (context, state) => const ClassificationCameraPage(),
       ),
 
       // ========== AUTH ROUTES ==========
@@ -91,21 +85,6 @@ class AppRouterConfig {
         path: AppRoutes.wargaKYC,
         name: 'wargaKYC',
         builder: (context, state) => const KYCUploadPage(),
-      ),
-      GoRoute(
-        path: AppRoutes.wargaClassificationCamera,
-        name: 'wargaClassificationCamera',
-        pageBuilder: (context, state) => CustomTransitionPage(
-          key: state.pageKey,
-          child: WargaAppBottomNavigation(child: ClassificationCameraPage()),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(
-              opacity: Tween<double>(begin: 1.0, end: 1.0).animate(animation),
-              child: child,
-            );
-          },
-          transitionDuration: const Duration(milliseconds: 1),
-        ),
       ),
 
       // ========== STATUS ROUTES ==========
@@ -217,6 +196,7 @@ class AppRouterConfig {
                 path: AppRoutes.wargaItemDetail,
                 name: 'wargaItemDetail',
                 builder: (context, state) {
+                  print(state.extra);
                   final extras = Map<String, dynamic>.from(state.extra as Map);
                   return ProductDetailPage(
                     productName: extras['productName'],

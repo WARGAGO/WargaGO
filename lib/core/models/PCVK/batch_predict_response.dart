@@ -1,5 +1,5 @@
-import 'package:jawara/core/enums/predict_class_enum.dart';
-import 'package:jawara/core/models/PCVK/predict_response.dart';
+import 'package:wargago/core/enums/predict_class_enum.dart';
+import 'package:wargago/core/models/PCVK/predict_response.dart';
 
 class BatchPerPredictionResponse {
   final String? error;

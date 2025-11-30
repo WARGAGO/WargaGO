@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:jawara/core/providers/agenda_provider.dart';
-import 'package:jawara/core/models/agenda_model.dart';
+import 'package:wargago/core/providers/agenda_provider.dart';
+import 'package:wargago/core/models/agenda_model.dart';
 
 /// Example: Cara menggunakan Backend CRUD Agenda
 ///

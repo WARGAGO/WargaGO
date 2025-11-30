@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:jawara/core/models/pengeluaran_model.dart';
+import 'package:wargago/core/models/pengeluaran_model.dart';
 
 class PengeluaranCard extends StatelessWidget {
   final PengeluaranModel pengeluaran;

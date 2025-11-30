@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:jawara/core/models/rumah_model.dart';
-import 'package:jawara/core/providers/rumah_provider.dart';
+import 'package:wargago/core/models/rumah_model.dart';
+import 'package:wargago/core/providers/rumah_provider.dart';
 
 class TambahDataRumahPage extends StatefulWidget {
   const TambahDataRumahPage({super.key});

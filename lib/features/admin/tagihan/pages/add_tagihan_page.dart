@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:jawara/core/providers/tagihan_provider.dart';
-import 'package:jawara/core/providers/jenis_iuran_provider.dart';
-import 'package:jawara/core/models/tagihan_model.dart';
+import 'package:wargago/core/providers/tagihan_provider.dart';
+import 'package:wargago/core/providers/jenis_iuran_provider.dart';
+import 'package:wargago/core/models/tagihan_model.dart';
 
 class AddTagihanPage extends StatefulWidget {
   const AddTagihanPage({Key? key}) : super(key: key);

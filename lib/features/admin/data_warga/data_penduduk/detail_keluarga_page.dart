@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:jawara/core/providers/keluarga_provider.dart';
-import 'package:jawara/core/models/keluarga_model.dart';
+import 'package:wargago/core/providers/keluarga_provider.dart';
+import 'package:wargago/core/models/keluarga_model.dart';
 
 class DetailKeluargaPage extends StatefulWidget {
   final String nomorKK;

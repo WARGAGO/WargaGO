@@ -108,6 +108,17 @@ service cloud.firestore {
     }
 
     // ========================================================================
+    // PENGUMUMAN COLLECTION - Announcements
+    // ========================================================================
+    match /pengumuman/{pengumumanId} {
+      // Read: Semua authenticated user bisa lihat
+      allow read: if isSignedIn();
+
+      // Create/Update/Delete: Hanya admin
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ========================================================================
     // KEUANGAN COLLECTIONS
     // ========================================================================
     match /keuangan/{transactionId} {
@@ -133,6 +144,31 @@ service cloud.firestore {
     match /tagihan/{tagihanId} {
       allow read: if isSignedIn();
       allow create, update, delete: if isAdmin();
+    }
+
+    // LAPORAN KEUANGAN - Transparansi keuangan untuk warga
+    match /laporan_keuangan/{laporanId} {
+      // Read: Semua authenticated user bisa lihat laporan yang published
+      allow read: if isSignedIn() && resource.data.is_published == true;
+
+      // Create: Hanya admin yang bisa publish laporan
+      allow create: if isAdmin() &&
+                       hasValidData() &&
+                       'judul' in request.resource.data &&
+                       'periode' in request.resource.data &&
+                       'jenis_laporan' in request.resource.data &&
+                       'created_by' in request.resource.data &&
+                       'statistik' in request.resource.data &&
+                       'is_published' in request.resource.data;
+
+      // Update: Admin bisa update laporan, warga bisa update views_count
+      allow update: if isAdmin() ||
+                       (isSignedIn() &&
+                        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views_count']) &&
+                        request.resource.data.views_count == resource.data.views_count + 1);
+
+      // Delete: Hanya admin
+      allow delete: if isAdmin();
     }
 
     // ========================================================================

@@ -14,7 +14,7 @@ import 'dart:convert';
 class AdminConstants {
   static const String defaultEmail = 'admin@jawara.com';
   static const String defaultPassword = 'admin123';
-  static const String defaultName = 'Admin Jawara';
+  static const String defaultName = 'Admin WargaGo';
   static const String defaultNik = '1234567890123456';
   static const String defaultPhone = '081234567890';
   static const String defaultAddress = 'Jl. Contoh No. 123';

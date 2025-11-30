@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:jawara/core/providers/tagihan_provider.dart';
-import 'package:jawara/core/models/tagihan_model.dart';
+import 'package:wargago/core/providers/tagihan_provider.dart';
+import 'package:wargago/core/models/tagihan_model.dart';
 import '../widgets/tagihan_card.dart';
 import '../widgets/tagihan_filter_bar.dart';
 import '../widgets/tagihan_statistics_card.dart';

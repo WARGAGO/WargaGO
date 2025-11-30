@@ -8,8 +8,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:jawara/core/models/KYC/ktp_model.dart' as model;
-import 'package:jawara/core/services/ocr_service.dart';
+import 'package:wargago/core/models/KYC/ktp_model.dart' as model;
+import 'package:wargago/core/services/ocr_service.dart';
 
 class OCRTestPage extends StatefulWidget {
   const OCRTestPage({super.key});

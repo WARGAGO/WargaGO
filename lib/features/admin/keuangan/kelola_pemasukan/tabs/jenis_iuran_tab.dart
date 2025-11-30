@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'package:jawara/core/providers/jenis_iuran_provider.dart';
+import 'package:wargago/core/providers/jenis_iuran_provider.dart';
 
 class JenisIuranTab extends StatefulWidget {
   const JenisIuranTab({super.key});

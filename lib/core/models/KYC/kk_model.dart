@@ -1,5 +1,5 @@
-import 'package:jawara/core/models/KYC/ktp_model.dart';
-import 'package:jawara/core/models/OCR/ocr_response.dart';
+import 'package:wargago/core/models/KYC/ktp_model.dart';
+import 'package:wargago/core/models/OCR/ocr_response.dart';
 
 class KKMember extends KTPModel {
   String? pendidikan;

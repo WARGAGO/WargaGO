@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:jawara/core/providers/pemasukan_lain_provider.dart';
+import 'package:wargago/core/providers/pemasukan_lain_provider.dart';
 import '../detail_pemasukan_lain_page.dart';
 import '../edit_pemasukan_non_iuran_page.dart';
 class LainnyaTab extends StatefulWidget {
@@ -28,27 +28,16 @@ class _LainnyaTabState extends State<LainnyaTab> {
   Widget build(BuildContext context) {
     return Consumer<PemasukanLainProvider>(
       builder: (context, provider, child) {
-        // Filter berdasarkan search query DAN tanggal
+        // Filter berdasarkan search query (NO DATE FILTER - show all)
         var filteredList = provider.pemasukanList;
 
-        // Filter by search query
+        // Filter by search query only
         if (_searchQuery.isNotEmpty) {
           filteredList = filteredList.where((item) {
             return item.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
                 item.category.toLowerCase().contains(_searchQuery.toLowerCase());
           }).toList();
         }
-
-        // Filter by selected date (hanya tampilkan data dengan tanggal yang sama)
-        filteredList = filteredList.where((item) {
-          final itemDate = item.tanggal;
-          final selectedDate = _selectedDate;
-
-          // Compare year, month, and day only (ignore time)
-          return itemDate.year == selectedDate.year &&
-                 itemDate.month == selectedDate.month &&
-                 itemDate.day == selectedDate.day;
-        }).toList();
 
         // SATU SCROLLABLE AREA untuk semua konten (search bar + list)
         return filteredList.isEmpty
@@ -1017,7 +1006,6 @@ class _LainnyaTabState extends State<LainnyaTab> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      useRootNavigator: false,
       builder: (dialogContext) => PopScope(
         canPop: false,
         child: Center(
@@ -1063,14 +1051,24 @@ class _LainnyaTabState extends State<LainnyaTab> {
       success = false;
     }
 
-    // FORCE CLOSE DIALOG - NO MATTER WHAT
+    // FORCE CLOSE DIALOG - CRITICAL FIX
     if (mounted) {
       try {
-        Navigator.of(context, rootNavigator: false).pop();
-      } catch (_) {
-        // Ignore
+        // Try normal pop first
+        Navigator.of(context).pop();
+      } catch (e) {
+        debugPrint('❌ Error closing dialog normally: $e');
+        try {
+          // Force with rootNavigator
+          Navigator.of(context, rootNavigator: true).pop();
+        } catch (e2) {
+          debugPrint('❌ Error closing dialog with rootNavigator: $e2');
+        }
       }
     }
+
+    // Wait a bit to ensure dialog closed
+    await Future.delayed(const Duration(milliseconds: 100));
 
     // Show result AFTER dialog closed
     if (!mounted) return;

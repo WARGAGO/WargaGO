@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:jawara/core/theme/app_theme.dart';
-import 'package:jawara/app/router.dart';
+import 'package:wargago/core/theme/app_theme.dart';
+import 'package:wargago/app/router.dart';
 
 class JawaraApp extends StatelessWidget {
   const JawaraApp({super.key});

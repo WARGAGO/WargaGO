@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:jawara/core/models/tagihan_model.dart';
+import 'package:wargago/core/models/tagihan_model.dart';
 
 class TagihanCard extends StatelessWidget {
   final TagihanModel tagihan;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:jawara/core/services/jenis_iuran_service.dart';
-import 'package:jawara/core/models/jenis_iuran_model.dart';
+import 'package:wargago/core/services/jenis_iuran_service.dart';
+import 'package:wargago/core/models/jenis_iuran_model.dart';
 
 /// Jenis Iuran Provider
 /// Provider untuk manage state data jenis iuran dengan CRUD lengkap

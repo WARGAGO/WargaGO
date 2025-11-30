@@ -6,10 +6,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:jawara/core/enums/kyc_enum.dart';
-import 'package:jawara/core/models/KYC/kyc_document_model.dart';
-import 'package:jawara/core/services/kyc_service.dart';
-import 'package:jawara/features/admin/core_widgets/kyc_document_preview.dart';
+import 'package:wargago/core/enums/kyc_enum.dart';
+import 'package:wargago/core/models/KYC/kyc_document_model.dart';
+import 'package:wargago/core/services/kyc_service.dart';
+import 'package:wargago/features/admin/core_widgets/kyc_document_preview.dart';
 import 'package:intl/intl.dart';
 import 'ocr_test_page.dart';
 

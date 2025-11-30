@@ -6,14 +6,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:jawara/core/enums/predict_class_enum.dart';
-import 'package:jawara/core/models/PCVK/predict_response.dart';
-import 'package:jawara/core/services/pcvk_service.dart';
-import 'package:jawara/features/common/classification/widgets/inkwell_iconbutton.dart';
-import 'package:jawara/features/common/classification/widgets/white_button.dart';
+import 'package:wargago/core/enums/predict_class_enum.dart';
+import 'package:wargago/core/models/PCVK/predict_response.dart';
+import 'package:wargago/core/services/pcvk_service.dart';
+import 'package:wargago/features/common/classification/widgets/inkwell_iconbutton.dart';
+import 'package:wargago/features/common/classification/widgets/white_button.dart';
 import 'package:ming_cute_icons/ming_cute_icons.dart';
 import 'package:remixicon/remixicon.dart';
-
 class ClassificationCameraPage extends StatefulWidget {
   const ClassificationCameraPage({super.key});
 

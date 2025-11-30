@@ -3,17 +3,17 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:jawara/core/widgets/admin_app_bottom_navigation.dart';
-import 'package:jawara/core/providers/warga_provider.dart';
-import 'package:jawara/core/providers/keluarga_provider.dart';
-import 'package:jawara/core/providers/rumah_provider.dart';
+import 'package:wargago/core/widgets/admin_app_bottom_navigation.dart';
+import 'package:wargago/core/providers/warga_provider.dart';
+import 'package:wargago/core/providers/keluarga_provider.dart';
+import 'package:wargago/core/providers/rumah_provider.dart';
 import 'data_penduduk/data_penduduk_page.dart';
 import 'data_mutasi/data_mutasi_warga_page.dart';
 import 'data_mutasi/repositories/mutasi_repository.dart';
 import 'terima_warga/repositories/pending_warga_repository.dart';
 import 'kelola_pengguna/kelola_pengguna_page.dart';
 import 'terima_warga/terima_warga_page.dart';
-import 'package:jawara/features/admin/core_pages/kyc_verification_page.dart';
+import 'package:wargago/features/admin/core_pages/kyc_verification_page.dart';
 
 class DataWargaMainPage extends StatefulWidget {
   final int initialIndex;
