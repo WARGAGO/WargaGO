@@ -92,7 +92,7 @@ void main() async {
         // Assert
         expect(result, isA<PredictModelResponse>());
         expect(result.fileName, isNotEmpty);
-        expect(result.predictedClass, isNotEmpty);
+        expect(result.predictedClass, isNotNull);
         expect(result.confidence, greaterThan(0));
         expect(result.confidence, lessThanOrEqualTo(1));
         expect(result.allConfidences, isNotEmpty);

@@ -55,6 +55,11 @@ class AppRouterConfig {
         name: 'preAuth',
         builder: (context, state) => const PreAuthPage(),
       ),
+      GoRoute(
+        path: AppRoutes.classificationCamera,
+        name: 'classificationCamera',
+        builder: (context, state) => const ClassificationCameraPage(),
+      ),
 
       // ========== AUTH ROUTES ==========
       GoRoute(
@@ -85,6 +90,21 @@ class AppRouterConfig {
         path: AppRoutes.wargaKYC,
         name: 'wargaKYC',
         builder: (context, state) => const KYCUploadPage(),
+      ),
+      GoRoute(
+        path: AppRoutes.wargaClassificationCamera,
+        name: 'wargaClassificationCamera',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: WargaAppBottomNavigation(child: ClassificationCameraPage()),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: Tween<double>(begin: 1.0, end: 1.0).animate(animation),
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 1),
+        ),
       ),
 
       // ========== STATUS ROUTES ==========
@@ -196,7 +216,6 @@ class AppRouterConfig {
                 path: AppRoutes.wargaItemDetail,
                 name: 'wargaItemDetail',
                 builder: (context, state) {
-                  print(state.extra);
                   final extras = Map<String, dynamic>.from(state.extra as Map);
                   return ProductDetailPage(
                     productName: extras['productName'],

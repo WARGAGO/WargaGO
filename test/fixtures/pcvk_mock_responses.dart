@@ -84,6 +84,7 @@ class PcvkMockResponses {
     "segmentation_used": true,
     "segmentation_method": "u2netp",
     "apply_brightness_contrast": true,
+    "prediction_time_ms": 150.5,
   };
 
   static final Map<String, dynamic> batchPredictSuccess = {
@@ -103,6 +104,7 @@ class PcvkMockResponses {
         "segmentation_used": true,
         "segmentation_method": "u2netp",
         "apply_brightness_contrast": true,
+        "prediction_time_ms": 150.5,
         "error": null,
       },
       {
@@ -120,6 +122,7 @@ class PcvkMockResponses {
         "segmentation_used": true,
         "segmentation_method": "u2netp",
         "apply_brightness_contrast": true,
+        "prediction_time_ms": 145.2,
         "error": null,
       },
     ],
@@ -142,6 +145,7 @@ class PcvkMockResponses {
         "segmentation_used": true,
         "segmentation_method": "u2netp",
         "apply_brightness_contrast": true,
+        "prediction_time_ms": 150.5,
         "error": null,
       },
       {"filename": "12313clipboard.png", "error": "Fail"},

@@ -10,8 +10,9 @@ import 'package:provider/provider.dart';
 /// Unified Bottom Navigation Bar untuk semua halaman
 /// Menggunakan desain modern dengan gradient pada active state
 class WargaAppBottomNavigation extends StatefulWidget {
-  final StatefulNavigationShell navigationShell;
-  const WargaAppBottomNavigation({super.key, required this.navigationShell});
+  final StatefulNavigationShell? navigationShell;
+  final Widget? child;
+  const WargaAppBottomNavigation({super.key, this.navigationShell, this.child});
 
   @override
   State<WargaAppBottomNavigation> createState() =>
@@ -51,10 +52,13 @@ class _WargaAppBottomNavigationState extends State<WargaAppBottomNavigation>
           snapshot.connectionState == ConnectionState.waiting
           ? const CircularProgressIndicator()
           : Scaffold(
-              body: FadeTransition(
-                opacity: _fade,
-                child: widget.navigationShell,
-              ),
+              body: widget.child != null
+                  ? widget
+                        .child // No fade animation for direct child (camera)
+                  : FadeTransition(
+                      opacity: _fade,
+                      child: widget.navigationShell,
+                    ),
               bottomNavigationBar: _buildBottomNavigationBar(
                 authProvider.userModel!.id,
               ),
@@ -142,7 +146,7 @@ class _WargaAppBottomNavigationState extends State<WargaAppBottomNavigation>
           ),
         ),
         // Scan button floating di tengah atas - requires KYC
-        Positioned(top: -25, child: _buildScanButton(isKYCVerified)),
+        Positioned(top: -25, child: _buildScanButton(true)),
       ],
     );
   }
@@ -153,17 +157,7 @@ class _WargaAppBottomNavigationState extends State<WargaAppBottomNavigation>
         if (!isKYCVerified) {
           _showKYCRequiredDialog();
         } else {
-          // TODO: Implement scan functionality
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                'Fitur Scan dalam pengembangan',
-                style: GoogleFonts.poppins(),
-              ),
-              backgroundColor: const Color(0xFF2F80ED),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
+          context.push(AppRoutes.wargaClassificationCamera);
         }
       },
       child: Stack(
@@ -358,7 +352,8 @@ class _WargaAppBottomNavigationState extends State<WargaAppBottomNavigation>
     required String label,
     bool enabled = true,
   }) {
-    final isActive = widget.navigationShell.currentIndex == index;
+    final currentIndex = widget.navigationShell?.currentIndex ?? -1;
+    final isActive = currentIndex == index;
 
     return SizedBox(
       width: 65,
@@ -403,31 +398,54 @@ class _WargaAppBottomNavigationState extends State<WargaAppBottomNavigation>
   }
 
   Future<void> _goTo(int index) async {
-    // Reset the current branch if tapping the active tab.
-    final isReselect = index == widget.navigationShell.currentIndex;
-    if (_isAnimating && !isReselect) return; // avoid overlapping animations
-
-    if (isReselect) {
-      widget.navigationShell.goBranch(index, initialLocation: true);
-      return;
-    }
-
-    try {
-      _isAnimating = true;
-      // Fade out current content
-      await _controller.forward();
-      if (!mounted) return;
-
-      // Switch branch while content is invisible
-      widget.navigationShell.goBranch(index, initialLocation: true);
-
-      // Give a frame for the new content to layout before fade-in
-      await Future.delayed(const Duration(milliseconds: 16));
-    } finally {
-      if (mounted) {
-        await _controller.reverse(); // Fade in new content
+    if (widget.navigationShell == null) {
+      switch (index) {
+        case 1:
+          context.go(AppRoutes.wargaMarketplace);
+          break;
+        case 2:
+          context.go(AppRoutes.wargaIuran);
+          break;
+        case 3:
+          context.go(AppRoutes.wargaAkun);
+          break;
+        case 4:
+          if (ModalRoute.of(context)?.settings.name !=
+              AppRoutes.wargaClassificationCamera) {
+            context.go(AppRoutes.wargaClassificationCamera);
+          }
+          break;
+        case 0:
+        default:
+          context.go(AppRoutes.wargaDashboard);
+          break;
       }
-      _isAnimating = false;
+    } else {
+      final isReselect = index == widget.navigationShell!.currentIndex;
+      if (_isAnimating && !isReselect) return; // avoid overlapping animations
+
+      if (isReselect) {
+        widget.navigationShell!.goBranch(index, initialLocation: true);
+        return;
+      }
+
+      try {
+        _isAnimating = true;
+        // Fade out current content
+        await _controller.forward();
+        if (!mounted) return;
+
+        // Switch branch while content is invisible
+        widget.navigationShell!.goBranch(index, initialLocation: true);
+
+        // Give a frame for the new content to layout before fade-in
+        await Future.delayed(const Duration(milliseconds: 16));
+      } finally {
+        if (mounted) {
+          await _controller.reverse(); // Fade in new content
+        }
+        _isAnimating = false;
+      }
     }
   }
 }

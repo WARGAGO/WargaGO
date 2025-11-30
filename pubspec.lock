@@ -137,6 +137,46 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "8.12.1"
+  camera:
+    dependency: "direct main"
+    description:
+      name: camera
+      sha256: eefad89f262a873f38d21e5eec853461737ea074d7c9ede39f3ceb135d201cab
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.11.3"
+  camera_android_camerax:
+    dependency: transitive
+    description:
+      name: camera_android_camerax
+      sha256: "6bccbf654e5deb1b3d068c5b39804cd71ca3e341326463253dd51591498e3214"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.6.25"
+  camera_avfoundation:
+    dependency: transitive
+    description:
+      name: camera_avfoundation
+      sha256: "035b90c1e33c2efad7548f402572078f6e514d4f82be0a315cd6c6af7e855aa8"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.9.22+6"
+  camera_platform_interface:
+    dependency: transitive
+    description:
+      name: camera_platform_interface
+      sha256: "98cfc9357e04bad617671b4c1f78a597f25f08003089dd94050709ae54effc63"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.12.0"
+  camera_web:
+    dependency: transitive
+    description:
+      name: camera_web
+      sha256: "77e53acb64d9de8917424eeb32b5c7c73572d1e00954bbf54a1e609d79a751a2"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.5+1"
   characters:
     dependency: transitive
     description:
@@ -799,6 +839,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
+  ming_cute_icons:
+    dependency: "direct main"
+    description:
+      name: ming_cute_icons
+      sha256: "03fbf2d9a842b05e81f3158730be4bafaf597ab8da8380eb27f23192aa6f2963"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.7"
   mockito:
     dependency: "direct main"
     description:
@@ -1111,6 +1159,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.2.2"
+  remixicon:
+    dependency: "direct main"
+    description:
+      name: remixicon
+      sha256: "9a0e6a67d622a1d6ddc5e5cff4898f9711ec8880fc2ebeb720f6e0bc268ea905"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.1"
   share_plus:
     dependency: "direct main"
     description:
