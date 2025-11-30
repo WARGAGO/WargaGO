@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:jawara/core/models/user_model.dart';
-import 'package:jawara/core/services/firestore_service.dart';
+import 'package:wargago/core/models/user_model.dart';
+import 'package:wargago/core/services/firestore_service.dart';
 
 class AuthProvider with ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;

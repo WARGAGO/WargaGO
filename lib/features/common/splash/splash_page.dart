@@ -3,9 +3,9 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:jawara/core/constants/app_routes.dart';
+import 'package:wargago/core/constants/app_routes.dart';
 
-const _wordmarkText = 'Jawara';
+const _wordmarkText = 'WargaGO';
 
 const TextStyle _wordmarkStyle = TextStyle(
   fontSize: 36,

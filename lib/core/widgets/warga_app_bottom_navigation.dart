@@ -2,9 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:jawara/core/constants/app_routes.dart';
-import 'package:jawara/core/providers/auth_provider.dart';
-import 'package:jawara/core/services/kyc_service.dart';
+import 'package:wargago/core/constants/app_routes.dart';
+import 'package:wargago/core/providers/auth_provider.dart';
+import 'package:wargago/core/services/kyc_service.dart';
 import 'package:provider/provider.dart';
 
 /// Unified Bottom Navigation Bar untuk semua halaman

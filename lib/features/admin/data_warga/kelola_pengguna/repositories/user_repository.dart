@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:jawara/core/models/user_model.dart';
+import 'package:wargago/core/models/user_model.dart';
 
 /// Repository untuk mengelola data users (akun login)
 class UserRepository {

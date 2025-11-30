@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:jawara/core/models/warga_model.dart';
-import 'package:jawara/core/providers/warga_provider.dart';
+import 'package:wargago/core/models/warga_model.dart';
+import 'package:wargago/core/providers/warga_provider.dart';
 import 'edit_data_warga_page.dart';
 
 class DetailDataWargaPage extends StatelessWidget {

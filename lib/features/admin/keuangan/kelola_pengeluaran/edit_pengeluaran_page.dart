@@ -4,8 +4,8 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'package:jawara/core/providers/pengeluaran_provider.dart';
-import 'package:jawara/core/models/pengeluaran_model.dart';
+import 'package:wargago/core/providers/pengeluaran_provider.dart';
+import 'package:wargago/core/models/pengeluaran_model.dart';
 
 class EditPengeluaranPage extends StatefulWidget {
   final PengeluaranModel pengeluaran;

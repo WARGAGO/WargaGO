@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:jawara/core/constants/app_routes.dart';
+import 'package:wargago/core/constants/app_routes.dart';
 import 'widgets/onboarding_constants.dart';
-import 'widgets/onboarding_widgets.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -19,20 +18,28 @@ class _OnboardingPageState extends State<OnboardingPage> {
 
   static final List<_OnboardingData> _slides = [
     const _OnboardingData(
-      headlinePrefix: 'Selamat Datang di App',
-      headlineAccent: 'Jawara',
+      headlinePrefix: 'Selamat Datang di',
+      headlineAccent: 'WargaGO',
       description:
-          'Halo, Admin! Selamat datang di Jawara - mari mulai mengelola data dengan cerdas.',
+          'Platform digital untuk mempermudah komunikasi dan kolaborasi dalam komunitas Anda.',
       assetPath: 'assets/illustrations/onboarding_welcome.png',
     ),
     const _OnboardingData(
-      headlinePrefix: 'Kelola Data dengan Lebih',
-      headlineAccent: 'Mudah',
+      headlinePrefix: 'Semua dalam Satu',
+      headlineAccent: 'Aplikasi',
       description:
-          'Pantau, ubah, dan kelola informasi langsung dari satu dashboard efisien.',
+          'Akses informasi, pengumuman, dan berbagai layanan komunitas kapan saja, di mana saja.',
       assetPath: 'assets/illustrations/onboarding_manage.png',
     ),
+    const _OnboardingData(
+      headlinePrefix: 'Tetap',
+      headlineAccent: 'Terhubung',
+      description:
+          'Dapatkan update terbaru dan tetap terhubung dengan komunitas Anda setiap saat.',
+      assetPath: 'assets/illustrations/onboarding_monitor.png',
+    ),
   ];
+
 
   @override
   void dispose() {
@@ -52,106 +59,139 @@ class _OnboardingPageState extends State<OnboardingPage> {
     );
   }
 
-  // Framer-like custom easing functions
-  double _customEase(double t) {
-    // Ensure the input for transform is within [0,1] to avoid assertion
-    final clamped = t.clamp(0.0, 1.0);
-    return Curves.easeOutQuart.transform(clamped);
-  }
-
-  double _springEase(double t) {
-    // Clamp to avoid invalid input to curve transform
-    final clamped = t.clamp(0.0, 1.0);
-    return Curves.elasticOut.transform(clamped);
-  }
-
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: OnboardingSpacing.lg),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: OnboardingSpacing.md),
-              OnboardingBrandHeader(
-                currentIndex: _currentPage,
-                total: _slides.length,
+      body: Stack(
+        children: [
+          // PageView dengan fullscreen background
+          PageView.builder(
+            controller: _pageController,
+            itemCount: _slides.length,
+            physics: const BouncingScrollPhysics(),
+            onPageChanged: (value) => setState(() => _currentPage = value),
+            itemBuilder: (context, index) {
+              final slide = _slides[index];
+              final isLast = index == _slides.length - 1;
+
+              return _OnboardingSlide(
+                key: ValueKey(index),
+                data: slide,
                 accentColor: _accentColor,
-              ),
-              const SizedBox(height: OnboardingSpacing.lg),
-              Expanded(
-                child: PageView.builder(
-                  controller: _pageController,
-                  itemCount: _slides.length,
-                  physics: const BouncingScrollPhysics(),
-                  onPageChanged: (value) =>
-                      setState(() => _currentPage = value),
-                  itemBuilder: (context, index) {
-                    final slide = _slides[index];
-                    final isLast = index == _slides.length - 1;
-                    return AnimatedBuilder(
-                      animation: _pageController,
-                      builder: (context, child) {
-                        double pageOffset = 0.0;
-                        if (_pageController.position.haveDimensions) {
-                          pageOffset = (_pageController.page ?? 0) - index;
-                        }
+                isLast: isLast,
+                onNextPressed: _handleNext,
+                pageController: _pageController,
+                pageIndex: index,
+              );
+            },
+          ),
 
-                        // Framer-like smooth animations with custom curves
-                        final double progress = (-pageOffset).clamp(-1.0, 1.0);
-
-                        // Advanced opacity with custom easing
-                        final double rawOpacity = (1 - pageOffset.abs() * 0.5);
-                        final double opacity = rawOpacity.clamp(0.0, 1.0);
-                        final easedOpacity = _customEase(opacity);
-
-                        // Scale with spring-like effect
-                        final double rawScale = 1.0 - (pageOffset.abs() * 0.2);
-                        final double clampedScale = rawScale.clamp(0.8, 1.0);
-                        final easedScale = _springEase(clampedScale);
-
-                        // 3D rotation with perspective
-                        final double rotation =
-                            progress * 0.15; // More dramatic
-                        final double rotationY = progress * 0.4;
-
-                        // Parallax slide with ease
-                        final double slideX = pageOffset * 120;
-                        final double slideY = pageOffset.abs() * 20;
-
-                        return Transform(
-                          transform: Matrix4.identity()
-                            ..setEntry(3, 2, 0.001) // perspective
-                            ..rotateZ(rotation * 0.05) // Slight Z rotation
-                            ..rotateY(rotationY)
-                            ..rotateX(progress * 0.05) // Slight X tilt
-                            ..setTranslationRaw(slideX, slideY, 0.0),
-                          alignment: Alignment.center,
-                          child: Transform.scale(
-                            scale: easedScale,
-                            child: Opacity(opacity: easedOpacity, child: child),
+          // Header dengan logo dan close button
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: OnboardingSpacing.lg,
+                  vertical: OnboardingSpacing.md,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Logo dan nama app
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
-                        );
-                      },
-                      child: _OnboardingSlide(
-                        key: ValueKey(index),
-                        data: slide,
-                        accentColor: _accentColor,
-                        isLast: isLast,
-                        onNextPressed: _handleNext,
-                        pageController: _pageController,
-                        pageIndex: index,
+                          child: Image.asset(
+                            'assets/icons/icon.png',
+                            height: 24,
+                            width: 24,
+                            errorBuilder: (_, __, ___) =>
+                                Icon(Icons.fingerprint, color: _accentColor, size: 24),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Text(
+                          'WargaGO',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            letterSpacing: 1.2,
+                            shadows: [
+                              Shadow(
+                                color: Colors.black.withValues(alpha: 0.3),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // Close button
+                    IconButton(
+                      onPressed: () => context.go(AppRoutes.preAuth),
+                      icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.black.withValues(alpha: 0.3),
+                        padding: const EdgeInsets.all(8),
                       ),
-                    );
-                  },
+                    ),
+                  ],
                 ),
               ),
-            ],
+            ),
           ),
-        ),
+
+          // Page indicators di bawah
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: const EdgeInsets.all(OnboardingSpacing.lg),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(_slides.length, (index) {
+                    return AnimatedContainer(
+                      duration: OnboardingDurations.progress,
+                      curve: Curves.easeInOutCubic,
+                      width: _currentPage == index ? 32 : 8,
+                      height: 8,
+                      margin: const EdgeInsets.symmetric(horizontal: 4),
+                      decoration: BoxDecoration(
+                        color: _currentPage == index
+                            ? Colors.white
+                            : Colors.white.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -196,16 +236,19 @@ class _OnboardingSlideState extends State<_OnboardingSlide>
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _animController,
-        curve: const Interval(0.0, 0.5, curve: Curves.easeOutExpo),
+        curve: const Interval(0.0, 0.6, curve: Curves.easeOutExpo),
       ),
     );
 
     _slideAnimation =
-        Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(
-          CurvedAnimation(parent: _animController, curve: Curves.elasticOut),
-        );
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+      CurvedAnimation(
+        parent: _animController,
+        curve: const Interval(0.2, 0.8, curve: Curves.easeOutCubic),
+      ),
+    );
 
-    // Delay start for smoother entrance
+    // Auto start animation
     Future.delayed(const Duration(milliseconds: 100), () {
       if (mounted) {
         _animController.forward();
@@ -221,127 +264,185 @@ class _OnboardingSlideState extends State<_OnboardingSlide>
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: widget.pageController,
-      builder: (context, child) {
-        double parallaxOffset = 0.0;
-        if (widget.pageController.position.haveDimensions) {
-          final pageOffset =
-              (widget.pageController.page ?? 0) - widget.pageIndex;
-          parallaxOffset = pageOffset * 30;
-        }
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // Background image fullscreen
+        Positioned.fill(
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: Image.asset(
+              widget.data.assetPath,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) {
+                // Fallback gradient background jika gambar tidak ada
+                return Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        widget.accentColor,
+                        widget.accentColor.withValues(alpha: 0.7),
+                      ],
+                    ),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      Icons.image_outlined,
+                      size: 120,
+                      color: Colors.white.withValues(alpha: 0.3),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Animated Headline
-            FadeTransition(
-              opacity: _fadeAnimation,
-              child: SlideTransition(
-                position: _slideAnimation,
-                child: OnboardingHeadline(
-                  prefix: widget.data.headlinePrefix,
-                  accent: widget.data.headlineAccent,
-                  accentColor: widget.accentColor,
-                ),
+        // Gradient overlay untuk readability teks
+        Positioned.fill(
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withValues(alpha: 0.3),
+                  Colors.black.withValues(alpha: 0.5),
+                  Colors.black.withValues(alpha: 0.8),
+                ],
+                stops: const [0.0, 0.5, 1.0],
               ),
             ),
-            const SizedBox(height: OnboardingSpacing.md),
+          ),
+        ),
 
-            // Animated Description
-            FadeTransition(
-              opacity: CurvedAnimation(
-                parent: _animController,
-                curve: const Interval(0.2, 0.8, curve: Curves.easeOut),
-              ),
-              child: SlideTransition(
-                position:
-                    Tween<Offset>(
-                      begin: const Offset(0, 0.3),
-                      end: Offset.zero,
-                    ).animate(
-                      CurvedAnimation(
-                        parent: _animController,
-                        curve: const Interval(
-                          0.2,
-                          0.8,
-                          curve: Curves.easeOutCubic,
+        // Content di bawah
+        Positioned(
+          bottom: 80, // Space untuk page indicators
+          left: 0,
+          right: 0,
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: OnboardingSpacing.xl),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Headline dengan animasi
+                  FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: SlideTransition(
+                      position: _slideAnimation,
+                      child: Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: '${widget.data.headlinePrefix} ',
+                              style: const TextStyle(
+                                fontSize: 28,
+                                height: 1.2,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                            TextSpan(
+                              text: widget.data.headlineAccent,
+                              style: TextStyle(
+                                fontSize: 28,
+                                height: 1.2,
+                                fontWeight: FontWeight.w700,
+                                color: widget.accentColor,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                          ],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: OnboardingSpacing.md),
+
+                  // Description dengan animasi
+                  FadeTransition(
+                    opacity: CurvedAnimation(
+                      parent: _animController,
+                      curve: const Interval(0.3, 0.9, curve: Curves.easeOut),
+                    ),
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0, 0.2),
+                        end: Offset.zero,
+                      ).animate(
+                        CurvedAnimation(
+                          parent: _animController,
+                          curve: const Interval(0.3, 0.9, curve: Curves.easeOutCubic),
+                        ),
+                      ),
+                      child: Text(
+                        widget.data.description,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 15,
+                          height: 1.6,
+                          color: Colors.white.withValues(alpha: 0.9),
+                          letterSpacing: 0.2,
                         ),
                       ),
                     ),
-                child: const Text(
-                  // ...existing code... replaced for style consistency
-                  '',
-                  style: TextStyle(
-                    fontSize: 15,
-                    height: 1.5,
-                    color: OnboardingColors.textSecondary,
                   ),
-                ),
-              ),
-            ),
-            // Replace above with real description text
-            Text(
-              widget.data.description,
-              style: const TextStyle(
-                fontSize: 15,
-                height: 1.5,
-                color: OnboardingColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: OnboardingSpacing.lg),
 
-            // Animated Button with Micro-interactions
-            FadeTransition(
-              opacity: CurvedAnimation(
-                parent: _animController,
-                curve: const Interval(0.5, 1.0, curve: Curves.easeOutExpo),
-              ),
-              child: SlideTransition(
-                position:
-                    Tween<Offset>(
-                      begin: const Offset(0, 0.5),
-                      end: Offset.zero,
-                    ).animate(
-                      CurvedAnimation(
+                  // Tombol "Mulai" hanya di slide terakhir
+                  if (widget.isLast) ...[
+                    const SizedBox(height: OnboardingSpacing.xl),
+                    FadeTransition(
+                      opacity: CurvedAnimation(
                         parent: _animController,
-                        curve: const Interval(
-                          0.5,
-                          1.0,
-                          curve: Curves.elasticOut,
+                        curve: const Interval(0.5, 1.0, curve: Curves.easeOut),
+                      ),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton(
+                          onPressed: widget.onNextPressed,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: widget.accentColor,
+                            foregroundColor: Colors.white,
+                            elevation: 4,
+                            shadowColor: widget.accentColor.withValues(alpha: 0.4),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Text(
+                                'Mulai Sekarang',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Icon(Icons.arrow_forward_rounded, size: 20),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                child: OnboardingPrimaryButton(
-                  color: widget.accentColor,
-                  text: widget.isLast ? 'Mulai' : 'Next',
-                  onPressed: widget.onNextPressed,
-                ),
+                  ],
+                ],
               ),
             ),
-            const SizedBox(height: OnboardingSpacing.lg),
-
-            // Animated Illustration with Parallax
-            Expanded(
-              child: FadeTransition(
-                opacity: CurvedAnimation(
-                  parent: _animController,
-                  curve: const Interval(0.3, 0.9, curve: Curves.easeOut),
-                ),
-                child: Transform.translate(
-                  offset: Offset(parallaxOffset, 0),
-                  child: Transform.scale(
-                    scale: 1.0,
-                    child: OnboardingIllustration(
-                      assetPath: widget.data.assetPath,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
+          ),
+        ),
+      ],
     );
   }
 }

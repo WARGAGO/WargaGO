@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
-import 'package:jawara/core/configs/url_pcvk_api.dart';
-import 'package:jawara/core/models/OCR/health_response.dart';
-import 'package:jawara/core/models/OCR/ocr_response.dart';
+import 'package:wargago/core/configs/url_pcvk_api.dart';
+import 'package:wargago/core/models/OCR/health_response.dart';
+import 'package:wargago/core/models/OCR/ocr_response.dart';
 
 class OCRService {
   late final http.Client _client;

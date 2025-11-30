@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'package:jawara/core/widgets/admin_app_bottom_navigation.dart';
+import 'package:wargago/core/widgets/admin_app_bottom_navigation.dart';
 import 'tambah_data_warga_page.dart';
 import 'tambah_data_rumah_page.dart';
 import 'widgets/custom_data_penduduk_tab_bar.dart';

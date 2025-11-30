@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:jawara/core/enums/kyc_enum.dart';
-import 'package:jawara/core/models/KYC/kk_model.dart';
-import 'package:jawara/core/models/KYC/ktp_model.dart';
+import 'package:wargago/core/enums/kyc_enum.dart';
+import 'package:wargago/core/models/KYC/kk_model.dart';
+import 'package:wargago/core/models/KYC/ktp_model.dart';
 
 class KYCDocumentModel {
   final String? id;

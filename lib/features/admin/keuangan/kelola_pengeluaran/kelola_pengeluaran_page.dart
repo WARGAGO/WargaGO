@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import 'package:jawara/core/providers/pengeluaran_provider.dart';
-import 'package:jawara/core/providers/auth_provider.dart';
-import 'package:jawara/core/models/pengeluaran_model.dart';
+import 'package:wargago/core/providers/pengeluaran_provider.dart';
+import 'package:wargago/core/providers/auth_provider.dart';
+import 'package:wargago/core/models/pengeluaran_model.dart';
 import 'tambah_pengeluaran_page.dart';
 import 'edit_pengeluaran_page.dart';
 import 'widgets/pengeluaran_header.dart';
@@ -56,15 +56,8 @@ class _KelolaPengeluaranPageState extends State<KelolaPengeluaranPage> {
       }).toList();
     }
 
-    // Filter by selected date (compare year, month, day only)
-    filtered = filtered.where((item) {
-      final itemDate = item.tanggal;
-      final selectedDate = _selectedDate;
-
-      return itemDate.year == selectedDate.year &&
-             itemDate.month == selectedDate.month &&
-             itemDate.day == selectedDate.day;
-    }).toList();
+    // NO DATE FILTER - Show all data
+    // Filter tanggal dihapus agar semua data muncul
 
     return filtered;
   }

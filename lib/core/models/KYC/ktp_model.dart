@@ -1,4 +1,4 @@
-import 'package:jawara/core/models/OCR/ocr_response.dart';
+import 'package:wargago/core/models/OCR/ocr_response.dart';
 
 class KTPModel {
   final String? nik;

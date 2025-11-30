@@ -15,7 +15,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:jawara/core/providers/auth_provider.dart';
+import 'package:wargago/core/providers/auth_provider.dart';
 import '../../widgets/auth_constants.dart';
 import '../../widgets/auth_widgets.dart';
 

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:jawara/core/models/user_model.dart';
+import 'package:wargago/core/models/user_model.dart';
 
 import 'detail_pengguna_page.dart';
 import 'tambah_pengguna_page.dart';

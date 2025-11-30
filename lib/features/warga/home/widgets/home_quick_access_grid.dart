@@ -6,6 +6,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wargago/features/warga/laporan_keuangan/laporan_keuangan_list_page.dart';
 
 class HomeQuickAccessGrid extends StatelessWidget {
   const HomeQuickAccessGrid({super.key});
@@ -33,16 +34,23 @@ class HomeQuickAccessGrid extends StatelessWidget {
           onTap: () {},
         ),
         _QuickAccessCard(
-          icon: Icons.campaign_rounded,
-          title: 'Pengumuman',
-          subtitle: 'Lihat info terbaru',
+          icon: Icons.account_balance_wallet_rounded,
+          title: 'Laporan Keuangan',
+          subtitle: 'Transparansi RT',
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [Color(0xFF10B981), Color(0xFF059669)],
           ),
-          badge: '5 Baru',
-          onTap: () {},
+          badge: 'Baru',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const LaporanKeuanganListPage(),
+              ),
+            );
+          },
         ),
         _QuickAccessCard(
           icon: Icons.event_note_rounded,
@@ -176,52 +184,70 @@ class _QuickAccessCardState extends State<_QuickAccessCard>
 
               // Content
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        gradient: widget.gradient,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: widget.gradient.colors.first
-                                .withValues(alpha: 0.3),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
+                    // Icon Container - rata tengah
+                    Center(
+                      child: Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          gradient: widget.gradient,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: widget.gradient.colors.first
+                                  .withValues(alpha: 0.3),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Icon(
+                            widget.icon,
+                            size: 32,
+                            color: Colors.white,
                           ),
-                        ],
-                      ),
-                      child: Icon(
-                        widget.icon,
-                        size: 32,
-                        color: Colors.white,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      widget.title,
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF1F2937),
-                        letterSpacing: -0.2,
-                        height: 1.2,
+                    const SizedBox(height: 14),
+                    // Title - rata tengah
+                    SizedBox(
+                      width: double.infinity,
+                      child: Text(
+                        widget.title,
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF1F2937),
+                          letterSpacing: -0.2,
+                          height: 1.3,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      widget.subtitle,
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w400,
-                        color: const Color(0xFF6B7280),
-                        height: 1.2,
+                    // Subtitle - rata tengah
+                    SizedBox(
+                      width: double.infinity,
+                      child: Text(
+                        widget.subtitle,
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w400,
+                          color: const Color(0xFF6B7280),
+                          height: 1.3,
+                        ),
                       ),
                     ),
                   ],

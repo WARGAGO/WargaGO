@@ -3,8 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
-import 'package:jawara/core/providers/laporan_keuangan_detail_provider.dart';
-import 'package:jawara/core/models/laporan_keuangan_detail_model.dart';
+import 'package:wargago/core/providers/laporan_keuangan_detail_provider.dart';
+import 'package:wargago/core/models/laporan_keuangan_detail_model.dart';
 
 class DetailLaporanKeuanganPage extends StatefulWidget {
   const DetailLaporanKeuanganPage({super.key});

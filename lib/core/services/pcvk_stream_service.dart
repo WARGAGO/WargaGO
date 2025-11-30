@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as imglib;
-import 'package:jawara/core/configs/url_pcvk_api.dart';
-import 'package:jawara/core/models/PCVK/websocket_config.dart';
-import 'package:jawara/core/models/PCVK/websocket_predict_response.dart';
+import 'package:wargago/core/configs/url_pcvk_api.dart';
+import 'package:wargago/core/models/PCVK/websocket_config.dart';
+import 'package:wargago/core/models/PCVK/websocket_predict_response.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class PCVKStreamService {

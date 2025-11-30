@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:jawara/core/services/warga_service.dart';
-import 'package:jawara/core/models/warga_model.dart';
+import 'package:wargago/core/services/warga_service.dart';
+import 'package:wargago/core/models/warga_model.dart';
 
 /// Warga Provider
 /// Provider untuk manage state data warga dengan CRUD lengkap

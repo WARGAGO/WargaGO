@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:jawara/core/models/BlobStorage/storage_response.dart';
-import 'package:jawara/core/models/BlobStorage/user_images_response.dart';
-import 'package:jawara/core/services/azure_blob_storage_service.dart';
+import 'package:wargago/core/models/BlobStorage/storage_response.dart';
+import 'package:wargago/core/models/BlobStorage/user_images_response.dart';
+import 'package:wargago/core/services/azure_blob_storage_service.dart';
 
 import '../fixtures/utils.dart';
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:jawara/core/providers/rumah_provider.dart';
+import 'package:wargago/core/providers/rumah_provider.dart';
 import '../widgets/rumah_card_item.dart';
 
 /// List widget untuk menampilkan daftar data rumah

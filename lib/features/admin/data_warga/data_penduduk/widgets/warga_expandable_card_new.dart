@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:jawara/core/models/warga_model.dart';
+import 'package:wargago/core/models/warga_model.dart';
 import '../detail_data_warga_page.dart';
 import '../edit_data_warga_page.dart';
 

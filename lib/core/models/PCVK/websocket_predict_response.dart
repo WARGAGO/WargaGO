@@ -1,5 +1,5 @@
-import 'package:jawara/core/enums/predict_class_enum.dart';
-import 'package:jawara/core/enums/pcvk_modeltype.dart';
+import 'package:wargago/core/enums/predict_class_enum.dart';
+import 'package:wargago/core/enums/pcvk_modeltype.dart';
 
 class WebSocketPredictResponse {
   final String type;

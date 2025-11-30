@@ -10,7 +10,7 @@ import 'package:integration_test/integration_test.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 // Import main app
-import 'package:jawara/main.dart' as app;
+import 'package:wargago/main.dart' as app;
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();

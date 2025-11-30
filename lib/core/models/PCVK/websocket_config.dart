@@ -1,4 +1,4 @@
-import 'package:jawara/core/enums/pcvk_modeltype.dart';
+import 'package:wargago/core/enums/pcvk_modeltype.dart';
 
 class WebSocketConfig {
   final bool useSegmentation;

@@ -3,8 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:jawara/core/providers/pemasukan_lain_provider.dart';
-import 'package:jawara/core/models/pemasukan_lain_model.dart';
+import 'package:wargago/core/providers/pemasukan_lain_provider.dart';
+import 'package:wargago/core/models/pemasukan_lain_model.dart';
 
 class PemasukanNonIuranPage extends StatefulWidget {
   const PemasukanNonIuranPage({super.key});

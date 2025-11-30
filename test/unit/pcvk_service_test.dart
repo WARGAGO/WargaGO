@@ -6,13 +6,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
-import 'package:jawara/core/enums/pcvk_modeltype.dart';
-import 'package:jawara/core/enums/predict_class_enum.dart';
-import 'package:jawara/core/models/PCVK/batch_predict_response.dart';
-import 'package:jawara/core/models/PCVK/health_response.dart';
-import 'package:jawara/core/models/PCVK/models_response.dart';
-import 'package:jawara/core/models/PCVK/predict_response.dart';
-import 'package:jawara/core/services/pcvk_service.dart';
+import 'package:wargago/core/models/PCVK/batch_predict_response.dart';
+import 'package:wargago/core/models/PCVK/health_response.dart';
+import 'package:wargago/core/models/PCVK/models_response.dart';
+import 'package:wargago/core/models/PCVK/predict_response.dart';
+import 'package:wargago/core/services/pcvk_service.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
 
@@ -283,7 +281,6 @@ void main() async {
           "segmentation_used": true,
           "segmentation_method": "u2netp",
           "apply_brightness_contrast": true,
-          "prediction_time_ms": 150.5,
         });
         expect(result.modelType, PcvkModelType.mlpv2AutoClahe);
 
@@ -400,7 +397,7 @@ void main() async {
           expect(result.predictions.length, 2);
 
           // First result
-          expect(result.predictions[0].predictedClass, PredictClass.sayurAkar);
+          expect(result.predictions[0].predictedClass, 'Sayur Akar');
           expect(result.predictions[0].confidence, 0.9439828395843506);
           expect(
             result.predictions[0].allConfidences['Sayur Akar'],
@@ -411,7 +408,7 @@ void main() async {
           expect(result.predictions[0].error, null);
 
           // Second result
-          expect(result.predictions[1].predictedClass, PredictClass.sayurBuah);
+          expect(result.predictions[1].predictedClass, 'Sayur Buah');
           expect(result.predictions[1].confidence, 0.7061872482299805);
           expect(
             result.predictions[1].allConfidences['Sayur Buah'],
@@ -447,7 +444,7 @@ void main() async {
         expect(result.predictions.length, 2);
 
         // First result
-        expect(result.predictions[0].predictedClass, PredictClass.sayurAkar);
+        expect(result.predictions[0].predictedClass, 'Sayur Akar');
         expect(result.predictions[0].confidence, 0.9439828395843506);
         expect(
           result.predictions[0].allConfidences['Sayur Akar'],

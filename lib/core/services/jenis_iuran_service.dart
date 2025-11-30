@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:jawara/core/models/jenis_iuran_model.dart';
+import 'package:wargago/core/models/jenis_iuran_model.dart';
 import 'firebase_service.dart';
 
 /// Jenis Iuran Service

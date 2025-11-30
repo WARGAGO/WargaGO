@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:jawara/core/providers/warga_provider.dart';
+import 'package:wargago/core/providers/warga_provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../widgets/warga_expandable_card.dart';
 

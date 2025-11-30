@@ -2,9 +2,9 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:jawara/core/configs/url_pcvk_api.dart';
-import 'package:jawara/core/models/BlobStorage/storage_response.dart';
-import 'package:jawara/core/models/BlobStorage/user_images_response.dart';
+import 'package:wargago/core/configs/url_pcvk_api.dart';
+import 'package:wargago/core/models/BlobStorage/storage_response.dart';
+import 'package:wargago/core/models/BlobStorage/user_images_response.dart';
 
 class AzureBlobStorageService {
   static const String _uploadPublicEndpoint = 'storage/public/upload';

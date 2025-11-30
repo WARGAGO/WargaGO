@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:jawara/core/providers/jenis_iuran_provider.dart';
-import 'package:jawara/core/providers/auth_provider.dart';
-import 'package:jawara/core/models/jenis_iuran_model.dart';
+import 'package:wargago/core/providers/jenis_iuran_provider.dart';
+import 'package:wargago/core/providers/auth_provider.dart';
+import 'package:wargago/core/models/jenis_iuran_model.dart';
 
 class FormJenisIuranPage extends StatefulWidget {
   final JenisIuranModel? jenisIuran; // null untuk create, ada value untuk edit

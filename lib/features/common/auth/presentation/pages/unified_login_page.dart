@@ -17,11 +17,11 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
-import 'package:jawara/core/constants/app_routes.dart';
+import 'package:wargago/core/constants/app_routes.dart';
 import 'package:provider/provider.dart';
-import 'package:jawara/core/providers/auth_provider.dart';
-import 'package:jawara/features/common/auth/presentation/widgets/auth_constants.dart';
-import 'package:jawara/features/common/auth/presentation/widgets/auth_widgets.dart';
+import 'package:wargago/core/providers/auth_provider.dart';
+import 'package:wargago/features/common/auth/presentation/widgets/auth_constants.dart';
+import 'package:wargago/features/common/auth/presentation/widgets/auth_widgets.dart';
 
 /// AdminLoginPage - Halaman login untuk admin
 ///

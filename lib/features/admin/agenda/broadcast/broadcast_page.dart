@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'tambah_broadcast_page.dart';
 import 'edit_broadcast_page.dart';
 import '../kegiatan/kegiatan_page.dart';
-import 'package:jawara/core/providers/agenda_provider.dart';
+import 'package:wargago/core/providers/agenda_provider.dart';
 
 class BroadcastPage extends StatefulWidget {
   const BroadcastPage({super.key});

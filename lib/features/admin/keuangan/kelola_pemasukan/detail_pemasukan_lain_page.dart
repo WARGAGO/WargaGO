@@ -239,7 +239,7 @@ class DetailPemasukanLainPage extends StatelessWidget {
                           const Divider(height: 24),
                           _buildDetailRow(
                             'Verifikator',
-                            'Admin Jawara',
+                            'Admin WargaGo',
                             Icons.admin_panel_settings_rounded,
                             const Color(0xFF3B82F6),
                           ),

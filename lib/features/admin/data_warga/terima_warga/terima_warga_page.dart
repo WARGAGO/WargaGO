@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:jawara/core/widgets/admin_app_bottom_navigation.dart';
+import 'package:wargago/core/widgets/admin_app_bottom_navigation.dart';
 import 'models/pending_warga_model.dart';
 import 'repositories/pending_warga_repository.dart';
 

@@ -9,9 +9,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
-import 'package:jawara/main.dart' as app;
-import 'package:jawara/test_helpers/mock_data.dart';
-import 'package:jawara/test_helpers/data_penduduk_test_helper.dart';
+import 'package:wargago/main.dart' as app;
+import 'package:wargago/test_helpers/mock_data.dart';
+import 'package:wargago/test_helpers/data_penduduk_test_helper.dart';
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
