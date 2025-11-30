@@ -38,7 +38,7 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
       _cameras = await availableCameras();
       _cameraController = CameraController(
         _cameras[0],
-        ResolutionPreset.max,
+        ResolutionPreset.high,
         enableAudio: false,
       );
       await _cameraController!.initialize();
