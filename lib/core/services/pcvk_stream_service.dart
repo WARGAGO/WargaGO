@@ -92,6 +92,11 @@ class PCVKStreamService {
     }
   }
 
+  // Update camera controller (for camera switching)
+  void updateCameraController(CameraController? newController) {
+    _cameraController = newController;
+  }
+
   Future<void> startStreaming(webSocketConfig) async {
     if (_cameraController == null ||
         !_cameraController!.value.isInitialized ||

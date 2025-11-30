@@ -30,6 +30,8 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
   late List<CameraDescription> _cameras;
   late final Future<void> _initializeCameraFuture;
   bool _isProcessing = false;
+  int _currentCameraIndex = 0; // Track current camera index
+  bool _isSwitchingCamera = false; // Track switching state
 
   late final ImagePicker _imagePicker;
   bool? _useEfficient;
@@ -41,7 +43,7 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
     try {
       _cameras = await availableCameras();
       _cameraController = CameraController(
-        _cameras[0],
+        _cameras[_currentCameraIndex], // Use current camera index
         ResolutionPreset.high,
         enableAudio: false,
       );
@@ -116,6 +118,56 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
       }
     } on CameraException catch (e) {
       debugPrint('Error toggling flash: $e');
+    }
+  }
+
+  // Switch camera function (front ↔️ back)
+  Future<void> _switchCamera() async {
+    if (_cameras.length < 2 || _isSwitchingCamera) {
+      return; // No other camera available or already switching
+    }
+
+    setState(() => _isSwitchingCamera = true);
+
+    try {
+      // Stop streaming if active
+      if (_pcvkStreamService.isStreaming) {
+        _pcvkStreamService.stopStreaming();
+      }
+
+      // Turn off flash if it's on
+      if (_isFlashOn) {
+        await _cameraController!.setFlashMode(FlashMode.off);
+        _isFlashOn = false;
+      }
+
+      // Dispose old controller
+      await _cameraController?.dispose();
+
+      // Switch to next camera
+      _currentCameraIndex = (_currentCameraIndex + 1) % _cameras.length;
+
+      // Initialize new camera controller
+      _cameraController = CameraController(
+        _cameras[_currentCameraIndex],
+        ResolutionPreset.high,
+        enableAudio: false,
+      );
+
+      // Update stream service with new controller
+      _pcvkStreamService.updateCameraController(_cameraController);
+
+      // Initialize the new camera
+      await _cameraController!.initialize();
+
+      if (mounted) {
+        setState(() => _isSwitchingCamera = false);
+      }
+    } on CameraException catch (e) {
+      debugPrint('Error switching camera: $e');
+      if (mounted) {
+        setState(() => _isSwitchingCamera = false);
+      }
     }
   }
 
@@ -599,8 +651,29 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
                       ),
                     ),
                   ),
-                  // Spacer for symmetry
-                  const SizedBox(width: 56),
+                  // Camera Switch Button (Right) - Symmetry with gallery
+                  _cameras.length > 1
+                      ? WhiteButton(
+                          padding: const EdgeInsets.all(16),
+                          color: Colors.white.withValues(alpha: 0.75),
+                          onTap: _isSwitchingCamera ? null : _switchCamera,
+                          child: _isSwitchingCamera
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Color(0xFF2F80ED),
+                                  ),
+                                )
+                              : Icon(
+                                  _currentCameraIndex == 0
+                                      ? Remix.camera_switch_fill
+                                      : Remix.camera_switch_line,
+                                  color: const Color(0xFF2F80ED),
+                                ),
+                        )
+                      : const SizedBox(width: 56),
                 ],
               ),
             ),
@@ -618,7 +691,28 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
             : Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const SizedBox(width: 40),
+                  // Camera Switch Button (Left)
+                  _cameras.length > 1
+                      ? InkWellIconButton(
+                          onTap: _isSwitchingCamera ? null : _switchCamera,
+                          icon: _isSwitchingCamera
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Icon(
+                                  size: 24,
+                                  _currentCameraIndex == 0
+                                      ? Remix.camera_switch_fill
+                                      : Remix.camera_switch_line,
+                                  color: Colors.white,
+                                ),
+                        )
+                      : const SizedBox(width: 40),
                   // InkWellIconButton(
                   //   onTap: () => setState(() => _picture = null),
                   //   padding: 16,
@@ -641,7 +735,7 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
                           children: [
                             Text(
                               _pcvkStreamService.isStreaming
-                                  ? '${_result?.predictedClass ?? "..."} $_currentVeggie\nKepercayaan: ${_result?.confidence.toStringAsFixed(2) ?? "..."}%'
+                                  ? '${_result?.predictedClass ?? "..."} $_currentVeggie\nKepercayaan: ${((_result?.confidence??0) * 100).toStringAsFixed(0)}%'
                                   : 'Aktifkan\nLive Preview',
                               textAlign: TextAlign.center,
                               style: GoogleFonts.poppins().copyWith(
@@ -663,6 +757,7 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
                         ),
                       ),
                     ),
+                  // Flash Button (Right)
                   InkWellIconButton(
                     onTap: _toggleFlash,
                     icon: Icon(
@@ -695,22 +790,44 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
                       ),
                     ),
                   )
-                : LayoutBuilder(
-                    builder: (context, constraints) {
-                      final mediaSize = MediaQuery.of(context).size;
-                      final scale =
-                          1 /
-                          (_cameraController!.value.aspectRatio *
-                              mediaSize.aspectRatio);
-                      return ClipRect(
-                        clipper: _MediaSizeClipper(mediaSize),
-                        child: Transform.scale(
-                          scale: scale,
-                          alignment: Alignment.topCenter,
-                          child: CameraPreview(_cameraController!),
-                        ),
+                : AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    switchInCurve: Curves.easeInOut,
+                    switchOutCurve: Curves.easeInOut,
+                    transitionBuilder: (Widget child, Animation<double> animation) {
+                      return FadeTransition(
+                        opacity: animation,
+                        child: child,
                       );
                     },
+                    child: _isSwitchingCamera
+                        ? Container(
+                            key: const ValueKey('switching'),
+                            color: Colors.black,
+                            child: const Center(
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                              ),
+                            ),
+                          )
+                        : LayoutBuilder(
+                            key: ValueKey(_currentCameraIndex), // Key for animation
+                            builder: (context, constraints) {
+                              final mediaSize = MediaQuery.of(context).size;
+                              final scale =
+                                  1 /
+                                  (_cameraController!.value.aspectRatio *
+                                      mediaSize.aspectRatio);
+                              return ClipRect(
+                                clipper: _MediaSizeClipper(mediaSize),
+                                child: Transform.scale(
+                                  scale: scale,
+                                  alignment: Alignment.topCenter,
+                                  child: CameraPreview(_cameraController!),
+                                ),
+                              );
+                            },
+                          ),
                   )
           : const Center(child: CircularProgressIndicator()),
     );

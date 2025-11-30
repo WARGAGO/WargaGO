@@ -22,21 +22,21 @@ class _OnboardingPageState extends State<OnboardingPage> {
       headlineAccent: 'WargaGO',
       description:
           'Platform digital untuk mempermudah komunikasi dan kolaborasi dalam komunitas Anda.',
-      assetPath: 'assets/illustrations/onboarding_welcome.png',
+      assetPath: 'assets/illustrations/onboarding slide 1.jpg',
     ),
     const _OnboardingData(
       headlinePrefix: 'Semua dalam Satu',
       headlineAccent: 'Aplikasi',
       description:
           'Akses informasi, pengumuman, dan berbagai layanan komunitas kapan saja, di mana saja.',
-      assetPath: 'assets/illustrations/onboarding_manage.png',
+      assetPath: 'assets/illustrations/IMG00012.jpg',
     ),
     const _OnboardingData(
       headlinePrefix: 'Tetap',
       headlineAccent: 'Terhubung',
       description:
           'Dapatkan update terbaru dan tetap terhubung dengan komunitas Anda setiap saat.',
-      assetPath: 'assets/illustrations/onboarding_monitor.png',
+      assetPath: 'assets/illustrations/1.jpg',
     ),
   ];
 
