@@ -138,6 +138,12 @@ app_gradio.py
 
 ### API
 
+FastAPI-based REST and WebSocket API for vegetable classification.
+
 ```python
 app.py
 ```
+
+#### WebSocket API
+
+Real-time prediction endpoint at `ws://localhost:8000/api/pcvk/ws/predict`
