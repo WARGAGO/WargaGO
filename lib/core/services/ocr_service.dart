@@ -14,9 +14,7 @@ class OCRService {
   }
 
   Future<OcrHealthResponse> getHealth() async {
-    final response = await _client.get(
-      UrlPCVKAPI.buildAzureEndpoint('ocr/health'),
-    );
+    final response = await _client.get(UrlPCVKAPI.buildEndpoint('ocr/health'));
     if (response.statusCode == 200) {
       return OcrHealthResponse.fromJson(json.decode(response.body));
     } else {
@@ -25,7 +23,7 @@ class OCRService {
   }
 
   Future<OcrResponse> recognizeText(File picture) async {
-    final uri = UrlPCVKAPI.buildAzureEndpoint('ocr/recognize');
+    final uri = UrlPCVKAPI.buildEndpoint('ocr/recognize');
     final request = http.MultipartRequest('POST', uri);
     request.files.add(
       await http.MultipartFile.fromPath(

@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:jawara/core/enums/pcvk_modeltype.dart';
 import 'package:jawara/core/models/PCVK/batch_predict_response.dart';
 import 'package:jawara/core/models/PCVK/health_response.dart';
 import 'package:jawara/core/models/PCVK/models_response.dart';
@@ -90,14 +91,14 @@ void main() async {
         final result = await pcvkService.predict(testFile);
 
         // Assert
-        expect(result, isA<PredictModelResponse>());
+        expect(result, isA<PredictResponse>());
         expect(result.fileName, isNotEmpty);
         expect(result.predictedClass, isNotNull);
         expect(result.confidence, greaterThan(0));
         expect(result.confidence, lessThanOrEqualTo(1));
         expect(result.allConfidences, isNotEmpty);
         expect(result.device, isNotEmpty);
-        expect(result.modelType, isNotEmpty);
+        expect(result.modelType, isA<PcvkModelType>());
         if (kDebugMode) {
           print('✅ Passed: Image prediction successful\n');
         }

@@ -16,9 +16,7 @@ class PcvkService {
   }
 
   Future<HealthModelResponse> getHealth() async {
-    final response = await _client.get(
-      UrlPCVKAPI.buildAzureEndpoint('pcvk/health'),
-    );
+    final response = await _client.get(UrlPCVKAPI.buildEndpoint('pcvk/health'));
     if (response.statusCode == 200) {
       return HealthModelResponse.fromJson(json.decode(response.body));
     } else {
@@ -28,7 +26,7 @@ class PcvkService {
 
   Future<List<String>> getClasses() async {
     final response = await _client.get(
-      UrlPCVKAPI.buildAzureEndpoint('pcvk/classes'),
+      UrlPCVKAPI.buildEndpoint('pcvk/classes'),
     );
     if (response.statusCode == 200) {
       return List<String>.from(json.decode(response.body)['classes']);
@@ -38,9 +36,7 @@ class PcvkService {
   }
 
   Future<ModelsModelResponse> getModels() async {
-    final response = await _client.get(
-      UrlPCVKAPI.buildAzureEndpoint('pcvk/models'),
-    );
+    final response = await _client.get(UrlPCVKAPI.buildEndpoint('pcvk/models'));
     if (response.statusCode == 200) {
       return ModelsModelResponse.fromJson(json.decode(response.body));
     } else {
@@ -48,14 +44,14 @@ class PcvkService {
     }
   }
 
-  Future<PredictModelResponse> predict(
+  Future<PredictResponse> predict(
     File picture, {
     bool useSegmentation = true,
     String segMethod = 'u2netp',
     String modelType = 'mlpv2_auto-clahe',
     bool applyBrightnessContrast = true,
   }) async {
-    final uri = UrlPCVKAPI.buildAzureEndpoint('pcvk/predict').replace(
+    final uri = UrlPCVKAPI.buildEndpoint('pcvk/predict').replace(
       queryParameters: {
         'use_segmentation': useSegmentation.toString(),
         'seg_method': segMethod,
@@ -74,7 +70,7 @@ class PcvkService {
     final response = await _client.send(request);
     if (response.statusCode == 200) {
       final jsonData = jsonDecode(await response.stream.bytesToString());
-      return PredictModelResponse.fromJson(jsonData);
+      return PredictResponse.fromJson(jsonData);
     } else {
       throw Exception('Failed to predict - ${response.statusCode}');
     }
@@ -87,7 +83,7 @@ class PcvkService {
     String modelType = 'mlpv2_auto-clahe',
     bool applyBrightnessContrast = true,
   }) async {
-    final uri = UrlPCVKAPI.buildAzureEndpoint('pcvk/batch-predict').replace(
+    final uri = UrlPCVKAPI.buildEndpoint('pcvk/batch-predict').replace(
       queryParameters: {
         'use_segmentation': useSegmentation.toString(),
         'seg_method': segMethod,

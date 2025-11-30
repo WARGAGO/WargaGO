@@ -379,6 +379,11 @@ async def websocket_predict(websocket: WebSocket):
                     try:
                         received_data = json.loads(data)
                         
+                        # Handle ping/pong
+                        if "ping" in received_data and received_data["ping"]:
+                            await websocket.send_json({"pong": True})
+                            continue
+                        
                         if "complete" in received_data and received_data["complete"]:
                             if image_buffer is None or image_buffer.tell() == 0:
                                 await websocket.send_json(

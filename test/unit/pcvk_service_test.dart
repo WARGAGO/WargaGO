@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:jawara/core/enums/pcvk_modeltype.dart';
 import 'package:jawara/core/enums/predict_class_enum.dart';
 import 'package:jawara/core/models/PCVK/batch_predict_response.dart';
 import 'package:jawara/core/models/PCVK/health_response.dart';
@@ -264,7 +265,7 @@ void main() async {
         final result = await pcvkService.predict(mockFile);
 
         // Assert
-        expect(result, isA<PredictModelResponse>());
+        expect(result, isA<PredictResponse>());
         expect(result.predictedClass, PredictClass.sayurAkar);
         expect(result.confidence, 0.9371846914291382);
         expect(result.toJson(), {
@@ -284,6 +285,7 @@ void main() async {
           "apply_brightness_contrast": true,
           "prediction_time_ms": 150.5,
         });
+        expect(result.modelType, PcvkModelType.mlpv2AutoClahe);
 
         verify(mockClient.send(any)).called(1);
         if (kDebugMode) {
@@ -405,7 +407,7 @@ void main() async {
             0.9439828395843506,
           );
           expect(result.predictions[0].device, 'cpu');
-          expect(result.predictions[0].modelType, 'mlpv2_auto-clahe');
+          expect(result.predictions[0].modelType, PcvkModelType.mlpv2AutoClahe);
           expect(result.predictions[0].error, null);
 
           // Second result
@@ -452,7 +454,7 @@ void main() async {
           0.9439828395843506,
         );
         expect(result.predictions[0].device, 'cpu');
-        expect(result.predictions[0].modelType, 'mlpv2_auto-clahe');
+        expect(result.predictions[0].modelType, PcvkModelType.mlpv2AutoClahe);
         expect(result.predictions[0].error, null);
 
         // Second result

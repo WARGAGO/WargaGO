@@ -43,7 +43,7 @@ class AzureBlobStorageService {
     try {
       var request = http.MultipartRequest(
         'POST',
-        UrlPCVKAPI.buildAzureEndpoint(
+        UrlPCVKAPI.buildEndpoint(
           isPrivate ? _uploadPrivateEndpoint : _uploadPublicEndpoint,
           queryParameters: {
             'prefix_name': prefixName,
@@ -152,7 +152,7 @@ class AzureBlobStorageService {
       // }
 
       final response = await _client.delete(
-        UrlPCVKAPI.buildAzureEndpoint(
+        UrlPCVKAPI.buildEndpoint(
           '${isPrivate ? _deletePrivateEndpoint : _deletePublicEndpoint}/$blobName',
         ),
         headers: await _getHeaders(),
@@ -183,7 +183,7 @@ class AzureBlobStorageService {
   }) async {
     try {
       final response = await _client.get(
-        UrlPCVKAPI.buildAzureEndpoint(
+        UrlPCVKAPI.buildEndpoint(
           isPrivate ? _getPrivateImagesEndpoint : _getPublicImagesEndpoint,
           queryParameters: {'uid': uid, 'filename_prefix': filenamePrefix},
         ),
