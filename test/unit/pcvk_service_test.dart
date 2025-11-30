@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:wargago/core/enums/pcvk_modeltype.dart';
+import 'package:wargago/core/enums/predict_class_enum.dart';
 import 'package:wargago/core/models/PCVK/batch_predict_response.dart';
 import 'package:wargago/core/models/PCVK/health_response.dart';
 import 'package:wargago/core/models/PCVK/models_response.dart';
