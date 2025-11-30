@@ -162,8 +162,9 @@ def predict_image(
     use_segmentation: bool = True,
     seg_method: str = "hsv",
     apply_brightness_contrast: bool = True,
-    model_type: str = "mlpv2"
-) -> Tuple[str, float, Dict[str, float]]:
+    model_type: str = "mlpv2",
+    return_segmented_image: bool = False
+) -> Tuple[str, float, Dict[str, float], np.ndarray]:
     """
     Complete prediction pipeline
     
@@ -174,9 +175,11 @@ def predict_image(
         seg_method: Segmentation method
         apply_brightness_contrast: Whether to apply brightness and contrast enhancement
         model_type: Type of model (mlpv2, mlpv2_auto-clahe, efficientnetv2)
+        return_segmented_image: Whether to return the segmented image (only for non-efficientnet models)
     
     Returns:
-        Tuple of (predicted_class, confidence, all_confidences)
+        Tuple of (predicted_class, confidence, all_confidences, segmented_image)
+        segmented_image is None if not requested or if using efficientnetv2
     """
     # EfficientNetV2 uses direct image tensor without feature extraction
     if model_type == "efficientnetv2":
@@ -194,7 +197,7 @@ def predict_image(
         # Transform and predict
         image_tensor = transform(image)
         predicted_class, confidence, all_confidences = predict_from_tensor(model, image_tensor)
-        return predicted_class, confidence, all_confidences
+        return predicted_class, confidence, all_confidences, None
     
     # Feature-based models (MLP variants)
     # Preprocess image
@@ -212,4 +215,7 @@ def predict_image(
     # Predict
     predicted_class, confidence, all_confidences = predict_from_features(model, features)
     
-    return predicted_class, confidence, all_confidences
+    # Return segmented image if requested
+    segmented_result = segmented_img if return_segmented_image else None
+    
+    return predicted_class, confidence, all_confidences, segmented_result

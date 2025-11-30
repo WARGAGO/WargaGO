@@ -6,13 +6,17 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:wargago/core/enums/pcvk_modeltype.dart';
 import 'package:wargago/core/enums/predict_class_enum.dart';
 import 'package:wargago/core/models/PCVK/predict_response.dart';
+import 'package:wargago/core/models/PCVK/websocket_config.dart';
 import 'package:wargago/core/services/pcvk_service.dart';
+import 'package:wargago/core/services/pcvk_stream_service.dart';
 import 'package:wargago/features/common/classification/widgets/inkwell_iconbutton.dart';
 import 'package:wargago/features/common/classification/widgets/white_button.dart';
 import 'package:ming_cute_icons/ming_cute_icons.dart';
 import 'package:remixicon/remixicon.dart';
+
 class ClassificationCameraPage extends StatefulWidget {
   const ClassificationCameraPage({super.key});
 
@@ -31,6 +35,7 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
   bool? _useEfficient;
 
   late final PcvkService _pcvkService;
+  late final PCVKStreamService _pcvkStreamService;
 
   Future<void> _initializeCameras() async {
     try {
@@ -40,7 +45,27 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
         ResolutionPreset.high,
         enableAudio: false,
       );
+      _pcvkStreamService = PCVKStreamService(
+        cameraController: _cameraController,
+        onPredictionResult: (result) {
+          _result = PredictResponse(
+            fileName: '',
+            predictedClass: result.predictedClass,
+            confidence: result.confidence,
+            allConfidences: result.allConfidences,
+            device: result.device,
+            applyBrightnessContrast: result.applyBrightnessContrast,
+            modelType: result.modelType,
+            segmentationUsed: result.segmentationUsed,
+            segmentationMethod: result.segmentationMethod ?? 'none',
+            predictionTimeMs: result.predictionTimeMs,
+          );
+          _startVeggieRotation();
+          setState(() {});
+        },
+      );
       await _cameraController!.initialize();
+      await Future.delayed(const Duration(seconds: 1));
       if (!mounted) return;
       setState(() {});
     } on CameraException catch (e) {
@@ -71,6 +96,7 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
   void dispose() {
     _veggieTimer?.cancel();
     _cameraController?.dispose();
+    _pcvkStreamService.dispose(disploseCamera: false);
     super.dispose();
   }
 
@@ -95,6 +121,7 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
 
   Future<void> _pickFromGallery() async {
     try {
+      _pcvkStreamService.stopStreaming();
       final XFile? image = await _imagePicker.pickImage(
         source: ImageSource.gallery,
       );
@@ -113,6 +140,7 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
     }
 
     setState(() => _isProcessing = true);
+    _pcvkStreamService.stopStreaming();
 
     try {
       final XFile image = await _cameraController!.takePicture();
@@ -132,7 +160,7 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
   }
 
   File? _picture;
-  PredictModelResponse? _result;
+  PredictResponse? _result;
   void _processImage(File imageFile) async {
     setState(() {
       _isProcessing = true;
@@ -144,32 +172,49 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
       modelType: _useEfficient! ? 'efficientnetv2' : 'mlpv2_auto-clahe',
     );
 
-    switch (_result!.predictedClass) {
-      case PredictClass.sayurAkar:
-        _startVeggieRotation(emojis: ['🥕', '🥔']);
-        break;
-      case PredictClass.sayurBuah:
-        _startVeggieRotation(emojis: ['🫑', "🍅", '🥒', "🎃", '🥭']);
-        break;
-      case PredictClass.sayurBunga:
-        _startVeggieRotation(emojis: ['🥦']);
-        break;
-      case PredictClass.sayurDaun:
-        _startVeggieRotation(emojis: ['🥬']);
-      default:
-    }
+    _startVeggieRotation();
 
     setState(() => _isProcessing = false);
+  }
+
+  void _handleStreaming() {
+    if (_pcvkStreamService.isStreaming) {
+      _pcvkStreamService.stopStreaming();
+    } else {
+      _pcvkStreamService.startStreaming(
+        WebSocketConfig(
+          modelType: _useEfficient!
+              ? PcvkModelType.efficientnetv2
+              : PcvkModelType.mlpv2AutoClahe,
+        ),
+      );
+    }
+    setState(() {});
   }
 
   List<String> _vegetables = ['🍅', '🌶️', '🥕', '🥬', '🧄', '🧅', '🥒'];
   int _currentVeggieIndex = 0;
   Timer? _veggieTimer;
 
-  void _startVeggieRotation({List<String>? emojis}) {
-    _vegetables = emojis!;
+  void _startVeggieRotation() {
+    switch (_result!.predictedClass) {
+      case PredictClass.sayurAkar:
+        _vegetables = ['🥕', '🥔'];
+        break;
+      case PredictClass.sayurBuah:
+        _vegetables = ['🫑', "🍅", '🥒', "🎃", '🥭'];
+        break;
+      case PredictClass.sayurBunga:
+        _vegetables = ['🥦'];
+        break;
+      case PredictClass.sayurDaun:
+        _vegetables = ['🥬'];
+      default:
+    }
     _veggieTimer?.cancel();
-    _currentVeggieIndex = 0;
+    _currentVeggieIndex = _currentVeggieIndex >= _vegetables.length
+        ? 0
+        : _currentVeggieIndex;
     _veggieTimer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
       if (mounted) {
         setState(() {
@@ -292,29 +337,28 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _isProcessing
-                              ? const Text('...')
-                              : Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      _result?.predictedClass.displayName
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                _isProcessing
+                                    ? '...'
+                                    : _result?.predictedClass.displayName
                                               .replaceAll('_', ' ') ??
                                           '-',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
-                                    InkWell(
-                                      onTap: _setPictureNull,
-                                      child: Icon(Remix.close_fill),
-                                    ),
-                                  ],
+                                style: GoogleFonts.poppins(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
                                 ),
+                              ),
+                              InkWell(
+                                onTap: _setPictureNull,
+                                child: Icon(Remix.close_fill),
+                              ),
+                            ],
+                          ),
                           const SizedBox(height: 8),
                           Text(
                             _isProcessing
@@ -373,7 +417,10 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               WhiteButton(
-                onTap: () => setState(() => _useEfficient = null),
+                onTap: () {
+                  _pcvkStreamService.stopStreaming();
+                  setState(() => _useEfficient = null);
+                },
                 color: Colors.white.withValues(alpha: 0.75),
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 child: Row(
@@ -560,31 +607,75 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
     );
   }
 
-  Row _header(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const SizedBox.shrink(),
-        // InkWellIconButton(
-        //   onTap: () => setState(() => _picture = null),
-        //   padding: 16,
-        //   icon: const Icon(
-        //     size: 16,
-        //     Icons.arrow_back_ios_new_rounded,
-        //     color: Colors.white,
-        //   ),
-        // ),
-        InkWellIconButton(
-          onTap: _toggleFlash,
-          icon: Icon(
-            size: 24,
-            _isFlashOn
-                ? RemixIcons.flashlight_fill
-                : RemixIcons.flashlight_line,
-            color: Colors.white,
-          ),
-        ),
-      ],
+  Widget _header(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: FutureBuilder(
+        future: _initializeCameraFuture,
+        builder: (context, snapshot) =>
+            snapshot.connectionState == ConnectionState.waiting
+            ? const SizedBox.shrink()
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const SizedBox(width: 40),
+                  // InkWellIconButton(
+                  //   onTap: () => setState(() => _picture = null),
+                  //   padding: 16,
+                  //   icon: const Icon(
+                  //     size: 16,
+                  //     Icons.arrow_back_ios_new_rounded,
+                  //     color: Colors.white,
+                  //   ),
+                  // ),
+                  if (_useEfficient != null && _picture == null)
+                    Flexible(
+                      child: WhiteButton(
+                        color: Colors.black.withValues(alpha: 0.5),
+                        padding: EdgeInsets.all(8),
+                        maxWidth: 165,
+                        onTap: _handleStreaming,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _pcvkStreamService.isStreaming
+                                  ? '${_result?.predictedClass ?? "..."} $_currentVeggie\nKepercayaan: ${_result?.confidence.toStringAsFixed(2) ?? "..."}%'
+                                  : 'Aktifkan\nLive Preview',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.poppins().copyWith(
+                                fontSize: 14,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            if (_pcvkStreamService.isStreaming)
+                              Text(
+                                'Ping: ${_pcvkStreamService.lastPingTimeMs?.toStringAsFixed(0) ?? '...'}ms\nPredict: ${_result?.predictionTimeMs.toStringAsFixed(0) ?? '...'}ms',
+                                style: GoogleFonts.poppins().copyWith(
+                                  fontSize: 12,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  InkWellIconButton(
+                    onTap: _toggleFlash,
+                    icon: Icon(
+                      size: 24,
+                      _isFlashOn
+                          ? RemixIcons.flashlight_fill
+                          : RemixIcons.flashlight_line,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+      ),
     );
   }
 

@@ -1,13 +1,13 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class UrlPCVKAPI {
-  // Use getter to safely access dotenv (handles missing .env in production)
-  static String get azureUrl => dotenv.maybeGet('PCVK_API_URL') ?? '';
+  UrlPCVKAPI._();
 
-  // Helper to safely get boolean from dotenv
-  static bool get isSSL => (dotenv.maybeGet('PCVK_API_HTTPS') ?? 'true') == 'true';
+  static String get baseUrl => dotenv.maybeGet('PCVK_API_URL') ?? '';
+  static bool get isSSL =>
+      (dotenv.maybeGet('PCVK_API_HTTPS') ?? 'true') == 'true';
 
-  static Uri buildAzureEndpoint(
+  static Uri buildEndpoint(
     String endpoint, {
     Map<String, String?>? queryParameters,
   }) {
@@ -21,9 +21,11 @@ class UrlPCVKAPI {
       });
     }
 
-
     return isSSL
-        ? Uri.https(azureUrl, 'api/$endpoint', cleanParams)
-        : Uri.http(azureUrl, 'api/$endpoint', cleanParams);
+        ? Uri.https(baseUrl, 'api/$endpoint', cleanParams)
+        : Uri.http(baseUrl, 'api/$endpoint', cleanParams);
   }
+
+  static Uri buildWebSocketEndpoint(String endpoint) =>
+      Uri.parse('${isSSL ? 'wss' : 'ws'}://$baseUrl/api/$endpoint');
 }

@@ -1,17 +1,19 @@
+import 'package:wargago/core/enums/pcvk_modeltype.dart';
 import 'package:wargago/core/enums/predict_class_enum.dart';
 import 'package:wargago/core/models/PCVK/predict_response.dart';
 
 class BatchPerPredictionResponse {
   final String? error;
   String? _fileName;
-  PredictModelResponse? _prediction;
+  PredictResponse? _prediction;
 
   String get fileName => _prediction?.fileName ?? _fileName!;
   PredictClass? get predictedClass => _prediction?.predictedClass;
   double get confidence => _prediction?.confidence ?? 0;
   Map<String, double> get allConfidences => _prediction?.allConfidences ?? {};
   String get device => _prediction?.device ?? '';
-  String get modelType => _prediction?.modelType ?? '';
+  PcvkModelType get modelType =>
+      _prediction?.modelType ?? PcvkModelType.mlpv2AutoClahe;
   bool get segmentationUsed => _prediction?.segmentationUsed ?? false;
   String? get segmentationMethod => _prediction?.segmentationMethod;
   bool get applyBrightnessContrast =>
@@ -32,7 +34,7 @@ class BatchPerPredictionResponse {
     this.error,
   }) {
     if (error == null) {
-      _prediction = PredictModelResponse(
+      _prediction = PredictResponse(
         fileName: fileName,
         predictedClass: predictedClass,
         confidence: confidence,
@@ -78,7 +80,7 @@ class BatchPerPredictionResponse {
       confidence: (json['confidence'] as num).toDouble(),
       allConfidences: allConfidences,
       device: json['device'] as String,
-      modelType: json['model_type'] as String,
+      modelType: PcvkModelType.fromString(json['model_type'] as String),
       segmentationUsed: json['segmentation_used'] as bool,
       segmentationMethod: json['segmentation_method'] as String,
       applyBrightnessContrast: json['apply_brightness_contrast'] as bool,
@@ -93,7 +95,7 @@ class BatchPerPredictionResponse {
       'confidence': confidence,
       'all_confidences': allConfidences,
       'device': device,
-      'model_type': modelType,
+      'model_type': modelType.value,
       'segmentation_used': segmentationUsed,
       'segmentation_method': segmentationMethod,
       'apply_brightness_contrast': applyBrightnessContrast,

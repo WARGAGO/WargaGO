@@ -71,3 +71,35 @@ class UnloadModelResponse(BaseModel):
     message: str
     unloaded_models: List[str]
     remaining_models: List[str]
+
+
+class WebSocketPredictionResponse(BaseModel):
+    """Response model for WebSocket prediction"""
+
+    type: str = "prediction"
+    predicted_class: str
+    confidence: float
+    all_confidences: Dict[str, float]
+    device: str
+    model_type: str
+    segmentation_used: bool
+    segmentation_method: Optional[str]
+    apply_brightness_contrast: bool
+    prediction_time_ms: float
+    has_segmentation_image: bool = (
+        False  # Indicates if binary segmentation image will follow
+    )
+
+
+class WebSocketErrorResponse(BaseModel):
+    """Error response model for WebSocket"""
+
+    type: str = "error"
+    message: str
+
+
+class WebSocketStatusResponse(BaseModel):
+    """Status response model for WebSocket"""
+
+    type: str = "status"
+    message: str

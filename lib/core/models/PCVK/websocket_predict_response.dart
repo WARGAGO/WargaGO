@@ -1,62 +1,60 @@
-import '../../enums/predict_class_enum.dart';
-import '../../enums/pcvk_modeltype.dart';
+import 'package:wargago/core/enums/predict_class_enum.dart';
+import 'package:wargago/core/enums/pcvk_modeltype.dart';
 
-class PredictResponse {
-  final String fileName;
+class WebSocketPredictResponse {
+  final String type;
   final PredictClass predictedClass;
   final double confidence;
   final Map<String, double> allConfidences;
   final String device;
   final PcvkModelType modelType;
   final bool segmentationUsed;
-  final String segmentationMethod;
+  final String? segmentationMethod;
   final bool applyBrightnessContrast;
   final double predictionTimeMs;
+  final bool hasSegmentationImage;
 
-  PredictResponse({
-    required this.fileName,
+  WebSocketPredictResponse({
+    required this.type,
     required this.predictedClass,
     required this.confidence,
     required this.allConfidences,
     required this.device,
     required this.modelType,
     required this.segmentationUsed,
-    required this.segmentationMethod,
+    this.segmentationMethod,
     required this.applyBrightnessContrast,
     required this.predictionTimeMs,
+    required this.hasSegmentationImage,
   });
 
-  factory PredictResponse.fromJson(Map<String, dynamic> json) {
-    final allConfidencesJson = json['all_confidences'] as Map<String, dynamic>;
-    final allConfidences = <String, double>{};
-
-    allConfidencesJson.forEach((key, value) {
-      allConfidences[key] = (value as num).toDouble();
-    });
-
+  factory WebSocketPredictResponse.fromJson(Map<String, dynamic> json) {
     final predictedClassString = json['predicted_class'] as String;
     final predictedClass = PredictClass.values.firstWhere(
       (e) => e.displayName == predictedClassString,
       orElse: () => PredictClass.sayurAkar,
     );
 
-    return PredictResponse(
-      fileName: json['filename'] as String,
+    return WebSocketPredictResponse(
+      type: json['type'] as String,
       predictedClass: predictedClass,
       confidence: (json['confidence'] as num).toDouble(),
-      allConfidences: allConfidences,
+      allConfidences: Map<String, double>.from(
+        json['all_confidences'] as Map<String, dynamic>,
+      ),
       device: json['device'] as String,
       modelType: PcvkModelType.fromString(json['model_type'] as String),
       segmentationUsed: json['segmentation_used'] as bool,
-      segmentationMethod: json['segmentation_method'] as String,
+      segmentationMethod: json['segmentation_method'] as String?,
       applyBrightnessContrast: json['apply_brightness_contrast'] as bool,
       predictionTimeMs: (json['prediction_time_ms'] as num).toDouble(),
+      hasSegmentationImage: json['has_segmentation_image'] as bool? ?? false,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'filename': fileName,
+      'type': type,
       'predicted_class': predictedClass.displayName,
       'confidence': confidence,
       'all_confidences': allConfidences,
@@ -66,11 +64,12 @@ class PredictResponse {
       'segmentation_method': segmentationMethod,
       'apply_brightness_contrast': applyBrightnessContrast,
       'prediction_time_ms': predictionTimeMs,
+      'has_segmentation_image': hasSegmentationImage,
     };
   }
 
   @override
   String toString() {
-    return 'PredictionResponse(predictedClass: $predictedClass, confidence: $confidence, allConfidences: $allConfidences, device: $device, modelType: $modelType, segmentationUsed: $segmentationUsed, segmentationMethod: $segmentationMethod, applyBrightnessContrast: $applyBrightnessContrast, predictionTimeMs: $predictionTimeMs)';
+    return 'WebSocketPredictionResponse(type: $type, predictedClass: $predictedClass, confidence: $confidence, device: $device, modelType: $modelType, predictionTime: ${predictionTimeMs}ms)';
   }
 }

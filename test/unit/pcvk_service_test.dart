@@ -263,7 +263,9 @@ void main() async {
         final result = await pcvkService.predict(mockFile);
 
         // Assert
-        expect(result, isA<PredictModelResponse>());
+        expect(result, isA<PredictResponse>());
+        expect(result.predictedClass, PredictClass.sayurAkar);
+        expect(result.confidence, 0.9371846914291382);
         expect(result.toJson(), {
           "filename": "test_image.jpg",
           "predicted_class": "Sayur Akar",
@@ -280,6 +282,7 @@ void main() async {
           "segmentation_method": "u2netp",
           "apply_brightness_contrast": true,
         });
+        expect(result.modelType, PcvkModelType.mlpv2AutoClahe);
 
         verify(mockClient.send(any)).called(1);
         if (kDebugMode) {
@@ -401,7 +404,7 @@ void main() async {
             0.9439828395843506,
           );
           expect(result.predictions[0].device, 'cpu');
-          expect(result.predictions[0].modelType, 'mlpv2_auto-clahe');
+          expect(result.predictions[0].modelType, PcvkModelType.mlpv2AutoClahe);
           expect(result.predictions[0].error, null);
 
           // Second result
@@ -448,7 +451,7 @@ void main() async {
           0.9439828395843506,
         );
         expect(result.predictions[0].device, 'cpu');
-        expect(result.predictions[0].modelType, 'mlpv2_auto-clahe');
+        expect(result.predictions[0].modelType, PcvkModelType.mlpv2AutoClahe);
         expect(result.predictions[0].error, null);
 
         // Second result
