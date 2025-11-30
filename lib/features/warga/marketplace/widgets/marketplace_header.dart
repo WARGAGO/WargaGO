@@ -28,7 +28,7 @@ class MarketplaceHeader extends StatelessWidget {
           bottomRight: Radius.circular(24),
         ),
       ),
-      padding: const EdgeInsets.fromLTRB(24, 48, 24, 48),
+      padding: const EdgeInsets.fromLTRB(32, 64, 32, 64),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [

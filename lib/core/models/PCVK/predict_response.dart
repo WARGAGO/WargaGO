@@ -1,6 +1,8 @@
+import '../../enums/predict_class_enum.dart';
+
 class PredictModelResponse {
   final String fileName;
-  final String predictedClass;
+  final PredictClass predictedClass;
   final double confidence;
   final Map<String, double> allConfidences;
   final String device;
@@ -8,6 +10,7 @@ class PredictModelResponse {
   final bool segmentationUsed;
   final String segmentationMethod;
   final bool applyBrightnessContrast;
+  final double predictionTimeMs;
 
   PredictModelResponse({
     required this.fileName,
@@ -19,6 +22,7 @@ class PredictModelResponse {
     required this.segmentationUsed,
     required this.segmentationMethod,
     required this.applyBrightnessContrast,
+    required this.predictionTimeMs,
   });
 
   factory PredictModelResponse.fromJson(Map<String, dynamic> json) {
@@ -29,9 +33,16 @@ class PredictModelResponse {
       allConfidences[key] = (value as num).toDouble();
     });
 
+    final predictedClassString = json['predicted_class'] as String;
+    print(predictedClassString);
+    final predictedClass = PredictClass.values.firstWhere(
+      (e) => e.displayName == predictedClassString,
+      orElse: () => PredictClass.sayurAkar,
+    );
+
     return PredictModelResponse(
       fileName: json['filename'] as String,
-      predictedClass: json['predicted_class'] as String,
+      predictedClass: predictedClass,
       confidence: (json['confidence'] as num).toDouble(),
       allConfidences: allConfidences,
       device: json['device'] as String,
@@ -39,13 +50,14 @@ class PredictModelResponse {
       segmentationUsed: json['segmentation_used'] as bool,
       segmentationMethod: json['segmentation_method'] as String,
       applyBrightnessContrast: json['apply_brightness_contrast'] as bool,
+      predictionTimeMs: (json['prediction_time_ms'] as num).toDouble(),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'filename': fileName,
-      'predicted_class': predictedClass,
+      'predicted_class': predictedClass.displayName,
       'confidence': confidence,
       'all_confidences': allConfidences,
       'device': device,
@@ -53,11 +65,12 @@ class PredictModelResponse {
       'segmentation_used': segmentationUsed,
       'segmentation_method': segmentationMethod,
       'apply_brightness_contrast': applyBrightnessContrast,
+      'prediction_time_ms': predictionTimeMs,
     };
   }
 
   @override
   String toString() {
-    return 'PredictionResponse(predictedClass: $predictedClass, confidence: $confidence, allConfidences: $allConfidences, device: $device, modelType: $modelType, segmentationUsed: $segmentationUsed, segmentationMethod: $segmentationMethod, applyBrightnessContrast: $applyBrightnessContrast)';
+    return 'PredictionResponse(predictedClass: $predictedClass, confidence: $confidence, allConfidences: $allConfidences, device: $device, modelType: $modelType, segmentationUsed: $segmentationUsed, segmentationMethod: $segmentationMethod, applyBrightnessContrast: $applyBrightnessContrast, predictionTimeMs: $predictionTimeMs)';
   }
 }

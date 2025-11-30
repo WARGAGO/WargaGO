@@ -5,6 +5,7 @@
 // ============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../widgets/marketplace_header.dart';
 import '../widgets/marketplace_program_card.dart';
 import '../widgets/marketplace_daftar_button.dart';
@@ -36,9 +37,38 @@ class SellerRegistrationPage extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    MarketplaceProgramCard(),
-                    MarketplaceDaftarButton(),
+                  children: [
+                    const MarketplaceProgramCard(),
+                    Column(
+                      children: [
+                        const MarketplaceDaftarButton(),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(
+                                color: Color(0xFF2F80ED),
+                                width: 1.5,
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              'Kembali ke Profil',
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF2F80ED),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),

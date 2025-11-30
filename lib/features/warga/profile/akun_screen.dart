@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/constants/app_routes.dart';
 import 'edit_profil_screen.dart';
-import 'toko_saya_screen.dart';
+import '../marketplace/pages/seller_registration_page.dart';
 
 class AkunScreen extends StatefulWidget {
   const AkunScreen({super.key});
@@ -205,10 +205,7 @@ class _AkunScreenState extends State<AkunScreen> with SingleTickerProviderStateM
                               gradient: const LinearGradient(
                                 colors: [Color(0xFF10B981), Color(0xFF059669)],
                               ),
-                              onTap: () => Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (_) => const TokoSayaScreen()),
-                              ),
+                              onTap: () => _handleTokoSayaTap(context),
                             ),
 
                             const SizedBox(height: 12),
@@ -237,6 +234,15 @@ class _AkunScreenState extends State<AkunScreen> with SingleTickerProviderStateM
                 ),
               ],
             ),
+    );
+  }
+
+  void _handleTokoSayaTap(BuildContext context) {
+    // TODO: Implementasi cek apakah user sudah terdaftar sebagai penjual
+    
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const SellerRegistrationPage()),
     );
   }
 

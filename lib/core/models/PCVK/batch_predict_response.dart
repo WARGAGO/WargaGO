@@ -1,3 +1,4 @@
+import 'package:wargago/core/enums/predict_class_enum.dart';
 import 'package:wargago/core/models/PCVK/predict_response.dart';
 
 class BatchPerPredictionResponse {
@@ -6,7 +7,7 @@ class BatchPerPredictionResponse {
   PredictModelResponse? _prediction;
 
   String get fileName => _prediction?.fileName ?? _fileName!;
-  String get predictedClass => _prediction?.predictedClass ?? '';
+  PredictClass? get predictedClass => _prediction?.predictedClass;
   double get confidence => _prediction?.confidence ?? 0;
   Map<String, double> get allConfidences => _prediction?.allConfidences ?? {};
   String get device => _prediction?.device ?? '';
@@ -15,6 +16,7 @@ class BatchPerPredictionResponse {
   String? get segmentationMethod => _prediction?.segmentationMethod;
   bool get applyBrightnessContrast =>
       _prediction?.applyBrightnessContrast ?? false;
+  double get predictionTimeMs => _prediction?.predictionTimeMs ?? 0;
 
   BatchPerPredictionResponse({
     fileName,
@@ -26,6 +28,7 @@ class BatchPerPredictionResponse {
     segmentationUsed,
     segmentationMethod,
     applyBrightnessContrast,
+    predictionTimeMs,
     this.error,
   }) {
     if (error == null) {
@@ -39,6 +42,7 @@ class BatchPerPredictionResponse {
         segmentationUsed: segmentationUsed,
         segmentationMethod: segmentationMethod,
         applyBrightnessContrast: applyBrightnessContrast,
+        predictionTimeMs: predictionTimeMs,
       );
     } else {
       _fileName = fileName;
@@ -62,9 +66,15 @@ class BatchPerPredictionResponse {
       allConfidences[key] = (value as num).toDouble();
     });
 
+    final predictedClassString = json['predicted_class'] as String;
+    final predictedClass = PredictClass.values.firstWhere(
+      (e) => e.displayName == predictedClassString,
+      orElse: () => PredictClass.sayurAkar,
+    );
+
     return BatchPerPredictionResponse(
       fileName: json['filename'] as String,
-      predictedClass: json['predicted_class'] as String,
+      predictedClass: predictedClass,
       confidence: (json['confidence'] as num).toDouble(),
       allConfidences: allConfidences,
       device: json['device'] as String,
@@ -72,13 +82,14 @@ class BatchPerPredictionResponse {
       segmentationUsed: json['segmentation_used'] as bool,
       segmentationMethod: json['segmentation_method'] as String,
       applyBrightnessContrast: json['apply_brightness_contrast'] as bool,
+      predictionTimeMs: (json['prediction_time_ms'] as num).toDouble(),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'filename': fileName,
-      'predicted_class': predictedClass,
+      'predicted_class': predictedClass?.displayName,
       'confidence': confidence,
       'all_confidences': allConfidences,
       'device': device,
@@ -86,6 +97,7 @@ class BatchPerPredictionResponse {
       'segmentation_used': segmentationUsed,
       'segmentation_method': segmentationMethod,
       'apply_brightness_contrast': applyBrightnessContrast,
+      'prediction_time_ms': predictionTimeMs,
       'error': error,
     };
   }

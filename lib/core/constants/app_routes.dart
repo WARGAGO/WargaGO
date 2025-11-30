@@ -7,6 +7,7 @@ class AppRoutes {
   static const String splash = '/';
   static const String onboarding = '/onboarding';
   static const String preAuth = '/pre-auth';
+  static const String classificationCamera = '/classification-camera';
 
   // ========== AUTH ROUTES (UNIFIED) ==========
   static const String login = '/login';
@@ -23,6 +24,8 @@ class AppRoutes {
   static const String wargaPesananSaya = '/warga/marketplace/pesanan';
   static const String wargaKeranjangSaya = '/warga/marketplace/keranjang';
   static const String wargaItemDetail = '/warga/marketplace/detail';
+  static const String wargaClassificationCamera =
+      '/warga/classification-camera';
 
   static const String wargaIuran = '/warga/iuran';
 
