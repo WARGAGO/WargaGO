@@ -28,6 +28,10 @@ class PCVKStreamService {
 
   WebSocketConfig? webSocketConfig;
 
+  // Processed image accumulation
+  final List<int> _processedImageBuffer = [];
+  bool _isReceivingProcessedImage = false;
+
   // Callbacks
   Function(WebSocketPredictResponse result)? onPredictionResult;
   Function(String message)? onStatusMessage;
@@ -177,6 +181,8 @@ class PCVKStreamService {
       'height': image.height,
       'format': image.format.group,
       'quality': jpegQuality,
+      'sensorOrientation':
+          _cameraController?.description.sensorOrientation ?? 0,
     };
 
     final Uint8List? jpegBytes = await compute(
@@ -222,9 +228,23 @@ class PCVKStreamService {
         }
 
         if (data.containsKey('message')) {
-          onStatusMessage?.call(data['message']);
+          final statusMessage = data['message'] as String;
+
+          // Check if server is starting to send processed image
+          if (statusMessage.startsWith('Sending processed image')) {
+            _isReceivingProcessedImage = true;
+            _processedImageBuffer.clear();
+          } else if (statusMessage == 'Processed image transfer complete') {
+            _isReceivingProcessedImage = false;
+            if (_processedImageBuffer.isNotEmpty) {
+              onProcessedImage?.call(Uint8List.fromList(_processedImageBuffer));
+              _processedImageBuffer.clear();
+            }
+          }
+
+          onStatusMessage?.call(statusMessage);
           if (kDebugMode) {
-            print('Server: ${data['message']}');
+            print('Server: $statusMessage');
           }
         } else if (data.containsKey('predicted_class')) {
           onPredictionResult?.call(WebSocketPredictResponse.fromJson(data));
@@ -235,9 +255,14 @@ class PCVKStreamService {
           }
         }
       } else if (message is List<int>) {
-        onProcessedImage?.call(Uint8List.fromList(message));
-        if (kDebugMode) {
-          print('Received processed image: ${message.length} bytes');
+        // Accumulate binary chunks if receiving processed image
+        if (_isReceivingProcessedImage) {
+          _processedImageBuffer.addAll(message);
+          // if (kDebugMode) {
+          //   print(
+          //     'Received chunk: ${message.length} bytes, total: ${_processedImageBuffer.length}',
+          //   );
+          // }
         }
       }
     } catch (e) {
@@ -255,6 +280,7 @@ Future<Uint8List?> _convertToJpegBackground(Map<String, dynamic> data) async {
     int width = data['width'];
     int height = data['height'];
     int quality = data['quality'];
+    int sensorOrientation = data['sensorOrientation'] ?? 0;
     List<Map<String, dynamic>> planes = (data['planes'] as List)
         .cast<Map<String, dynamic>>();
 
@@ -281,6 +307,15 @@ Future<Uint8List?> _convertToJpegBackground(Map<String, dynamic> data) async {
     }
 
     if (img != null) {
+      // Apply rotation based on sensor orientation
+      if (sensorOrientation == 90) {
+        img = imglib.copyRotate(img, angle: 90);
+      } else if (sensorOrientation == 180) {
+        img = imglib.copyRotate(img, angle: 180);
+      } else if (sensorOrientation == 270) {
+        img = imglib.copyRotate(img, angle: 270);
+      }
+
       // Resize if needed here to save more bandwidth
       // img = imglib.copyResize(img, width: 320);
       return Uint8List.fromList(imglib.encodeJpg(img, quality: quality));
@@ -322,7 +357,7 @@ imglib.Image _convertYUV420ToImage(
           .round();
       int b = (yVal + (1.732446 * (uVal - 128))).round();
 
-      img.setPixelRgb(x, y, r.clamp(0, 255), g.clamp(0, 255), b.clamp(0, 255));
+      img.setPixelRgb(x, y, b.clamp(0, 255), g.clamp(0, 255), r.clamp(0, 255));
     }
   }
   return img;

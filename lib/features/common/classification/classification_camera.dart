@@ -87,6 +87,13 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
           _veggieRotationManager.startRotation(_result!.predictedClass);
           setState(() {});
         },
+        onProcessedImage: (uint8List) {
+          if (!_pcvkStreamService.isStreaming) {
+            setState(() => _processedImageBytes = null);
+            return;
+          }
+          setState(() => _processedImageBytes = uint8List);
+        },
       );
       await _cameraController!.initialize();
       if (!mounted) return;
@@ -202,6 +209,7 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
   Future<void> _pickFromGallery() async {
     try {
       _pcvkStreamService.stopStreaming();
+      setState(() => _processedImageBytes = null);
       final XFile? image = await _imagePicker.pickImage(
         source: ImageSource.gallery,
       );
@@ -219,7 +227,10 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
       return;
     }
 
-    setState(() => _isProcessing = true);
+    setState(() {
+      _isProcessing = true;
+      _processedImageBytes = null;
+    });
     _pcvkStreamService.stopStreaming();
 
     try {
@@ -241,6 +252,8 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
 
   File? _picture;
   PredictResponse? _result;
+  Uint8List? _processedImageBytes;
+
   void _processImage(File imageFile) async {
     setState(() {
       _isProcessing = true;
@@ -261,6 +274,7 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
   }
 
   void _handleStreaming() {
+    setState(() => _processedImageBytes = null);
     if (_pcvkStreamService.isStreaming) {
       _pcvkStreamService.stopStreaming();
     } else {
@@ -357,18 +371,19 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
     if (_pcvkStreamService.isStreaming) {
       _pcvkStreamService.stopStreaming();
       await Future.delayed(Duration(milliseconds: 500));
+
+      _pcvkStreamService.startStreaming(
+        WebSocketConfig(
+          modelType: _useEfficient!
+              ? PcvkModelType.efficientnetv2
+              : PcvkModelType.mlpv2AutoClahe,
+          useSegmentation: _useSegmentation,
+          segMethod: _segMethod,
+          applyBrightnessContrast: _applyBrightnessContrast,
+          returnProcessedImage: _returnProcessedImage,
+        ),
+      );
     }
-    _pcvkStreamService.startStreaming(
-      WebSocketConfig(
-        modelType: _useEfficient!
-            ? PcvkModelType.efficientnetv2
-            : PcvkModelType.mlpv2AutoClahe,
-        useSegmentation: _useSegmentation,
-        segMethod: _segMethod,
-        applyBrightnessContrast: _applyBrightnessContrast,
-        returnProcessedImage: _returnProcessedImage,
-      ),
-    );
   }
 
   @override
@@ -954,6 +969,15 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
                                 color: Colors.white,
                               ),
                             ),
+                          )
+                        : _processedImageBytes != null &&
+                              _pcvkStreamService.isStreaming
+                        ? Image.memory(
+                            _processedImageBytes!,
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
+                            gaplessPlayback: true,
                           )
                         : LayoutBuilder(
                             key: ValueKey(

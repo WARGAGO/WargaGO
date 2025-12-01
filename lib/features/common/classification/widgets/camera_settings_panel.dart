@@ -163,7 +163,7 @@ class CameraSettingsPanel extends StatelessWidget {
                         _buildSwitchItem(
                           context: context,
                           icon: Remix.image_fill,
-                          title: 'Kembalikan Gambar Proses',
+                          title: 'Kembalikan Gambar Proses (Live Preview)',
                           value: returnProcessedImage,
                           onChanged: onReturnProcessedImageChange,
                         ),
