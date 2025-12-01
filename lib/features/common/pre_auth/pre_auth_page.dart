@@ -5,7 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show SystemUiOverlayStyle, SystemChrome;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:remixicon/remixicon.dart';
 import 'package:wargago/core/constants/app_routes.dart';
+import 'package:wargago/core/enums/instace_api_enum.dart';
+import 'package:wargago/core/providers/instance_provider.dart';
+import 'package:wargago/features/common/classification/widgets/inkwell_iconbutton.dart';
 
 const Color _kAccent = Color(0xFF2F80ED);
 const Color _kAccentLight = Color(0xFF5BA3FF);
@@ -27,13 +32,198 @@ class _PreAuthPageState extends State<PreAuthPage>
   late final Animation<Offset> _slideAnimation;
   bool _isForward = true;
 
+  late final InstanceProvider _instanceProvider;
+  late final TextEditingController _instaceUrlController;
+
+  void _handleInstanceApi() async {
+    String tmpInstanceSelected = _instanceProvider.instanceSelected;
+    _instaceUrlController.text = _instanceProvider.baseUrl;
+    bool isSSL = _instanceProvider.isSSL;
+    final bool result = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF3F4F6),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                RemixIcons.instance_fill,
+                color: Theme.of(context).primaryColor,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Instance API',
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: const Color(0xFF1F2937),
+                ),
+              ),
+            ),
+          ],
+        ),
+        content: StatefulBuilder(
+          builder: (context, setState) => Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Text(
+              //   'Pilih Opsi',
+              //   style: GoogleFonts.poppins(
+              //     fontSize: 14,
+              //     fontWeight: FontWeight.w500,
+              //     color: const Color(0xFF374151),
+              //   ),
+              // ),
+              // const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: const Color(0xFFD1D5DB)),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<String>(
+                    value: tmpInstanceSelected,
+                    isExpanded: true,
+                    items: _instanceProvider.instanceList.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(
+                          value,
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            color: const Color(0xFF1F2937),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        tmpInstanceSelected =
+                            newValue ?? InstanceApiType.hostedApi.value;
+                      });
+                    },
+                  ),
+                ),
+              ),
+              if (tmpInstanceSelected == InstanceApiType.custom.value) ...[
+                const SizedBox(height: 16),
+                Text(
+                  'Base URL',
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF374151),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _instaceUrlController,
+                  decoration: InputDecoration(
+                    hintText: 'Tanpa //',
+                    hintStyle: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: const Color(0xFF9CA3AF),
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFD1D5DB)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFFD1D5DB)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Color(0xFF2F80ED)),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Menggunakan HTTPS',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFF374151),
+                      ),
+                    ),
+                    Switch(
+                      value: isSSL,
+                      onChanged: (bool value) {
+                        setState(() => isSSL = value);
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => context.pop(false),
+            child: Text(
+              'Tutup',
+              style: GoogleFonts.poppins(
+                color: const Color(0xFF6B7280),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => context.pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2F80ED),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Text(
+              'Simpan',
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (result) {
+      _instanceProvider.save(
+        instanceType: tmpInstanceSelected,
+        baseUrl: _instaceUrlController.text,
+        isSSL: isSSL,
+      );
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    _instanceProvider = Provider.of<InstanceProvider>(context, listen: false);
+    _instaceUrlController = TextEditingController();
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarColor: Colors.white,
         systemNavigationBarIconBrightness: Brightness.dark,
         systemNavigationBarDividerColor: Colors.transparent,
       ),
@@ -59,13 +249,13 @@ class _PreAuthPageState extends State<PreAuthPage>
       parent: _entranceController,
       curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
     );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.15),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _entranceController,
-      curve: const Interval(0.2, 0.8, curve: Curves.easeOutCubic),
-    ));
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.15), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _entranceController,
+            curve: const Interval(0.2, 0.8, curve: Curves.easeOutCubic),
+          ),
+        );
 
     // Start entrance animation
     _entranceController.forward();
@@ -87,63 +277,95 @@ class _PreAuthPageState extends State<PreAuthPage>
     _backgroundController.removeStatusListener(_handleBackgroundStatus);
     _backgroundController.dispose();
     _entranceController.dispose();
+    _instaceUrlController.dispose();
     super.dispose();
   }
+
+  double? _actionButtonHeight;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _kBackground,
-      body: SafeArea(
-        child: AnimatedBuilder(
-          animation: Listenable.merge([_backgroundProgress, _fadeAnimation]),
-          builder: (context, _) {
-            return Stack(
-              children: [
-                // Modern Gradient Background
-                _ModernGradientBackground(
-                  progress: _backgroundProgress.value,
-                ),
+      body: AnimatedBuilder(
+        animation: Listenable.merge([_backgroundProgress, _fadeAnimation]),
+        builder: (context, _) {
+          return Stack(
+            children: [
+              // Modern Gradient Background
+              _ModernGradientBackground(progress: _backgroundProgress.value),
 
-                // Minimal Floating Particles
-                _MinimalParticles(
-                  progress: _backgroundProgress.value,
-                ),
+              // Minimal Floating Particles
+              _MinimalParticles(progress: _backgroundProgress.value),
 
-                // Main Content with Fade & Slide Animation
-                FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: SlideTransition(
-                    position: _slideAnimation,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24),
+              // Main Content with Fade & Slide Animation
+              FadeTransition(
+                opacity: _fadeAnimation,
+                child: SlideTransition(
+                  position: _slideAnimation,
+                  child: Container(
+                    height: MediaQuery.of(context).size.height,
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: SingleChildScrollView(
+                      reverse: true,
                       child: Column(
                         children: [
-                          const Spacer(flex: 2),
+                          // const Spacer(flex: 2),
 
                           // Hero Logo Section
-                          _buildHeroSection(),
+                          SafeArea(child: _buildHeroSection()),
 
                           const SizedBox(height: 60),
 
                           // Glassmorphism Content Card
                           _buildContentCard(context),
-
-                          const Spacer(flex: 3),
-
-                          // Modern Action Buttons
-                          _buildActionButtons(context),
-
-                          const SizedBox(height: 32),
+                          SizedBox(
+                            height:
+                                (_actionButtonHeight ??
+                                    MediaQuery.of(context).size.height * 0.2) *
+                                1.5,
+                          ),
+                          // const Spacer(flex: 5),
                         ],
                       ),
                     ),
                   ),
                 ),
-              ],
-            );
-          },
-        ),
+              ),
+
+              // Modern Action Buttons
+              Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  _MeasureSizeWidget(
+                    onChange: (value) => _actionButtonHeight = value.height,
+                    child: SafeArea(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: _buildActionButtons(context),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                ],
+              ),
+
+              SafeArea(
+                child: Align(
+                  alignment: AlignmentGeometry.topRight,
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: InkWellIconButton(
+                      onTap: _handleInstanceApi,
+                      icon: Icon(RemixIcons.instance_line),
+                      color: Colors.transparent,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -174,11 +396,8 @@ class _PreAuthPageState extends State<PreAuthPage>
             'assets/icons/icon.png',
             height: 64,
             width: 64,
-            errorBuilder: (_, __, ___) => const Icon(
-              Icons.fingerprint,
-              size: 64,
-              color: _kAccent,
-            ),
+            errorBuilder: (_, __, ___) =>
+                const Icon(Icons.fingerprint, size: 64, color: _kAccent),
           ),
         ),
 
@@ -266,14 +485,8 @@ class _PreAuthPageState extends State<PreAuthPage>
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildFeatureItem(
-                    Icons.security_rounded,
-                    'Aman',
-                  ),
-                  _buildFeatureItem(
-                    Icons.flash_on_rounded,
-                    'Cepat',
-                  ),
+                  _buildFeatureItem(Icons.security_rounded, 'Aman'),
+                  _buildFeatureItem(Icons.flash_on_rounded, 'Cepat'),
                   _buildFeatureItem(
                     Icons.workspace_premium_rounded,
                     'Terpercaya',
@@ -296,11 +509,7 @@ class _PreAuthPageState extends State<PreAuthPage>
             color: _kAccent.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(16),
           ),
-          child: Icon(
-            icon,
-            size: 28,
-            color: _kAccent,
-          ),
+          child: Icon(icon, size: 28, color: _kAccent),
         ),
         const SizedBox(height: 8),
         Text(
@@ -417,10 +626,7 @@ class _ModernGradientBackground extends StatelessWidget {
 }
 
 class _GradientBackgroundPainter extends CustomPainter {
-  _GradientBackgroundPainter({
-    required this.progress,
-    required this.color,
-  });
+  _GradientBackgroundPainter({required this.progress, required this.color});
 
   final double progress;
   final Color color;
@@ -496,20 +702,14 @@ class _MinimalParticles extends StatelessWidget {
   Widget build(BuildContext context) {
     return Positioned.fill(
       child: CustomPaint(
-        painter: _ParticlesPainter(
-          progress: progress,
-          color: _kAccent,
-        ),
+        painter: _ParticlesPainter(progress: progress, color: _kAccent),
       ),
     );
   }
 }
 
 class _ParticlesPainter extends CustomPainter {
-  _ParticlesPainter({
-    required this.progress,
-    required this.color,
-  });
+  _ParticlesPainter({required this.progress, required this.color});
 
   final double progress;
   final Color color;
@@ -536,7 +736,8 @@ class _ParticlesPainter extends CustomPainter {
       final radius = 1.5 + random.nextDouble() * 3.0;
 
       // Subtle fade based on position
-      final opacity = 0.1 + (math.sin((progress + seed) * math.pi) * 0.15).abs();
+      final opacity =
+          0.1 + (math.sin((progress + seed) * math.pi) * 0.15).abs();
 
       paint.color = color.withValues(alpha: opacity);
       canvas.drawCircle(Offset(x, y), radius, paint);
@@ -546,4 +747,44 @@ class _ParticlesPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _ParticlesPainter oldDelegate) =>
       oldDelegate.progress != progress || oldDelegate.color != color;
+}
+
+// Widget to measure the actual size of a child widget
+class _MeasureSizeWidget extends StatefulWidget {
+  const _MeasureSizeWidget({required this.onChange, required this.child});
+
+  final ValueChanged<Size> onChange;
+  final Widget child;
+
+  @override
+  State<_MeasureSizeWidget> createState() => _MeasureSizeWidgetState();
+}
+
+class _MeasureSizeWidgetState extends State<_MeasureSizeWidget> {
+  final GlobalKey _key = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _notifySize());
+  }
+
+  @override
+  void didUpdateWidget(_MeasureSizeWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _notifySize());
+  }
+
+  void _notifySize() {
+    if (!mounted) return;
+    final renderBox = _key.currentContext?.findRenderObject() as RenderBox?;
+    if (renderBox != null) {
+      widget.onChange(renderBox.size);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(key: _key, child: widget.child);
+  }
 }

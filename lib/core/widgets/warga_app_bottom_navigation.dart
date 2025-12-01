@@ -52,13 +52,9 @@ class _WargaAppBottomNavigationState extends State<WargaAppBottomNavigation>
           snapshot.connectionState == ConnectionState.waiting
           ? const CircularProgressIndicator()
           : Scaffold(
-              body: widget.child != null
-                  ? widget
-                        .child // No fade animation for direct child (camera)
-                  : FadeTransition(
-                      opacity: _fade,
-                      child: widget.navigationShell,
-                    ),
+              body:
+                  widget.child ??
+                  FadeTransition(opacity: _fade, child: widget.navigationShell),
               bottomNavigationBar: _buildBottomNavigationBar(
                 authProvider.userModel!.id,
               ),

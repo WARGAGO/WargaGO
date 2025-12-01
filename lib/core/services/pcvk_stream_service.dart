@@ -207,9 +207,6 @@ class PCVKStreamService {
 
     final completeSignal = jsonEncode({'complete': true});
     _channel?.sink.add(completeSignal);
-    if (kDebugMode) {
-      print('Sent complete');
-    }
   }
 
   void _handleServerMessage(dynamic message) {

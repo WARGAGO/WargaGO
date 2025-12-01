@@ -1,17 +1,3 @@
-// ============================================================================
-// LOGIN PAGE (CLEAN CODE VERSION)
-// ============================================================================
-// Halaman login untuk admin
-//
-// Clean Code Principles Applied:
-// ✅ Fokus ke tampilan & interaksi user (logic di AuthProvider)
-// ✅ Pecah jadi widget kecil yang focused
-// ✅ Pakai widget reusable (AuthTextField, AuthPrimaryButton, dll)
-// ✅ Nama variabel & widget yang jelas dan deskriptif
-// ✅ Responsif dengan LayoutBuilder & SingleChildScrollView
-// ✅ Tidak panggil API langsung - pakai AuthProvider
-// ============================================================================
-
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -22,15 +8,8 @@ import 'package:provider/provider.dart';
 import 'package:wargago/core/providers/auth_provider.dart';
 import 'package:wargago/features/common/auth/presentation/widgets/auth_constants.dart';
 import 'package:wargago/features/common/auth/presentation/widgets/auth_widgets.dart';
+import 'package:wargago/features/common/classification/widgets/inkwell_iconbutton.dart';
 
-/// AdminLoginPage - Halaman login untuk admin
-///
-/// Fitur:
-/// - Animated background dengan blob shapes
-/// - Form validation
-/// - Integration dengan Firebase Auth via AuthProvider
-/// - Auto-check user status (pending/rejected)
-/// - Default credentials info untuk testing
 class UnifiedLoginPage extends StatefulWidget {
   const UnifiedLoginPage({
     super.key,
@@ -97,6 +76,16 @@ class _UnifiedLoginPageState extends State<UnifiedLoginPage>
             children: [
               _DecorBackground(progress: _progress.value),
               const _LoginBody(),
+              SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: InkWellIconButton(
+                    onTap: () => context.pop(),
+                    icon: Icon(Icons.arrow_back_ios_new),
+                    color: Colors.transparent,
+                  ),
+                ),
+              ),
             ],
           );
         },

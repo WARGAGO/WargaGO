@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:wargago/core/providers/instance_provider.dart';
 import 'firebase_options.dart';
 import 'app/app.dart';
 import 'core/providers/auth_provider.dart';
@@ -126,9 +127,12 @@ void main() async {
   // Initialize Indonesian locale for date formatting
   await initializeDateFormatting('id_ID', null);
 
+  final instanceProvider = await InstanceProvider.init();
+
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => instanceProvider),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => WargaProvider()),
         ChangeNotifierProvider(create: (_) => RumahProvider()),

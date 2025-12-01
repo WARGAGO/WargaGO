@@ -67,7 +67,6 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
         },
       );
       await _cameraController!.initialize();
-      await Future.delayed(const Duration(seconds: 1));
       if (!mounted) return;
       setState(() {});
     } on CameraException catch (e) {
@@ -142,6 +141,7 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
       }
 
       // Dispose old controller
+      await Future.delayed(const Duration(milliseconds: 500));
       await _cameraController?.dispose();
 
       // Switch to next camera
@@ -656,7 +656,11 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
                       ? WhiteButton(
                           padding: const EdgeInsets.all(16),
                           color: Colors.white.withValues(alpha: 0.75),
-                          onTap: _isSwitchingCamera ? null : _switchCamera,
+                          onTap: _isSwitchingCamera
+                              ? null
+                              : () {
+                                  _initializeCameraFuture = _switchCamera();
+                                },
                           child: _isSwitchingCamera
                               ? const SizedBox(
                                   width: 24,
@@ -694,7 +698,11 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
                   // Camera Switch Button (Left)
                   _cameras.length > 1
                       ? InkWellIconButton(
-                          onTap: _isSwitchingCamera ? null : _switchCamera,
+                          onTap: _isSwitchingCamera
+                              ? null
+                              : () {
+                                  _initializeCameraFuture = _switchCamera();
+                                },
                           icon: _isSwitchingCamera
                               ? const SizedBox(
                                   width: 24,
@@ -735,7 +743,7 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
                           children: [
                             Text(
                               _pcvkStreamService.isStreaming
-                                  ? '${_result?.predictedClass ?? "..."} $_currentVeggie\nKepercayaan: ${((_result?.confidence??0) * 100).toStringAsFixed(0)}%'
+                                  ? '${_result?.predictedClass ?? "..."} $_currentVeggie\nKepercayaan: ${((_result?.confidence ?? 0) * 100).toStringAsFixed(0)}%'
                                   : 'Aktifkan\nLive Preview',
                               textAlign: TextAlign.center,
                               style: GoogleFonts.poppins().copyWith(
@@ -794,12 +802,13 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
                     duration: const Duration(milliseconds: 300),
                     switchInCurve: Curves.easeInOut,
                     switchOutCurve: Curves.easeInOut,
-                    transitionBuilder: (Widget child, Animation<double> animation) {
-                      return FadeTransition(
-                        opacity: animation,
-                        child: child,
-                      );
-                    },
+                    transitionBuilder:
+                        (Widget child, Animation<double> animation) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: child,
+                          );
+                        },
                     child: _isSwitchingCamera
                         ? Container(
                             key: const ValueKey('switching'),
@@ -811,7 +820,9 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
                             ),
                           )
                         : LayoutBuilder(
-                            key: ValueKey(_currentCameraIndex), // Key for animation
+                            key: ValueKey(
+                              _currentCameraIndex,
+                            ), // Key for animation
                             builder: (context, constraints) {
                               final mediaSize = MediaQuery.of(context).size;
                               final scale =
