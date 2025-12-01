@@ -165,7 +165,7 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
     try {
       // Stop streaming if active
       if (_pcvkStreamService.isStreaming) {
-        _pcvkStreamService.stopStreaming();
+        await _pcvkStreamService.stopStreaming();
       }
 
       // Turn off flash if it's on
@@ -208,7 +208,7 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
 
   Future<void> _pickFromGallery() async {
     try {
-      _pcvkStreamService.stopStreaming();
+      await _pcvkStreamService.stopStreaming();
       setState(() => _processedImageBytes = null);
       final XFile? image = await _imagePicker.pickImage(
         source: ImageSource.gallery,
@@ -231,7 +231,7 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
       _isProcessing = true;
       _processedImageBytes = null;
     });
-    _pcvkStreamService.stopStreaming();
+    await _pcvkStreamService.stopStreaming();
 
     try {
       final XFile image = await _cameraController!.takePicture();
@@ -273,12 +273,12 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
     setState(() => _isProcessing = false);
   }
 
-  void _handleStreaming() {
+  void _handleStreaming() async {
     setState(() => _processedImageBytes = null);
     if (_pcvkStreamService.isStreaming) {
-      _pcvkStreamService.stopStreaming();
+      await _pcvkStreamService.stopStreaming();
     } else {
-      _pcvkStreamService.startStreaming(
+      await _pcvkStreamService.startStreaming(
         WebSocketConfig(
           modelType: _useEfficient!
               ? PcvkModelType.efficientnetv2
@@ -302,7 +302,8 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
 
     try {
       if (_pcvkStreamService.isStreaming) {
-        _pcvkStreamService.stopStreaming();
+        await _pcvkStreamService.stopStreaming();
+        // await Future.delayed(const Duration(milliseconds: 500));
       }
 
       await _cameraController?.dispose();
@@ -338,7 +339,7 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
 
     try {
       if (_pcvkStreamService.isStreaming) {
-        _pcvkStreamService.stopStreaming();
+        await _pcvkStreamService.stopStreaming();
       }
 
       await _cameraController?.dispose();
@@ -369,10 +370,10 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
 
   Future<void> _restartStreaming() async {
     if (_pcvkStreamService.isStreaming) {
-      _pcvkStreamService.stopStreaming();
+      await _pcvkStreamService.stopStreaming();
       await Future.delayed(Duration(milliseconds: 500));
 
-      _pcvkStreamService.startStreaming(
+      await _pcvkStreamService.startStreaming(
         WebSocketConfig(
           modelType: _useEfficient!
               ? PcvkModelType.efficientnetv2
@@ -633,8 +634,8 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               WhiteButton(
-                onTap: () {
-                  _pcvkStreamService.stopStreaming();
+                onTap: () async {
+                  await _pcvkStreamService.stopStreaming();
                   setState(() => _useEfficient = null);
                 },
                 color: Colors.white.withValues(alpha: 0.75),

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as imglib;
@@ -26,11 +27,18 @@ class PCVKStreamService {
   final int chunkSize = 64 * 1024;
   final int jpegQuality = 80;
 
+  // Frame skipping for smoother performance
+  int _frameSkipCount = 0;
+  int _frameSkipThreshold = 2; // Skip every N frames initially
+  // DateTime? _lastFrameProcessedTime;
+
   WebSocketConfig? webSocketConfig;
 
-  // Processed image accumulation
-  final List<int> _processedImageBuffer = [];
+  // Processed image accumulation - using Uint8List builder for better performance
+  final List<Uint8List> _processedImageChunks = [];
   bool _isReceivingProcessedImage = false;
+  // ignore: unused_field
+  int _processedImageTotalSize = 0;
 
   // Callbacks
   Function(WebSocketPredictResponse result)? onPredictionResult;
@@ -120,10 +128,18 @@ class PCVKStreamService {
     await _cameraController!.startImageStream((CameraImage image) async {
       if (_isProcessingFrame) return;
 
+      // Frame skipping logic for smoother performance
+      _frameSkipCount++;
+      if (_frameSkipCount < _frameSkipThreshold) {
+        return; // Skip this frame
+      }
+      _frameSkipCount = 0;
+
       _isProcessingFrame = true;
 
       try {
         await _processAndSendFrame(image);
+        // _lastFrameProcessedTime = DateTime.now();
       } catch (e) {
         if (kDebugMode) {
           print("Error processing frame: $e");
@@ -224,6 +240,9 @@ class PCVKStreamService {
           _lastPingTimeMs = DateTime.now()
               .difference(_frameSentTime!)
               .inMilliseconds;
+
+          // Adaptive frame skipping based on latency
+          _adjustFrameSkipping();
           return;
         }
 
@@ -233,12 +252,13 @@ class PCVKStreamService {
           // Check if server is starting to send processed image
           if (statusMessage.startsWith('Sending processed image')) {
             _isReceivingProcessedImage = true;
-            _processedImageBuffer.clear();
+            _processedImageChunks.clear();
+            _processedImageTotalSize = 0;
           } else if (statusMessage == 'Processed image transfer complete') {
             _isReceivingProcessedImage = false;
-            if (_processedImageBuffer.isNotEmpty) {
-              onProcessedImage?.call(Uint8List.fromList(_processedImageBuffer));
-              _processedImageBuffer.clear();
+            if (_processedImageChunks.isNotEmpty) {
+              // Combine chunks in background isolate to avoid UI jank
+              _combineImageChunks();
             }
           }
 
@@ -257,10 +277,17 @@ class PCVKStreamService {
       } else if (message is List<int>) {
         // Accumulate binary chunks if receiving processed image
         if (_isReceivingProcessedImage) {
-          _processedImageBuffer.addAll(message);
+          // Store as Uint8List to avoid repeated conversions
+          final chunk = message is Uint8List
+              ? message
+              : Uint8List.fromList(message);
+          _processedImageChunks.add(chunk);
+          _processedImageTotalSize += chunk.length;
+
+          // Optional: Log progress
           // if (kDebugMode) {
           //   print(
-          //     'Received chunk: ${message.length} bytes, total: ${_processedImageBuffer.length}',
+          //     'Received chunk: ${chunk.length} bytes, total: $_processedImageTotalSize',
           //   );
           // }
         }
@@ -271,6 +298,79 @@ class PCVKStreamService {
       }
       onError?.call(e.toString());
     }
+  }
+
+  // Adjust frame skipping based on network latency
+  void _adjustFrameSkipping() {
+    if (_lastPingTimeMs == null) return;
+
+    // Adjust threshold based on latency
+    if (_lastPingTimeMs! < 100) {
+      // Low latency: process more frames
+      _frameSkipThreshold = 1;
+    } else if (_lastPingTimeMs! < 200) {
+      // Medium latency: skip some frames
+      _frameSkipThreshold = 2;
+    } else if (_lastPingTimeMs! < 400) {
+      // High latency: skip more frames
+      _frameSkipThreshold = 3;
+    } else {
+      // Very high latency: skip most frames
+      _frameSkipThreshold = 5;
+    }
+
+    if (kDebugMode) {
+      print(
+        'Adjusted frame skip threshold to $_frameSkipThreshold (latency: ${_lastPingTimeMs}ms)',
+      );
+    }
+  }
+
+  // Combine image chunks in background isolate to avoid blocking UI
+  Future<void> _combineImageChunks() async {
+    try {
+      final combinedData = {'chunks': _processedImageChunks};
+
+      final Uint8List? combined = await compute(
+        _combineChunksBackground,
+        combinedData,
+      );
+
+      if (combined != null) {
+        onProcessedImage?.call(combined);
+      }
+
+      _processedImageChunks.clear();
+      _processedImageTotalSize = 0;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error combining image chunks: $e');
+      }
+      onError?.call(e.toString());
+    }
+  }
+}
+
+// Background isolate function to combine chunks efficiently
+Future<Uint8List?> _combineChunksBackground(Map<String, dynamic> data) async {
+  try {
+    final List<Uint8List> chunks = (data['chunks'] as List).cast<Uint8List>();
+
+    if (chunks.isEmpty) return null;
+
+    // Pre-allocate the exact size needed
+    final BytesBuilder builder = BytesBuilder(copy: false);
+
+    for (final chunk in chunks) {
+      builder.add(chunk);
+    }
+
+    return builder.takeBytes();
+  } catch (e) {
+    if (kDebugMode) {
+      print('Error in _combineChunksBackground: $e');
+    }
+    return null;
   }
 }
 
