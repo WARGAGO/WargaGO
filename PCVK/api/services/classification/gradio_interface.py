@@ -71,7 +71,7 @@ def gradio_predict(
                 image = Image.fromarray(image)
             
             # Perform prediction (no segmentation, no preprocessing)
-            predicted_class, confidence_value, all_confidences = predict_image(
+            predicted_class, confidence_value, all_confidences, _ = predict_image(
                 model=model,
                 image=image,
                 use_segmentation=False,
@@ -151,7 +151,7 @@ def gradio_predict(
         segmented_pil = Image.fromarray(cv2.cvtColor(segmented_img, cv2.COLOR_BGR2RGB))
         
         # Perform prediction
-        predicted_class, confidence_value, all_confidences = predict_image(
+        predicted_class, confidence_value, all_confidences, _ = predict_image(
             model=model,
             image=segmented_pil,
             use_segmentation=False,  # Already segmented above
