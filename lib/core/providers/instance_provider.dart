@@ -9,10 +9,8 @@ class InstanceProvider extends ChangeNotifier {
 
   InstanceProvider._({
     required this.prefs,
-    required bool isSSL,
     required InstanceApiType instanceSelectedType,
-  }) : _isSSL = isSSL,
-       _instanceSelected = instanceSelectedType;
+  }) : _instanceSelected = instanceSelectedType;
 
   static Future<InstanceProvider> init() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -27,13 +25,11 @@ class InstanceProvider extends ChangeNotifier {
 
     if (instanceType != InstanceApiType.hostedApi) {
       UrlPCVKAPI.setBaseUrl(baseUrl);
+      UrlPCVKAPI.setIsSSL(isSSL);
     }
 
-    return InstanceProvider._(
-      prefs: prefs,
-      isSSL: isSSL,
-      instanceSelectedType: instanceType,
-    ).._loadedBaseUrl = baseUrl;
+    return InstanceProvider._(prefs: prefs, instanceSelectedType: instanceType)
+      .._loadedBaseUrl = baseUrl;
   }
 
   List<String> get instanceList =>
@@ -45,6 +41,7 @@ class InstanceProvider extends ChangeNotifier {
     _instanceSelected = InstanceApiType.fromString(value);
     if (_instanceSelected == InstanceApiType.hostedApi) {
       UrlPCVKAPI.setBaseUrl(UrlPCVKAPI.baseUrlEnv);
+      UrlPCVKAPI.setIsSSL(UrlPCVKAPI.isSSLEnv);
     }
     prefs.setString(InstanceApiPrefKey.instanceType.name, instanceSelected);
     notifyListeners();
@@ -56,15 +53,15 @@ class InstanceProvider extends ChangeNotifier {
       : UrlPCVKAPI.baseUrl;
   set baseUrl(String value) {
     UrlPCVKAPI.setBaseUrl(value);
+    _loadedBaseUrl = value;
     prefs.setString(InstanceApiPrefKey.baseUrl.name, UrlPCVKAPI.baseUrl);
     notifyListeners();
   }
 
-  bool _isSSL;
-  bool get isSSL => _isSSL;
+  bool get isSSL => UrlPCVKAPI.isSSL;
   set isSSL(bool value) {
-    _isSSL = value;
-    prefs.setBool(InstanceApiPrefKey.isUseSSL.name, _isSSL);
+    UrlPCVKAPI.setIsSSL(value);
+    prefs.setBool(InstanceApiPrefKey.isUseSSL.name, value);
     notifyListeners();
   }
 
