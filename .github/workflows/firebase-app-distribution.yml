@@ -62,12 +62,22 @@ jobs:
 
       # 5. Create empty .env file for production build
       - name: Create .env file
-        run: |
-          echo "# Production build - empty .env file" > .env
-          echo "# All configs should use Firebase Remote Config or build-time variables" >> .env
-          cat .env
-          echo ".env file created for flutter_dotenv package"
+        env:
+          FIREBASE_API_KEY_WEB: ${{ vars.FIREBASE_API_KEY_WEB }}
+          TEST_EMAIL: ${{ vars.TEST_EMAIL }}
+          TEST_PASSWORD: ${{ vars.TEST_PASSWORD }}
+          PCVK_API_URL: ${{ vars.PCVK_API_URL }}
+          PCVK_API_HTTPS: ${{ vars.PCVK_API_HTTPS }}
 
+        run: |
+          cp .env.example .env
+          # Syntax: sed -i 's|^KEY_TO_FIND=.*|KEY_TO_FIND=new_value|' filename                    
+          # Example: Inject a secret (using the env var defined above)
+          sed -i "s|^FIREBASE_API_KEY_WEB=.*|FIREBASE_API_KEY_WEB=$FIREBASE_API_KEY_WEB|" .env
+          sed -i "s|^TEST_EMAIL=.*|TEST_EMAIL=$TEST_EMAIL|" .env
+          sed -i "s|^TEST_PASSWORD=.*|TEST_PASSWORD=$TEST_PASSWORD|" .env
+          sed -i "s|^PCVK_API_URL=.*|PCVK_API_URL=$PCVK_API_URL|" .env
+          sed -i "s|^PCVK_API_HTTPS=.*|PCVK_API_HTTPS=$PCVK_API_HTTPS|" .env
       # 6. Get dependencies
       - name: Get dependencies
         run: flutter pub get
