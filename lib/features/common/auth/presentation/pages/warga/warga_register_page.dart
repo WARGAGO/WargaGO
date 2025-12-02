@@ -15,17 +15,96 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:wargago/core/constants/app_routes.dart';
 import 'package:wargago/core/providers/auth_provider.dart';
-import 'package:wargago/features/common/auth/presentation/widgets/auth_constants.dart';
 import 'package:wargago/features/common/auth/presentation/widgets/auth_widgets.dart';
+import 'package:wargago/features/common/classification/widgets/inkwell_iconbutton.dart';
 
-class WargaRegisterPage extends StatefulWidget {
+class WargaRegisterPage extends StatelessWidget {
   const WargaRegisterPage({super.key});
 
   @override
-  State<WargaRegisterPage> createState() => _WargaRegisterPageState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF1E5CB8), // Deep blue
+              Color(0xFF2F80ED), // Primary blue Wargago
+              Color(0xFF5B8DEF), // Light blue
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Header with back button, "Already have account", and "Sign In"
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                child: Row(
+                  children: [
+                    // Back button - Navigate to preAuth (keluar dari register)
+                    InkWellIconButton(
+                      onTap: () => context.go(AppRoutes.preAuth),
+                      icon: Icon(Icons.arrow_back_ios_new, color: Colors.white70, size: 20),
+                      color: Colors.transparent,
+                    ),
+                    Spacer(),
+                    // "Already have an account?"
+                    Text(
+                      "Already have an account?",
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        color: Colors.white70,
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    // "Sign In" button
+                    TextButton(
+                      onPressed: () {
+                        // Navigate to login page
+                        context.go(AppRoutes.login);
+                      },
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.white.withValues(alpha: 0.2),
+                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: Text(
+                        'Sign In',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Register body content
+              Expanded(child: const _RegisterBody()),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _WargaRegisterPageState extends State<WargaRegisterPage> {
+class _RegisterBody extends StatefulWidget {
+  const _RegisterBody();
+
+  @override
+  State<_RegisterBody> createState() => _RegisterBodyState();
+}
+
+class _RegisterBodyState extends State<_RegisterBody> {
   final _formKey = GlobalKey<FormState>();
   final _namaController = TextEditingController();
   final _emailController = TextEditingController();
@@ -128,271 +207,358 @@ class _WargaRegisterPageState extends State<WargaRegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AuthColors.background,
-      appBar: _buildAppBar(),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AuthSpacing.xl),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minHeight: MediaQuery.of(context).size.height - 100,
+        ),
+        child: IntrinsicHeight(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildHeader(),
-              const SizedBox(height: AuthSpacing.xxl),
-              _buildGoogleSignInButton(),
-              const SizedBox(height: AuthSpacing.xl),
-              _buildDivider(),
-              const SizedBox(height: AuthSpacing.xl),
-              _buildManualRegistrationForm(),
-              const SizedBox(height: AuthSpacing.xxl),
-              _buildRegisterButton(),
-              const SizedBox(height: AuthSpacing.xl),
-              _buildLoginLink(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+              SizedBox(height: 20),
 
-  /// Build app bar dengan back button
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: AuthColors.background,
-      elevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
-        onPressed: () => Navigator.pop(context),
-      ),
-    );
-  }
-
-  /// Build header dengan logo & title
-  Widget _buildHeader() {
-    return Column(
-      children: [
-        const AuthLogo(showText: false),
-        const SizedBox(height: AuthSpacing.xl),
-        Text(
-          'Daftar sebagai Warga',
-          style: GoogleFonts.poppins(
-            fontSize: 28,
-            fontWeight: FontWeight.w700,
-            color: AuthColors.primary,
-          ),
-        ),
-        const SizedBox(height: AuthSpacing.sm),
-        Text(
-          'Pilih metode pendaftaran yang Anda inginkan',
-          textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            color: AuthColors.textTertiary,
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// Build Google Sign In button
-  Widget _buildGoogleSignInButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: ElevatedButton(
-        onPressed: _isLoading ? null : _handleGoogleSignIn,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black87,
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AuthSpacing.md),
-            side: BorderSide(color: Colors.grey.shade300),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              'assets/icons/google_logo.png',
-              height: 24,
-              width: 24,
-              errorBuilder: (_, __, ___) =>
-                  const Icon(Icons.g_mobiledata, size: 28, color: Colors.blue),
-            ),
-            const SizedBox(width: AuthSpacing.md),
-            Text(
-              'Lanjutkan dengan Google',
-              style: GoogleFonts.poppins(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Build divider with "atau"
-  Widget _buildDivider() {
-    return Row(
-      children: [
-        const Expanded(child: Divider()),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AuthSpacing.md),
-          child: Text(
-            'atau',
-            style: GoogleFonts.poppins(
-              color: AuthColors.textTertiary,
-              fontSize: 14,
-            ),
-          ),
-        ),
-        const Expanded(child: Divider()),
-      ],
-    );
-  }
-
-  /// Build manual registration form
-  Widget _buildManualRegistrationForm() {
-    return Form(
-      key: _formKey,
-      child: Column(
-        children: [
-          // Nama Lengkap
-          AuthTextField(
-            controller: _namaController,
-            labelText: 'Nama Lengkap',
-            hintText: 'Masukkan nama lengkap',
-            prefixIcon: Icons.person_outline,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Nama lengkap harus diisi';
-              }
-              if (value.length < 3) {
-                return 'Nama minimal 3 karakter';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: AuthSpacing.lg),
-
-          // Email
-          AuthTextField(
-            controller: _emailController,
-            labelText: 'Email',
-            hintText: 'contoh@email.com',
-            prefixIcon: Icons.email_outlined,
-            keyboardType: TextInputType.emailAddress,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Email harus diisi';
-              }
-              if (!RegExp(
-                r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-              ).hasMatch(value)) {
-                return 'Format email tidak valid';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: AuthSpacing.lg),
-
-          // Password
-          AuthTextField(
-            controller: _passwordController,
-            labelText: 'Password',
-            hintText: 'Minimal 6 karakter',
-            prefixIcon: Icons.lock_outline,
-            obscureText: _obscurePassword,
-            suffixIcon: IconButton(
-              icon: Icon(
-                _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                color: AuthColors.textTertiary,
-              ),
-              onPressed: () {
-                setState(() => _obscurePassword = !_obscurePassword);
-              },
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Password harus diisi';
-              }
-              if (value.length < 6) {
-                return 'Password minimal 6 karakter';
-              }
-              return null;
-            },
-          ),
-          const SizedBox(height: AuthSpacing.lg),
-
-          // Confirm Password
-          AuthTextField(
-            controller: _confirmPasswordController,
-            labelText: 'Konfirmasi Password',
-            hintText: 'Masukkan password lagi',
-            prefixIcon: Icons.lock_outline,
-            obscureText: _obscureConfirmPassword,
-            suffixIcon: IconButton(
-              icon: Icon(
-                _obscureConfirmPassword
-                    ? Icons.visibility_off
-                    : Icons.visibility,
-                color: AuthColors.textTertiary,
-              ),
-              onPressed: () {
-                setState(
-                  () => _obscureConfirmPassword = !_obscureConfirmPassword,
-                );
-              },
-            ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Konfirmasi password harus diisi';
-              }
-              return null;
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Build register button
-  Widget _buildRegisterButton() {
-    return AuthPrimaryButton(
-      text: 'Daftar',
-      onPressed: _isLoading ? null : _handleRegister,
-      isLoading: _isLoading,
-    );
-  }
-
-  /// Build login link
-  Widget _buildLoginLink() {
-    return Center(
-      child: TextButton(
-        onPressed: () => Navigator.pop(context),
-        child: RichText(
-          text: TextSpan(
-            text: 'Sudah punya akun? ',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              color: AuthColors.textSecondary,
-            ),
-            children: [
-              TextSpan(
-                text: 'Login di sini',
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AuthColors.primary,
+              // Logo Only
+              Center(
+                child: Container(
+                  width: 70,
+                  height: 70,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 10,
+                        offset: Offset(0, 5),
+                      ),
+                    ],
+                  ),
+                  padding: EdgeInsets.all(10),
+                  child: Image.asset(
+                    'assets/icons/icon.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Icon(
+                        Icons.home_work,
+                        size: 40,
+                        color: Color(0xFF2F80ED),
+                      );
+                    },
+                  ),
                 ),
               ),
+              SizedBox(height: 24),
+
+              // White Card with Register Form
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.95),
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 20,
+                      offset: Offset(0, 10),
+                    ),
+                  ],
+                ),
+                padding: EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Title
+                    Text(
+                      'Create Account',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Sign up to get started',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        fontSize: 13,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Form
+                    Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Nama Lengkap field
+                          _buildTextField(
+                            controller: _namaController,
+                            label: 'Full Name',
+                            hint: 'Enter your full name',
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Nama lengkap harus diisi';
+                              }
+                              if (value.length < 3) {
+                                return 'Nama minimal 3 karakter';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 14),
+
+                          // Email field
+                          _buildTextField(
+                            controller: _emailController,
+                            label: 'Email Address',
+                            hint: 'Enter your email',
+                            keyboardType: TextInputType.emailAddress,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Email harus diisi';
+                              }
+                              if (!value.contains('@')) {
+                                return 'Email tidak valid';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 14),
+
+                          // Password field
+                          _buildTextField(
+                            controller: _passwordController,
+                            label: 'Password',
+                            hint: 'Enter your password',
+                            obscureText: _obscurePassword,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                color: Colors.grey.shade600,
+                              ),
+                              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Password harus diisi';
+                              }
+                              if (value.length < 6) {
+                                return 'Password minimal 6 karakter';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 14),
+
+                          // Confirm Password field
+                          _buildTextField(
+                            controller: _confirmPasswordController,
+                            label: 'Confirm Password',
+                            hint: 'Re-enter your password',
+                            obscureText: _obscureConfirmPassword,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                                color: Colors.grey.shade600,
+                              ),
+                              onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Konfirmasi password harus diisi';
+                              }
+                              if (value != _passwordController.text) {
+                                return 'Password tidak sama';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Register button with gradient
+                          Container(
+                            height: 52,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Color(0xFF2F80ED), // Primary blue
+                                  Color(0xFF5B8DEF), // Light blue
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(14),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Color(0xFF2F80ED).withValues(alpha: 0.4),
+                                  blurRadius: 12,
+                                  offset: Offset(0, 6),
+                                ),
+                              ],
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: _isLoading ? null : _handleRegister,
+                                borderRadius: BorderRadius.circular(14),
+                                child: Center(
+                                  child: _isLoading
+                                      ? SizedBox(
+                                          width: 24,
+                                          height: 24,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                          ),
+                                        )
+                                      : Text(
+                                          'Sign up',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Divider dengan text "Or sign up with"
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Divider(color: Colors.grey.shade300, thickness: 1),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                child: Text(
+                                  'Or sign up with',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Divider(color: Colors.grey.shade300, thickness: 1),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+
+                          // Google Sign-In button (Full Width)
+                          Container(
+                            height: 52,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: Colors.grey.shade200),
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: _isLoading ? null : _handleGoogleSignIn,
+                                borderRadius: BorderRadius.circular(14),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Image.asset(
+                                      'assets/icons/google_icon.png',
+                                      height: 24,
+                                      width: 24,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return const Icon(
+                                          Icons.g_mobiledata,
+                                          size: 32,
+                                          color: Color(0xFF4285F4),
+                                        );
+                                      },
+                                    ),
+                                    SizedBox(width: 12),
+                                    Text(
+                                      'Sign up with Google',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              SizedBox(height: 20),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  /// Build text field dengan style yang sama seperti login
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    bool obscureText = false,
+    TextInputType? keyboardType,
+    Widget? suffixIcon,
+    String? Function(String?)? validator,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey.shade700,
+          ),
+        ),
+        SizedBox(height: 8),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade200),
+          ),
+          child: TextFormField(
+            controller: controller,
+            obscureText: obscureText,
+            keyboardType: keyboardType,
+            style: GoogleFonts.poppins(fontSize: 15),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: GoogleFonts.poppins(
+                fontSize: 14,
+                color: Colors.grey.shade400,
+              ),
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              suffixIcon: suffixIcon,
+            ),
+            validator: validator,
+          ),
+        ),
+      ],
     );
   }
 }
+
+
+
+
