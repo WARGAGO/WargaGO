@@ -62,13 +62,7 @@ class AppRouterConfig {
       GoRoute(
         path: AppRoutes.login,
         name: 'login',
-        builder: (context, state) {
-          final extra = state.extra as Map<String, dynamic>?;
-          return UnifiedLoginPage(
-            initialProgress: extra?['initialProgress'] as double? ?? 0.0,
-            isForward: extra?['isForward'] as bool? ?? true,
-          );
-        },
+        builder: (context, state) => const UnifiedLoginPage(),
       ),
 
       GoRoute(
