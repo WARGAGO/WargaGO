@@ -1,14 +1,29 @@
 // ============================================================================
 // MARKETPLACE SEARCH BAR WIDGET
 // ============================================================================
-// Search bar untuk mencari produk sayuran
+// Search bar untuk mencari produk
 // ============================================================================
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class MarketplaceSearchBar extends StatelessWidget {
-  const MarketplaceSearchBar({super.key});
+class MarketplaceSearchBar extends StatefulWidget {
+  final Function(String)? onSearch;
+
+  const MarketplaceSearchBar({super.key, this.onSearch});
+
+  @override
+  State<MarketplaceSearchBar> createState() => _MarketplaceSearchBarState();
+}
+
+class _MarketplaceSearchBarState extends State<MarketplaceSearchBar> {
+  final TextEditingController _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,8 +45,12 @@ class MarketplaceSearchBar extends StatelessWidget {
                 ],
               ),
               child: TextField(
+                controller: _controller,
+                onChanged: (value) {
+                  widget.onSearch?.call(value);
+                },
                 decoration: InputDecoration(
-                  hintText: 'Cari sayur',
+                  hintText: 'Cari produk...',
                   hintStyle: GoogleFonts.poppins(
                     fontSize: 14,
                     color: const Color(0xFF9CA3AF),
@@ -44,6 +63,15 @@ class MarketplaceSearchBar extends StatelessWidget {
                       size: 22,
                     ),
                   ),
+                  suffixIcon: _controller.text.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear, size: 20),
+                          onPressed: () {
+                            _controller.clear();
+                            widget.onSearch?.call('');
+                          },
+                        )
+                      : null,
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -51,33 +79,6 @@ class MarketplaceSearchBar extends StatelessWidget {
                   ),
                 ),
               ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Container(
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [
-                  Color(0xFF2F80ED),
-                  Color(0xFF1E6FD9),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF2F80ED).withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: IconButton(
-              icon: const Icon(Icons.tune, color: Colors.white),
-              onPressed: () {
-                // TODO: Show filter options
-              },
             ),
           ),
         ],

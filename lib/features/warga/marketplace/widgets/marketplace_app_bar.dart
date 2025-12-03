@@ -5,14 +5,28 @@
 // ============================================================================
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:wargago/core/constants/app_routes.dart';
+import 'package:provider/provider.dart';
+import '../../../../core/providers/cart_provider.dart';
+import '../pages/cart_page.dart';
+import '../pages/my_orders_page.dart';
 
-class MarketplaceAppBar extends StatelessWidget {
-  final int cartCount;
+class MarketplaceAppBar extends StatefulWidget {
+  const MarketplaceAppBar({super.key});
 
-  const MarketplaceAppBar({super.key, this.cartCount = 0});
+  @override
+  State<MarketplaceAppBar> createState() => _MarketplaceAppBarState();
+}
+
+class _MarketplaceAppBarState extends State<MarketplaceAppBar> {
+  @override
+  void initState() {
+    super.initState();
+    // Load cart count saat app bar ditampilkan
+    Future.microtask(() {
+      context.read<CartProvider>().loadCartCount();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,7 +69,12 @@ class MarketplaceAppBar extends StatelessWidget {
 
   Widget _buildOrdersButton(BuildContext context) {
     return InkWell(
-      onTap: () => context.push(AppRoutes.wargaPesananSaya),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const MyOrdersPage()),
+        );
+      },
       borderRadius: BorderRadius.circular(12),
       child: Container(
         width: 44,
@@ -77,7 +96,12 @@ class MarketplaceAppBar extends StatelessWidget {
 
   Widget _buildCartButton(BuildContext context) {
     return InkWell(
-      onTap: () => context.push(AppRoutes.wargaPesananSaya),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const CartPage()),
+        );
+      },
       borderRadius: BorderRadius.circular(12),
       child: Container(
         width: 44,
@@ -86,47 +110,52 @@ class MarketplaceAppBar extends StatelessWidget {
           color: const Color(0xFFF8F9FD),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            const Center(
-              child: Icon(
-                Icons.shopping_cart_outlined,
-                size: 24,
-                color: Colors.black,
-              ),
-            ),
-            if (cartCount > 0)
-              Positioned(
-                right: -4,
-                top: -4,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFEF4444),
-                    shape: BoxShape.circle,
-                  ),
-                  constraints: const BoxConstraints(
-                    minWidth: 18,
-                    minHeight: 18,
-                  ),
-                  child: Center(
-                    child: Text(
-                      cartCount > 9 ? '9+' : '$cartCount',
-                      style: GoogleFonts.poppins(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                        height: 1,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
+        child: Consumer<CartProvider>(
+          builder: (context, cart, child) {
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                const Center(
+                  child: Icon(
+                    Icons.shopping_cart_outlined,
+                    size: 24,
+                    color: Colors.black,
                   ),
                 ),
-              ),
-          ],
+                if (cart.cartCount > 0)
+                  Positioned(
+                    right: -4,
+                    top: -4,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFEF4444),
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 18,
+                        minHeight: 18,
+                      ),
+                      child: Center(
+                        child: Text(
+                          cart.cartCount > 9 ? '9+' : '${cart.cartCount}',
+                          style: GoogleFonts.poppins(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                            height: 1,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
         ),
       ),
     );
   }
 }
+

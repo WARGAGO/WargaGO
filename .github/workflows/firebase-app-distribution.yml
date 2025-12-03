@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   build:
+    environment: Distribution
     runs-on: ubuntu-latest
 
     # 1. Checkout repository
@@ -92,7 +93,7 @@ jobs:
         with:
           appId: ${{ secrets.FIREBASE_APP_ID }}
           serviceCredentialsFileContent: ${{ secrets.CREDENTIAL_FILE_CONTENT }}
-          groups: "kelompok-4"
+          groups: "kelompok-4, terter-outer"
           file: build/app/outputs/flutter-apk/app-release.apk
           releaseNotes: |
             Changes in this build:

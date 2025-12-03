@@ -26,10 +26,13 @@ class UbahInformasiTokoScreen extends StatelessWidget {
             Center(
               child: Stack(
                 children: [
-                  const CircleAvatar(
+                  CircleAvatar(
                     radius: 50,
-                    backgroundImage: NetworkImage(
-                      'https://i.pravatar.cc/300?img=68',
+                    backgroundColor: Colors.blue[50],
+                    child: Icon(
+                      Icons.store,
+                      size: 50,
+                      color: Colors.blue[700],
                     ),
                   ),
                   Positioned(

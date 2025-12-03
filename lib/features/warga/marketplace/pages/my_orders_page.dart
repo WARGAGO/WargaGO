@@ -1,10 +1,14 @@
 // ============================================================================
 // MY ORDERS PAGE
 // ============================================================================
-// Halaman untuk menampilkan daftar pesanan pengguna
+// Halaman untuk menampilkan daftar pesanan pengguna dari backend
 // ============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+import '../../../../core/providers/order_provider.dart';
+import '../../../../core/models/order_model.dart';
 import '../widgets/my_orders_header.dart';
 import '../widgets/order_card.dart';
 import '../widgets/orders_empty_state.dart';
@@ -23,6 +27,11 @@ class _MyOrdersPageState extends State<MyOrdersPage> with SingleTickerProviderSt
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+
+    // Load orders saat page dibuka
+    Future.microtask(() {
+      context.read<OrderProvider>().loadMyOrders();
+    });
   }
 
   @override
@@ -36,86 +45,91 @@ class _MyOrdersPageState extends State<MyOrdersPage> with SingleTickerProviderSt
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FD),
       appBar: MyOrdersHeader(tabController: _tabController),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildOrderList('all'),
-          _buildOrderList('processing'),
-          _buildOrderList('shipped'),
-          _buildOrderList('completed'),
-        ],
+      body: Consumer<OrderProvider>(
+        builder: (context, orderProvider, child) {
+          // Loading state
+          if (orderProvider.isLoading) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          // Error state
+          if (orderProvider.error != null) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, size: 60, color: Colors.red),
+                  const SizedBox(height: 16),
+                  Text(
+                    orderProvider.error!,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => orderProvider.loadMyOrders(),
+                    child: const Text('Coba Lagi'),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return TabBarView(
+            controller: _tabController,
+            children: [
+              _buildOrderList(orderProvider.allOrders),
+              _buildOrderList(orderProvider.processingOrders),
+              _buildOrderList(orderProvider.shippedOrders),
+              _buildOrderList(orderProvider.completedOrders),
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildOrderList(String status) {
-    // Demo data
-    final List<Map<String, dynamic>> orders = [
-      {
-        'orderId': 'ORD-2025-001',
-        'date': '25 Nov 2025',
-        'storeName': 'Toko Sayur Rafcol',
-        'items': [
-          {'name': 'Sayur Wortel', 'qty': 1, 'unit': 'kg'},
-          {'name': 'Sayur Bayam', 'qty': 2, 'unit': 'ikat'},
-        ],
-        'total': 'Rp. 25.000',
-        'status': 'processing',
-        'statusText': 'Sedang Diproses',
-        'statusColor': Color(0xFFF59E0B),
-      },
-      {
-        'orderId': 'ORD-2025-002',
-        'date': '24 Nov 2025',
-        'storeName': 'Toko Sayur Segar',
-        'items': [
-          {'name': 'Kentang', 'qty': 3, 'unit': 'kg'},
-        ],
-        'total': 'Rp. 30.000',
-        'status': 'shipped',
-        'statusText': 'Dalam Pengiriman',
-        'statusColor': Color(0xFF2F80ED),
-      },
-      {
-        'orderId': 'ORD-2025-003',
-        'date': '23 Nov 2025',
-        'storeName': 'Toko Sayur Rafcol',
-        'items': [
-          {'name': 'Tomat', 'qty': 2, 'unit': 'kg'},
-        ],
-        'total': 'Rp. 20.000',
-        'status': 'completed',
-        'statusText': 'Selesai',
-        'statusColor': Color(0xFF2F80ED),
-      },
-    ];
-
-    // Filter orders based on status
-    List<Map<String, dynamic>> filteredOrders = orders;
-    if (status != 'all') {
-      filteredOrders = orders.where((order) => order['status'] == status).toList();
-    }
-
-    if (filteredOrders.isEmpty) {
+  Widget _buildOrderList(List<OrderModel> orders) {
+    // Jika tidak ada orders, tampilkan empty state
+    if (orders.isEmpty) {
       return const OrdersEmptyState();
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: filteredOrders.length,
-      itemBuilder: (context, index) {
-        final order = filteredOrders[index];
-        return OrderCard(
-          orderId: order['orderId'],
-          date: order['date'],
-          storeName: order['storeName'],
-          items: List<Map<String, dynamic>>.from(order['items']),
-          total: order['total'],
-          status: order['status'],
-          statusText: order['statusText'],
-          statusColor: order['statusColor'],
-        );
+    return RefreshIndicator(
+      onRefresh: () async {
+        await context.read<OrderProvider>().loadMyOrders();
       },
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: orders.length,
+        itemBuilder: (context, index) {
+          final order = orders[index];
+
+          // Convert items untuk OrderCard widget
+          final items = order.items.map((item) => {
+            'name': item.productName,
+            'qty': item.quantity,
+            'unit': item.unit,
+          }).toList();
+
+          // Format date
+          final dateFormat = DateFormat('dd MMM yyyy', 'id_ID');
+          final formattedDate = dateFormat.format(order.createdAt);
+
+          return OrderCard(
+            orderId: order.orderId,
+            date: formattedDate,
+            storeName: order.sellerName,
+            items: items,
+            total: 'Rp ${order.totalAmount.toStringAsFixed(0)}',
+            status: order.status.name,
+            statusText: order.statusText,
+            statusColor: Color(order.statusColorValue),
+          );
+        },
+      ),
     );
   }
 }

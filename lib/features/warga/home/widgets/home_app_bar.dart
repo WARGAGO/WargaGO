@@ -160,12 +160,11 @@ class HomeAppBar extends StatelessWidget {
               offset: const Offset(0, 2),
             ),
           ],
-          image: const DecorationImage(
-            image: NetworkImage(
-              'https://i.pravatar.cc/150?img=68', // Foto statis sesuai desain
-            ),
-            fit: BoxFit.cover,
-          ),
+        ),
+        child: Icon(
+          Icons.person,
+          size: 24,
+          color: Colors.grey[400],
         ),
       ),
     );

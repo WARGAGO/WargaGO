@@ -209,9 +209,7 @@ class AppRouterConfig {
                 builder: (context, state) {
                   final extras = Map<String, dynamic>.from(state.extra as Map);
                   return ProductDetailPage(
-                    productName: extras['productName'],
-                    price: extras['price'],
-                    imageUrl: extras['imageUrl'],
+                    productId: extras['productId'] as String,
                   );
                 },
               ),

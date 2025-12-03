@@ -200,6 +200,84 @@ service cloud.firestore {
     }
 
     // ========================================================================
+    // MARKETPLACE PRODUCTS COLLECTION
+    // ========================================================================
+    match /marketplace_products/{productId} {
+      // Read: Semua authenticated user bisa lihat produk
+      allow read: if isSignedIn();
+
+      // Create: User yang login bisa create produk sebagai seller
+      // Validasi: sellerId harus sama dengan auth.uid
+      allow create: if isSignedIn() &&
+                       hasValidData() &&
+                       'sellerId' in request.resource.data &&
+                       request.auth.uid == request.resource.data.sellerId &&
+                       'productName' in request.resource.data &&
+                       'description' in request.resource.data &&
+                       'price' in request.resource.data &&
+                       'stock' in request.resource.data &&
+                       'category' in request.resource.data &&
+                       'imageUrls' in request.resource.data &&
+                       'unit' in request.resource.data &&
+                       request.resource.data.price is number &&
+                       request.resource.data.price > 0 &&
+                       request.resource.data.stock is number &&
+                       request.resource.data.stock >= 0 &&
+                       request.resource.data.imageUrls is list &&
+                       request.resource.data.imageUrls.size() > 0 &&
+                       request.resource.data.imageUrls.size() <= 5;
+
+      // Update: Hanya owner (seller) yang bisa update produknya
+      // Tidak boleh mengubah sellerId
+      allow update: if isSignedIn() &&
+                       resource.data.sellerId == request.auth.uid &&
+                       request.resource.data.sellerId == resource.data.sellerId;
+
+      // Delete: Hanya owner (seller) yang bisa delete produknya
+      allow delete: if isSignedIn() &&
+                       resource.data.sellerId == request.auth.uid;
+    }
+
+    // ========================================================================
+    // PENDING SELLERS COLLECTION (for seller registration)
+    // ========================================================================
+    match /pending_sellers/{sellerId} {
+      // Read: User bisa read data sendiri, admin bisa read semua
+      allow read: if isSignedIn() &&
+                     (request.auth.uid == sellerId || isAdmin());
+
+      // Create: User yang login bisa daftar sebagai seller
+      allow create: if isSignedIn() &&
+                       hasValidData() &&
+                       request.auth.uid == sellerId;
+
+      // Update: Admin bisa approve/reject, user bisa update data sendiri
+      allow update: if isAdmin() ||
+                       (isSignedIn() && request.auth.uid == sellerId);
+
+      // Delete: Admin bisa delete
+      allow delete: if isAdmin();
+    }
+
+    // ========================================================================
+    // MARKETPLACE SELLERS COLLECTION (approved sellers)
+    // ========================================================================
+    match /marketplace_sellers/{sellerId} {
+      // Read: Semua authenticated user bisa lihat seller yang approved
+      allow read: if isSignedIn();
+
+      // Create: Hanya admin yang bisa create (dari approval)
+      allow create: if isAdmin();
+
+      // Update: Seller bisa update data sendiri, admin bisa update semua
+      allow update: if isSignedIn() &&
+                       (request.auth.uid == sellerId || isAdmin());
+
+      // Delete: Hanya admin yang bisa delete
+      allow delete: if isAdmin();
+    }
+
+    // ========================================================================
     // KELOLA LAPAK - MARKETPLACE SELLER MANAGEMENT
     // ========================================================================
 
@@ -265,6 +343,93 @@ service cloud.firestore {
     match /dashboard_stats/{statId} {
       allow read: if isSignedIn();
       allow write: if isAdmin();
+    }
+
+    // ========================================================================
+    // MARKETPLACE CART COLLECTION
+    // ========================================================================
+    // Keranjang belanja untuk marketplace
+    // ========================================================================
+    match /marketplace_cart/{cartItemId} {
+      // Helper function - Check if user is the cart owner
+      function isCartOwner() {
+        return isSignedIn() && request.auth.uid == resource.data.userId;
+      }
+
+      // Helper function - Check if user will be the cart owner (for create)
+      function willBeCartOwner() {
+        return isSignedIn() && request.auth.uid == request.resource.data.userId;
+      }
+
+      // Helper function - Validate cart item data
+      function isValidCartItem() {
+        let data = request.resource.data;
+        return data.keys().hasAll([
+          'id', 'userId', 'productId', 'sellerId',
+          'productName', 'productImage', 'price',
+          'quantity', 'unit', 'maxStock', 'addedAt', 'isSelected'
+        ])
+        && data.userId is string
+        && data.productId is string
+        && data.sellerId is string
+        && data.productName is string
+        && data.productImage is string
+        && data.price is number
+        && data.quantity is int
+        && data.unit is string
+        && data.maxStock is int
+        && data.addedAt is timestamp
+        && data.isSelected is bool
+        && data.quantity > 0
+        && data.quantity <= data.maxStock
+        && data.price >= 0;
+      }
+
+      // READ: User hanya bisa read cart sendiri
+      allow read: if isCartOwner();
+
+      // CREATE: User bisa create cart item untuk dirinya sendiri
+      allow create: if willBeCartOwner() && isValidCartItem();
+
+      // UPDATE: User hanya bisa update cart sendiri dengan data valid
+      allow update: if isCartOwner() && isValidCartItem();
+
+      // DELETE: User hanya bisa delete cart sendiri
+      allow delete: if isCartOwner();
+    }
+
+    // ========================================================================
+    // MARKETPLACE ORDERS COLLECTION
+    // ========================================================================
+    // Pesanan marketplace (history pesanan)
+    // ========================================================================
+    match /marketplace_orders/{orderId} {
+      // Helper function - Check if user is buyer
+      function isBuyer() {
+        return isSignedIn() && request.auth.uid == resource.data.buyerId;
+      }
+
+      // Helper function - Check if user is seller
+      function isSeller() {
+        return isSignedIn() && request.auth.uid == resource.data.sellerId;
+      }
+
+      // Helper function - Check if user will be buyer (for create)
+      function willBeBuyer() {
+        return isSignedIn() && request.auth.uid == request.resource.data.buyerId;
+      }
+
+      // READ: Buyer atau seller bisa read order mereka
+      allow read: if isBuyer() || isSeller();
+
+      // CREATE: Buyer bisa create order untuk dirinya sendiri
+      allow create: if willBeBuyer();
+
+      // UPDATE: Buyer bisa cancel/complete, seller bisa update status
+      allow update: if isBuyer() || isSeller();
+
+      // DELETE: Tidak diizinkan (soft delete dengan status cancelled)
+      allow delete: if false;
     }
   }
 }
