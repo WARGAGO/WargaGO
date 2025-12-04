@@ -11,6 +11,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'home/pages/warga_home_page.dart';
 import 'marketplace/pages/warga_marketplace_page.dart';
 import 'profile/akun_screen.dart';
+import 'iuran/pages/iuran_warga_page.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/services/kyc_service.dart';
 import '../common/auth/presentation/pages/warga/kyc_upload_page.dart';
@@ -34,7 +35,7 @@ class _WargaMainPageState extends State<WargaMainPage> {
     _allPages = [
       const WargaHomePage(), // Index 0: Home
       const WargaMarketplacePage(), // Index 1: Marketplace (Perlu KYC)
-      const _IuranPage(), // Index 2: Iuran (Perlu KYC)
+      const IuranWargaPage(), // Index 2: Iuran (Perlu KYC)
       const AkunScreen(), // Index 3: Akun - Connected to database
     ];
   }
@@ -435,63 +436,6 @@ class _WargaMainPageState extends State<WargaMainPage> {
     );
   }
 }
-
-// ============================================================================
-// IURAN PAGE (Requires KYC)
-// ============================================================================
-class _IuranPage extends StatelessWidget {
-  const _IuranPage();
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FD),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: Text(
-          'Iuran',
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF1F2937),
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.receipt_long_rounded,
-              size: 80,
-              color: const Color(0xFF2F80ED).withValues(alpha: 0.3),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Iuran',
-              style: GoogleFonts.poppins(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF1F2937),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Fitur dalam pengembangan',
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                color: const Color(0xFF6B7280),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ============================================================================
 
 // ============================================================================
 // CUSTOM PAINTER FOR CURVED BOTTOM NAVIGATION

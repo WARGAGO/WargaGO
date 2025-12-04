@@ -25,6 +25,7 @@ import 'package:wargago/features/warga/marketplace/pages/warga_marketplace_page.
 import 'package:wargago/features/warga/profile/akun_screen.dart';
 import 'package:wargago/features/warga/profile/edit_profil_screen.dart';
 import 'package:wargago/features/warga/profile/toko_saya_screen.dart';
+import 'package:wargago/features/warga/iuran/pages/iuran_warga_page.dart';
 
 import '../features/common/classification/classification_camera.dart';
 
@@ -220,7 +221,7 @@ class AppRouterConfig {
               GoRoute(
                 path: AppRoutes.wargaIuran,
                 name: 'wargaIuran',
-                builder: (context, state) => const _PlaceHolderPage('Iuran'),
+                builder: (context, state) => const IuranWargaPage(),
               ),
             ],
           ),
@@ -250,58 +251,4 @@ class AppRouterConfig {
       body: Center(child: Text('Route tidak ditemukan: ${state.uri.path}')),
     ),
   );
-}
-
-class _PlaceHolderPage extends StatelessWidget {
-  const _PlaceHolderPage(this.title);
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FD),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: Text(
-          title,
-          style: GoogleFonts.poppins(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: const Color(0xFF1F2937),
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.receipt_long_rounded,
-              size: 80,
-              color: const Color(0xFF2F80ED).withValues(alpha: 0.3),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: GoogleFonts.poppins(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFF1F2937),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Fitur dalam pengembangan',
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                color: const Color(0xFF6B7280),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
