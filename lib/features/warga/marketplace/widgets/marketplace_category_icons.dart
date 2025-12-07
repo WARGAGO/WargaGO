@@ -5,6 +5,7 @@
 // ============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/providers/marketplace_provider.dart';
@@ -85,24 +86,15 @@ class MarketplaceCategoryIcons extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<MarketplaceProvider>(
       builder: (context, provider, child) {
-        // Get all categories from provider
+        // Get all categories from provider (from Firestore)
         var allCategories = provider.categories.toList();
 
-        // Jika ada kategori "Sayuran", replace dengan sub-kategori
-        final sayuranIndex = allCategories.indexWhere(
-          (cat) => cat.toLowerCase().contains('sayur') && cat.toLowerCase() != 'semua',
-        );
-
-        if (sayuranIndex != -1) {
-          // Hapus "Sayuran" dan insert sub-kategori
-          allCategories.removeAt(sayuranIndex);
-          allCategories.insertAll(sayuranIndex, [
-            'Sayur Daun',
-            'Sayur Akar',
-            'Sayur Buah',
-            'Sayur Polong',
-          ]);
+        if (kDebugMode) {
+          print('📂 Categories loaded from provider: $allCategories');
         }
+
+        // Don't replace categories - use what's from Firestore directly
+        // This ensures consistency between data and display
 
         if (allCategories.isEmpty || allCategories.length == 1) {
           return const SizedBox.shrink();

@@ -25,15 +25,35 @@ class CategoryProductsPage extends StatefulWidget {
   State<CategoryProductsPage> createState() => _CategoryProductsPageState();
 }
 
-class _CategoryProductsPageState extends State<CategoryProductsPage> {
+class _CategoryProductsPageState extends State<CategoryProductsPage> with WidgetsBindingObserver {
+
   @override
   void initState() {
     super.initState();
-    // Set category filter saat page dibuka
+    WidgetsBinding.instance.addObserver(this);
+    // Load products when page opens
     Future.microtask(() {
       final provider = Provider.of<MarketplaceProvider>(context, listen: false);
       provider.setCategory(widget.category);
+      provider.loadProducts(refresh: true);
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    // Reset category when leaving
+    Provider.of<MarketplaceProvider>(context, listen: false).setCategory('Semua');
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Auto-refresh when app resumes
+      final provider = Provider.of<MarketplaceProvider>(context, listen: false);
+      provider.loadProducts(refresh: true);
+    }
   }
 
   @override

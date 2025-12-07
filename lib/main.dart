@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -49,6 +51,17 @@ void main() async {
 
   // Initialize Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Configure Firestore for real-time updates
+  final firestore = FirebaseFirestore.instance;
+  firestore.settings = const Settings(
+    persistenceEnabled: true, // Keep offline support
+    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+  );
+
+  if (kDebugMode) {
+    print('✅ Firestore configured for real-time updates');
+  }
 
   // Load .env only if file exists (for local development/testing)
   // In production APK, .env doesn't exist (for security reasons)

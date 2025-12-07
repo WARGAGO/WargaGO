@@ -16,7 +16,7 @@ class MarketplaceService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  static const String _productsCollection = 'marketplace_products';
+  static const String _productsCollection = 'products'; // Updated to new collection
   static const String _azureStoragePrefix = 'marketplace/products';
 
   // Azure Blob Storage Service instance
@@ -162,7 +162,7 @@ class MarketplaceService {
       final snapshot = await query.get();
 
       final products = snapshot.docs
-          .map((doc) => MarketplaceProductModel.fromFirestore(doc))
+          .map((doc) => MarketplaceProductModel.fromProductCollection(doc)) // Updated
           .toList();
 
       if (kDebugMode) {
@@ -193,7 +193,7 @@ class MarketplaceService {
 
         // Process di client side
         final products = snapshot.docs
-            .map((doc) => MarketplaceProductModel.fromFirestore(doc))
+            .map((doc) => MarketplaceProductModel.fromProductCollection(doc)) // Updated
             .toList();
 
         // Filter by category di client side jika diperlukan
@@ -222,7 +222,7 @@ class MarketplaceService {
               .get();
 
           final products = snapshot.docs
-              .map((doc) => MarketplaceProductModel.fromFirestore(doc))
+              .map((doc) => MarketplaceProductModel.fromProductCollection(doc)) // Updated
               .toList();
 
           // Filter by isActive
@@ -266,7 +266,7 @@ class MarketplaceService {
           .get();
 
       return snapshot.docs
-          .map((doc) => MarketplaceProductModel.fromFirestore(doc))
+          .map((doc) => MarketplaceProductModel.fromProductCollection(doc)) // Updated
           .toList();
     } catch (e) {
       if (kDebugMode) {
@@ -283,7 +283,7 @@ class MarketplaceService {
 
         // Sort di client side
         final products = snapshot.docs
-            .map((doc) => MarketplaceProductModel.fromFirestore(doc))
+            .map((doc) => MarketplaceProductModel.fromProductCollection(doc)) // Updated
             .toList();
 
         products.sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -314,7 +314,7 @@ class MarketplaceService {
 
       if (!doc.exists) return null;
 
-      return MarketplaceProductModel.fromFirestore(doc);
+      return MarketplaceProductModel.fromProductCollection(doc); // Updated
     } catch (e) {
       if (kDebugMode) {
         print('❌ Error getting product: $e');
@@ -335,7 +335,7 @@ class MarketplaceService {
         snapshot = await _firestore
             .collection(_productsCollection)
             .where('isActive', isEqualTo: true)
-            .orderBy('productName')
+            .orderBy('nama') // Updated field name
             .get();
       } catch (e) {
         // Fallback: If index not ready, get without orderBy
@@ -350,7 +350,7 @@ class MarketplaceService {
 
       // Filter by keyword (case insensitive) - client-side filtering
       final products = snapshot.docs
-          .map((doc) => MarketplaceProductModel.fromFirestore(doc))
+          .map((doc) => MarketplaceProductModel.fromProductCollection(doc)) // Updated
           .where((product) =>
               product.productName.toLowerCase().contains(keyword.toLowerCase()))
           .toList();
@@ -544,7 +544,7 @@ class MarketplaceService {
 
     return query.snapshots().map((snapshot) {
       final products = snapshot.docs
-          .map((doc) => MarketplaceProductModel.fromFirestore(doc))
+          .map((doc) => MarketplaceProductModel.fromProductCollection(doc)) // Updated
           .toList();
 
       // Sort di client side
@@ -651,9 +651,16 @@ class MarketplaceService {
           .get();
 
       final categories = snapshot.docs
-          .map((doc) => doc.data()['category'] as String)
+          .map((doc) => doc.data()['kategori'] as String?) // Updated to 'kategori'
+          .where((cat) => cat != null && cat.isNotEmpty)
+          .cast<String>()
           .toSet()
           .toList();
+
+      if (kDebugMode) {
+        print('✅ Categories loaded: ${categories.length}');
+        print('   Categories: $categories');
+      }
 
       return categories;
     } catch (e) {

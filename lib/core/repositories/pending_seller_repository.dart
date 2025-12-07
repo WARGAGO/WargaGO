@@ -121,15 +121,47 @@ class PendingSellerRepository {
   }
 
   /// Create pending seller (untuk pendaftaran seller baru)
+  /// Atau update jika user pernah rejected
   Future<String?> createPendingSeller(PendingSellerModel seller) async {
     try {
       // Check apakah user sudah pernah daftar
       final existingSeller = await getSellerByUserId(seller.userId);
+
       if (existingSeller != null) {
-        print('⚠️ User sudah terdaftar sebagai seller');
-        return null;
+        // Jika status REJECTED, izinkan update (daftar ulang)
+        if (existingSeller.status == SellerVerificationStatus.rejected) {
+          print('ℹ️ Updating rejected seller registration...');
+
+          // Update document yang sudah ada dengan data baru
+          final querySnapshot = await _firestore
+              .collection(_collection)
+              .where('userId', isEqualTo: seller.userId)
+              .limit(1)
+              .get();
+
+          if (querySnapshot.docs.isNotEmpty) {
+            final docId = querySnapshot.docs.first.id;
+
+            // Update dengan data baru dan reset status ke pending
+            await _firestore.collection(_collection).doc(docId).update({
+              ...seller.toFirestore(),
+              'status': 'pending', // Reset ke pending untuk review ulang
+              'alasanPenolakan': null, // Clear alasan penolakan
+              'rejectedBy': null,
+              'rejectedAt': null,
+              'updatedAt': FieldValue.serverTimestamp(),
+            });
+
+            print('✅ Rejected seller registration updated: $docId');
+            return docId;
+          }
+        } else {
+          print('⚠️ User sudah terdaftar dengan status: ${existingSeller.status}');
+          return null;
+        }
       }
 
+      // User belum pernah daftar, create document baru
       final docRef =
           await _firestore.collection(_collection).add(seller.toFirestore());
       print('✅ Pending seller created: ${docRef.id}');

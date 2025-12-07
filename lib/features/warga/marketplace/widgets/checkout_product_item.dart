@@ -82,16 +82,39 @@ class CheckoutProductItem extends StatelessWidget {
           // Product Details
           Row(
             children: [
-              // Product Image
+              // Product Image with error handling
               Container(
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
                   color: const Color(0xFFF8F9FD),
                   borderRadius: BorderRadius.circular(8),
-                  image: DecorationImage(
-                    image: NetworkImage(imageUrl),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    imageUrl,
                     fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      // Fallback icon ketika image gagal load
+                      return Container(
+                        color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                        child: const Icon(
+                          Icons.shopping_bag,
+                          color: Color(0xFF10B981),
+                          size: 30,
+                        ),
+                      );
+                    },
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return const Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF10B981)),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),

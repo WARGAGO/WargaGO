@@ -609,9 +609,17 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
             ],
           ),
 
+          // OCR Data Section (if available)
+          if (kycDoc.ktpModel != null || kycDoc.kkModel != null) ...[
+            const SizedBox(height: 16),
+            const Divider(height: 1),
+            const SizedBox(height: 16),
+            _buildOCRDataSection(kycDoc),
+          ],
+
           // Verified info (if applicable)
           if (kycDoc.verifiedAt != null) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Icon(Icons.verified, size: 16, color: Colors.grey[600]),
@@ -737,6 +745,154 @@ class _DetailPenggunaPageState extends State<DetailPenggunaPage> {
               ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOCRDataSection(KYCDocumentModel kycDoc) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2F80ED).withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFF2F80ED).withValues(alpha: 0.2),
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2F80ED).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.auto_awesome,
+                  color: Color(0xFF2F80ED),
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Data Hasil OCR',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF2F80ED),
+                      ),
+                    ),
+                    Text(
+                      'Data otomatis dari scan dokumen',
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // KTP Data
+          if (kycDoc.ktpModel != null) _buildKTPDataFields(kycDoc.ktpModel!),
+
+          // KK Data
+          if (kycDoc.kkModel != null) _buildKKDataFields(kycDoc.kkModel!),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildKTPDataFields(dynamic ktpModel) {
+    final ktp = ktpModel;
+
+    return Column(
+      children: [
+        if (ktp.nik != null && ktp.nik!.isNotEmpty)
+          _buildOCRField('NIK', ktp.nik!, Icons.credit_card),
+        if (ktp.nama != null && ktp.nama!.isNotEmpty)
+          _buildOCRField('Nama', ktp.nama!, Icons.person),
+        if (ktp.tempatLahir != null && ktp.tempatLahir!.isNotEmpty)
+          _buildOCRField('Tempat Lahir', ktp.tempatLahir!, Icons.location_city),
+        if (ktp.tanggalLahir != null && ktp.tanggalLahir!.isNotEmpty)
+          _buildOCRField('Tanggal Lahir', ktp.tanggalLahir!, Icons.cake),
+        if (ktp.jenisKelamin != null && ktp.jenisKelamin!.isNotEmpty)
+          _buildOCRField('Jenis Kelamin', ktp.jenisKelamin!, Icons.wc),
+        if (ktp.alamat != null && ktp.alamat!.isNotEmpty)
+          _buildOCRField('Alamat', ktp.alamat!, Icons.home, isLast: false),
+        if (ktp.agama != null && ktp.agama!.isNotEmpty)
+          _buildOCRField('Agama', ktp.agama!, Icons.church),
+        if (ktp.pekerjaan != null && ktp.pekerjaan!.isNotEmpty)
+          _buildOCRField('Pekerjaan', ktp.pekerjaan!, Icons.work),
+        if (ktp.statusPerkawinan != null && ktp.statusPerkawinan!.isNotEmpty)
+          _buildOCRField('Status Perkawinan', ktp.statusPerkawinan!, Icons.favorite),
+        if (ktp.kewarganegaraan != null && ktp.kewarganegaraan!.isNotEmpty)
+          _buildOCRField('Kewarganegaraan', ktp.kewarganegaraan!, Icons.flag, isLast: true),
+      ],
+    );
+  }
+
+  Widget _buildKKDataFields(dynamic kkModel) {
+    final kk = kkModel;
+
+    return Column(
+      children: [
+        if (kk.noKK != null && kk.noKK!.isNotEmpty)
+          _buildOCRField('No. KK', kk.noKK!, Icons.credit_card),
+        if (kk.namaKepalaKeluarga != null && kk.namaKepalaKeluarga!.isNotEmpty)
+          _buildOCRField('Kepala Keluarga', kk.namaKepalaKeluarga!, Icons.person),
+        if (kk.alamat != null && kk.alamat!.isNotEmpty)
+          _buildOCRField('Alamat', kk.alamat!, Icons.home, isLast: true),
+      ],
+    );
+  }
+
+  Widget _buildOCRField(String label, String value, IconData icon, {bool isLast = false}) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 16, color: const Color(0xFF2F80ED)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: GoogleFonts.poppins(
+                    fontSize: 11,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF1F2937),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ),
     );

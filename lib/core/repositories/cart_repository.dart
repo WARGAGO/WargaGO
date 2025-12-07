@@ -235,6 +235,22 @@ class CartRepository {
   }
 
   // ============================================================================
+  // CLEANUP - Remove cart items for deleted products
+  // ============================================================================
+  Future<Result<void>> cleanupDeletedProducts() async {
+    try {
+      await _service.cleanupDeletedProducts();
+      return Result.success(null);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Repository Error - cleanupDeletedProducts: $e');
+      }
+      // Don't return error, just log it - cleanup is not critical
+      return Result.success(null);
+    }
+  }
+
+  // ============================================================================
   // HELPER - Extract Error Message
   // ============================================================================
   String _getErrorMessage(dynamic error) {

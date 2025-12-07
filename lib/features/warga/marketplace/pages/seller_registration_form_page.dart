@@ -9,10 +9,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/models/pending_seller_model.dart';
-import '../../../../core/repositories/pending_seller_repository.dart';
+import '../../../../core/services/seller_service.dart';
 
 class SellerRegistrationFormPage extends StatefulWidget {
   const SellerRegistrationFormPage({super.key});
@@ -25,7 +25,7 @@ class SellerRegistrationFormPage extends StatefulWidget {
 class _SellerRegistrationFormPageState
     extends State<SellerRegistrationFormPage> {
   final _formKey = GlobalKey<FormState>();
-  final PendingSellerRepository _repository = PendingSellerRepository();
+  final SellerService _sellerService = SellerService();
   final ImagePicker _picker = ImagePicker();
 
   // Controllers
@@ -75,33 +75,50 @@ class _SellerRegistrationFormPageState
       if (user == null) return;
 
       // Check apakah sudah terdaftar
-      final existingSeller = await _repository.getSellerByUserId(user.uid);
+      final existingSeller = await _sellerService.checkUserSellerStatus();
       if (existingSeller != null) {
         if (mounted) {
-          _showAlreadyRegisteredDialog(existingSeller);
+          // Handle berdasarkan status
+          if (existingSeller.status == SellerVerificationStatus.rejected) {
+            // Jika ditolak, izinkan daftar ulang dengan menampilkan alasan penolakan
+            _showRejectedCanRetryDialog(existingSeller);
+            // Tetap load data untuk form
+            await _loadWargaData(user.uid);
+          } else if (existingSeller.status == SellerVerificationStatus.approved) {
+            // Jika sudah disetujui, redirect ke halaman seller
+            _redirectToSellerPage();
+            return;
+          } else {
+            // Pending atau suspended, tampilkan dialog status
+            _showAlreadyRegisteredDialog(existingSeller);
+            return;
+          }
         }
-        return;
-      }
-
-      // Load data warga
-      final wargaDoc =
-          await FirebaseFirestore.instance.collection('warga').doc(user.uid).get();
-
-      if (wargaDoc.exists) {
-        final data = wargaDoc.data();
-        setState(() {
-          _namaLengkapController.text = data?['name'] ?? '';
-          _nikController.text = data?['nik'] ?? '';
-          _nomorTeleponController.text = data?['phone'] ?? '';
-          _alamatTokoController.text = data?['alamat'] ?? '';
-          _rtController.text = data?['rt'] ?? '';
-          _rwController.text = data?['rw'] ?? '';
-        });
+      } else {
+        // Belum terdaftar, load data warga
+        await _loadWargaData(user.uid);
       }
     } catch (e) {
       print('Error loading user data: $e');
     } finally {
       setState(() => _isLoadingData = false);
+    }
+  }
+
+  Future<void> _loadWargaData(String userId) async {
+    final wargaDoc =
+        await FirebaseFirestore.instance.collection('warga').doc(userId).get();
+
+    if (wargaDoc.exists) {
+      final data = wargaDoc.data();
+      setState(() {
+        _namaLengkapController.text = data?['name'] ?? '';
+        _nikController.text = data?['nik'] ?? '';
+        _nomorTeleponController.text = data?['phone'] ?? '';
+        _alamatTokoController.text = data?['alamat'] ?? '';
+        _rtController.text = data?['rt'] ?? '';
+        _rwController.text = data?['rw'] ?? '';
+      });
     }
   }
 
@@ -147,12 +164,159 @@ class _SellerRegistrationFormPageState
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context);
+              // Close dialog terlebih dahulu
+              Navigator.of(context).pop();
+              // Gunakan go_router untuk kembali dengan aman
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                // Jika tidak bisa pop, redirect ke profile
+                context.go('/warga/profile');
+              }
             },
             child: Text(
               'OK',
               style: GoogleFonts.poppins(color: statusColor),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showRejectedCanRetryDialog(PendingSellerModel seller) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.info_outline, color: Color(0xFFEF4444), size: 28),
+            const SizedBox(width: 12),
+            Text(
+              'Pendaftaran Ditolak',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Pendaftaran seller Anda sebelumnya ditolak.',
+              style: GoogleFonts.poppins(fontSize: 14),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFEE2E2),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Alasan Penolakan:',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                      color: const Color(0xFFEF4444),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    seller.alasanPenolakan ?? 'Tidak disebutkan',
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      color: const Color(0xFF7F1D1D),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Anda dapat mendaftar ulang dengan memperbaiki data sesuai alasan penolakan di atas.',
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                color: Colors.grey[700],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/warga/profile');
+              }
+            },
+            child: Text(
+              'Batal',
+              style: GoogleFonts.poppins(color: Colors.grey),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              // Tetap di halaman form untuk daftar ulang
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2F80ED),
+            ),
+            child: Text(
+              'Daftar Ulang',
+              style: GoogleFonts.poppins(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _redirectToSellerPage() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.store, color: Color(0xFF10B981), size: 28),
+            const SizedBox(width: 12),
+            Text(
+              'Sudah Terdaftar',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+        content: Text(
+          'Anda sudah terdaftar sebagai seller dan dapat mulai berjualan.\n\nAnda akan diarahkan ke halaman seller.',
+          style: GoogleFonts.poppins(fontSize: 14),
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              // Redirect ke halaman marketplace/seller dashboard
+              context.go('/warga/marketplace');
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF10B981),
+            ),
+            child: Text(
+              'Ke Halaman Seller',
+              style: GoogleFonts.poppins(color: Colors.white),
             ),
           ),
         ],
@@ -188,23 +352,6 @@ class _SellerRegistrationFormPageState
     }
   }
 
-  Future<String?> _uploadImage(File file, String fileName) async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return null;
-
-      final ref = FirebaseStorage.instance
-          .ref()
-          .child('seller_documents/${user.uid}/$fileName');
-
-      await ref.putFile(file);
-      return await ref.getDownloadURL();
-    } catch (e) {
-      print('Error uploading image: $e');
-      return null;
-    }
-  }
-
   Future<void> _submitRegistration() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -229,22 +376,12 @@ class _SellerRegistrationFormPageState
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw Exception('User tidak terautentikasi');
 
-      // Upload images
-      final ktpUrl = await _uploadImage(_fotoKTP!, 'ktp_${DateTime.now().millisecondsSinceEpoch}.jpg');
-      final selfieUrl = await _uploadImage(_fotoSelfieKTP!, 'selfie_${DateTime.now().millisecondsSinceEpoch}.jpg');
-      final tokoUrl = _fotoToko != null
-          ? await _uploadImage(_fotoToko!, 'toko_${DateTime.now().millisecondsSinceEpoch}.jpg')
-          : null;
+      print('🚀 Starting seller registration...');
 
-      if (ktpUrl == null || selfieUrl == null) {
-        throw Exception('Gagal mengupload dokumen');
-      }
-
-      // Create pending seller
-      final pendingSeller = PendingSellerModel(
-        userId: user.uid,
-        nik: _nikController.text.trim(),
+      // Submit registration using SellerService
+      final docId = await _sellerService.submitSellerRegistration(
         namaLengkap: _namaLengkapController.text.trim(),
+        nik: _nikController.text.trim(),
         namaToko: _namaTokoController.text.trim(),
         nomorTelepon: _nomorTeleponController.text.trim(),
         alamatToko: _alamatTokoController.text.trim(),
@@ -252,13 +389,10 @@ class _SellerRegistrationFormPageState
         rw: _rwController.text.trim(),
         deskripsiUsaha: _deskripsiUsahaController.text.trim(),
         kategoriProduk: _selectedCategories,
-        fotoKTPUrl: ktpUrl,
-        fotoSelfieKTPUrl: selfieUrl,
-        fotoTokoUrl: tokoUrl,
-        createdAt: DateTime.now(),
+        fotoKTP: _fotoKTP!,
+        fotoSelfieKTP: _fotoSelfieKTP!,
+        fotoToko: _fotoToko,
       );
-
-      final docId = await _repository.createPendingSeller(pendingSeller);
 
       if (docId != null) {
         if (mounted) {
@@ -268,7 +402,26 @@ class _SellerRegistrationFormPageState
         throw Exception('Gagal menyimpan pendaftaran');
       }
     } catch (e) {
-      _showErrorSnackBar('Error: $e');
+      print('❌ Error submitting registration: $e');
+      print('❌ Error type: ${e.runtimeType}');
+      if (mounted) {
+        String errorMessage = 'Terjadi kesalahan: ';
+
+        if (e.toString().contains('PCVK API')) {
+          errorMessage = 'Gagal menghubungi server. Pastikan:\n'
+              '1. PCVK API sudah berjalan\n'
+              '2. Koneksi internet aktif\n'
+              '3. IP/URL PCVK benar di .env';
+        } else if (e.toString().contains('upload')) {
+          errorMessage = 'Gagal upload foto. Coba lagi atau periksa koneksi internet.';
+        } else if (e.toString().contains('database') || e.toString().contains('Firestore')) {
+          errorMessage = 'Gagal menyimpan data. Coba lagi nanti.';
+        } else {
+          errorMessage = e.toString();
+        }
+
+        _showErrorSnackBar(errorMessage);
+      }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -299,8 +452,15 @@ class _SellerRegistrationFormPageState
         actions: [
           ElevatedButton(
             onPressed: () {
-              Navigator.pop(context); // Close dialog
-              Navigator.pop(context); // Back to previous page
+              // Close dialog terlebih dahulu
+              Navigator.of(context).pop();
+              // Gunakan go_router untuk kembali dengan aman
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                // Jika tidak bisa pop, redirect ke profile
+                context.go('/warga/profile');
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF10B981),
@@ -372,7 +532,7 @@ class _SellerRegistrationFormPageState
           ),
           if (_isLoading)
             Container(
-              color: Colors.black.withOpacity(0.5),
+              color: Colors.black.withValues(alpha: 0.5),
               child: Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -572,7 +732,7 @@ class _SellerRegistrationFormPageState
                   }
                 });
               },
-              selectedColor: const Color(0xFF2F80ED).withOpacity(0.2),
+              selectedColor: const Color(0xFF2F80ED).withValues(alpha: 0.2),
               checkmarkColor: const Color(0xFF2F80ED),
               labelStyle: GoogleFonts.poppins(
                 fontSize: 13,

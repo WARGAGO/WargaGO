@@ -227,11 +227,63 @@ service cloud.firestore {
                        request.resource.data.imageUrls.size() > 0 &&
                        request.resource.data.imageUrls.size() <= 5;
 
-      // Update: Hanya owner (seller) yang bisa update produknya
+      // Update:
+      // - Seller bisa update semua field produknya
+      // - Buyer bisa update stock & soldCount saat checkout (untuk kurangi stock)
       // Tidak boleh mengubah sellerId
-      allow update: if isSignedIn() &&
-                       resource.data.sellerId == request.auth.uid &&
-                       request.resource.data.sellerId == resource.data.sellerId;
+      allow update: if isSignedIn() && (
+                       // Seller update produknya sendiri
+                       (resource.data.sellerId == request.auth.uid &&
+                        request.resource.data.sellerId == resource.data.sellerId) ||
+                       // Buyer update stock & soldCount saat order (hanya field ini)
+                       (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stock', 'soldCount']) &&
+                        request.resource.data.sellerId == resource.data.sellerId)
+                     );
+
+      // Delete: Hanya owner (seller) yang bisa delete produknya
+      allow delete: if isSignedIn() &&
+                       resource.data.sellerId == request.auth.uid;
+    }
+
+    // ========================================================================
+    // PRODUCTS COLLECTION - Produk Sayuran (New Implementation)
+    // ========================================================================
+    match /products/{productId} {
+      // Read: Semua authenticated user bisa lihat produk aktif
+      allow read: if isSignedIn();
+
+      // Create: User yang login bisa create produk sebagai seller
+      // Validasi: sellerId harus sama dengan auth.uid
+      allow create: if isSignedIn() &&
+                       hasValidData() &&
+                       'sellerId' in request.resource.data &&
+                       request.auth.uid == request.resource.data.sellerId &&
+                       'nama' in request.resource.data &&
+                       'deskripsi' in request.resource.data &&
+                       'harga' in request.resource.data &&
+                       'stok' in request.resource.data &&
+                       'kategori' in request.resource.data &&
+                       'imageUrls' in request.resource.data &&
+                       request.resource.data.harga is number &&
+                       request.resource.data.harga > 0 &&
+                       request.resource.data.stok is number &&
+                       request.resource.data.stok >= 0 &&
+                       request.resource.data.imageUrls is list &&
+                       request.resource.data.imageUrls.size() > 0 &&
+                       request.resource.data.imageUrls.size() <= 3;
+
+      // Update:
+      // - Seller bisa update semua field produknya
+      // - Buyer bisa update stok & soldCount saat checkout (untuk kurangi stok)
+      // Tidak boleh mengubah sellerId
+      allow update: if isSignedIn() && (
+                       // Seller update produknya sendiri
+                       (resource.data.sellerId == request.auth.uid &&
+                        request.resource.data.sellerId == resource.data.sellerId) ||
+                       // Buyer update stok & soldCount saat order (hanya field ini)
+                       (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stok', 'soldCount']) &&
+                        request.resource.data.sellerId == resource.data.sellerId)
+                     );
 
       // Delete: Hanya owner (seller) yang bisa delete produknya
       allow delete: if isSignedIn() &&
@@ -404,32 +456,20 @@ service cloud.firestore {
     // Pesanan marketplace (history pesanan)
     // ========================================================================
     match /marketplace_orders/{orderId} {
-      // Helper function - Check if user is buyer
-      function isBuyer() {
-        return isSignedIn() && request.auth.uid == resource.data.buyerId;
-      }
+      // READ: Any authenticated user can read
+      allow read: if isSignedIn();
 
-      // Helper function - Check if user is seller
-      function isSeller() {
-        return isSignedIn() && request.auth.uid == resource.data.sellerId;
-      }
+      // LIST/QUERY: Any authenticated user can query
+      allow list: if isSignedIn();
 
-      // Helper function - Check if user will be buyer (for create)
-      function willBeBuyer() {
-        return isSignedIn() && request.auth.uid == request.resource.data.buyerId;
-      }
+      // CREATE: Any authenticated user can create order
+      allow create: if isSignedIn();
 
-      // READ: Buyer atau seller bisa read order mereka
-      allow read: if isBuyer() || isSeller();
+      // UPDATE: Any authenticated user can update
+      allow update: if isSignedIn();
 
-      // CREATE: Buyer bisa create order untuk dirinya sendiri
-      allow create: if willBeBuyer();
-
-      // UPDATE: Buyer bisa cancel/complete, seller bisa update status
-      allow update: if isBuyer() || isSeller();
-
-      // DELETE: Tidak diizinkan (soft delete dengan status cancelled)
-      allow delete: if false;
+      // DELETE: Only admin can delete
+      allow delete: if isAdmin();
     }
   }
 }

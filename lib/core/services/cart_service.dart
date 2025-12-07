@@ -15,7 +15,7 @@ class CartService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   static const String _cartCollection = 'marketplace_cart';
-  static const String _productsCollection = 'marketplace_products';
+  static const String _productsCollection = 'products'; // Updated to new collection
 
   // ============================================================================
   // CREATE - Tambah Item ke Keranjang
@@ -37,10 +37,20 @@ class CartService {
           .get();
 
       if (!productDoc.exists) {
+        if (kDebugMode) {
+          print('❌ Product not found with ID: $productId');
+          print('   Collection: $_productsCollection');
+        }
         throw Exception('Produk tidak ditemukan');
       }
 
-      final product = MarketplaceProductModel.fromFirestore(productDoc);
+      final product = MarketplaceProductModel.fromProductCollection(productDoc); // Updated factory method
+
+      if (kDebugMode) {
+        print('✅ Product found: ${product.productName}');
+        print('   Price: ${product.price}');
+        print('   Stock: ${product.stock}');
+      }
 
       // Validasi stock
       if (product.stock < quantity) {
@@ -380,7 +390,7 @@ class CartService {
             .get();
 
         if (productDoc.exists) {
-          final product = MarketplaceProductModel.fromFirestore(productDoc);
+          final product = MarketplaceProductModel.fromProductCollection(productDoc); // Updated
 
           // Update jika ada perubahan
           if (product.stock != item.maxStock || product.price != item.price) {
@@ -452,7 +462,7 @@ class CartService {
           continue;
         }
 
-        final product = MarketplaceProductModel.fromFirestore(productDoc);
+        final product = MarketplaceProductModel.fromProductCollection(productDoc); // Updated
 
         if (!product.isActive) {
           invalidItems.add('${item.productName} - Produk tidak aktif');
@@ -485,5 +495,83 @@ class CartService {
       };
     }
   }
-}
 
+  // ============================================================================
+  // CLEANUP - Remove cart items for deleted products
+  // ============================================================================
+  Future<void> cleanupDeletedProducts() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return;
+
+      final cartItems = await getCartItems();
+      final batch = _firestore.batch();
+      int deletedCount = 0;
+
+      for (final item in cartItems) {
+        final productDoc = await _firestore
+            .collection(_productsCollection)
+            .doc(item.productId)
+            .get();
+
+        if (!productDoc.exists) {
+          // Product deleted, remove from cart
+          batch.delete(_firestore.collection(_cartCollection).doc(item.id));
+          deletedCount++;
+
+          if (kDebugMode) {
+            print('🗑️ Removing cart item for deleted product: ${item.productName}');
+          }
+        }
+      }
+
+      if (deletedCount > 0) {
+        await batch.commit();
+
+        if (kDebugMode) {
+          print('✅ Cleaned up $deletedCount cart items for deleted products');
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error cleaning up deleted products: $e');
+      }
+    }
+  }
+
+  // ============================================================================
+  // CLEANUP - Remove specific product from all user carts
+  // ============================================================================
+  Future<void> removeProductFromAllCarts(String productId) async {
+    try {
+      final cartItemsSnapshot = await _firestore
+          .collection(_cartCollection)
+          .where('productId', isEqualTo: productId)
+          .get();
+
+      if (cartItemsSnapshot.docs.isEmpty) {
+        if (kDebugMode) {
+          print('ℹ️ No cart items found for product: $productId');
+        }
+        return;
+      }
+
+      final batch = _firestore.batch();
+
+      for (final doc in cartItemsSnapshot.docs) {
+        batch.delete(doc.reference);
+      }
+
+      await batch.commit();
+
+      if (kDebugMode) {
+        print('✅ Removed product from ${cartItemsSnapshot.docs.length} carts');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error removing product from carts: $e');
+      }
+      rethrow;
+    }
+  }
+}

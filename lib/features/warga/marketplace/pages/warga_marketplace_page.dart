@@ -24,13 +24,28 @@ class WargaMarketplacePage extends StatefulWidget {
   State<WargaMarketplacePage> createState() => _WargaMarketplacePageState();
 }
 
-class _WargaMarketplacePageState extends State<WargaMarketplacePage> {
+class _WargaMarketplacePageState extends State<WargaMarketplacePage> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Refresh data when app resumes (user comes back from other app)
+      _loadData();
+    }
   }
 
   Future<void> _loadData() async {

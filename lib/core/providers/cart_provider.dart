@@ -55,6 +55,10 @@ class CartProvider extends ChangeNotifier {
     }
 
     try {
+      // First, cleanup any cart items for deleted products
+      await _repository.cleanupDeletedProducts();
+
+      // Then load the cart
       final result = await _repository.getCartItems();
 
       if (result.isSuccess && result.data != null) {

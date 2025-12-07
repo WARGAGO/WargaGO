@@ -183,6 +183,110 @@ class KYCService {
     }
   }
 
+  // Upload KYC document with pre-confirmed data (untuk KTP yang sudah di-konfirmasi user)
+  Future<String?> uploadDocumentWithData({
+    required String userId,
+    required KYCDocumentType documentType,
+    required File file,
+    KTPModel? ktpData,
+    KKModel? kkData,
+    String? customBlobName,
+  }) async {
+    try {
+      // Ensure initialization is complete
+      await _doneFuture;
+
+      if (kDebugMode) {
+        print('📤 Processing KYC document with confirmed data via API...');
+        print('Document Type: $documentType');
+      }
+
+      final docTypeStr = KYCDocumentModel.documentTypeToString(documentType);
+      final customFileName = customBlobName ?? 'kyc_$docTypeStr';
+      if (kDebugMode) {
+        print('📝 Custom file name: $customFileName');
+      }
+
+      final uploadResponse = await _azureApiService.uploadImage(
+        file: file,
+        customFileName: customFileName,
+      );
+
+      if (uploadResponse == null) {
+        throw Exception('Upload failed - no result returned');
+      }
+
+      // Use actual blob name from Azure response
+      final actualBlobName = uploadResponse.blobName;
+
+      if (kDebugMode) {
+        print('✅ File uploaded successfully');
+        print('Actual Blob Name: $actualBlobName');
+      }
+
+      late final KYCDocumentModel kycDoc;
+      if (documentType == KYCDocumentType.ktp && ktpData != null) {
+        if (kDebugMode) {
+          print('✅ Using confirmed KTP data');
+          print('NIK: ${ktpData.nik}');
+          print('Nama: ${ktpData.nama}');
+        }
+
+        kycDoc = KYCDocumentModel(
+          userId: userId,
+          documentType: documentType,
+          blobName: actualBlobName,
+          uploadedAt: DateTime.now(),
+          ktpModel: ktpData,
+        );
+      } else if (documentType == KYCDocumentType.kk && kkData != null) {
+        if (kDebugMode) {
+          print('✅ Using confirmed KK data');
+        }
+
+        kycDoc = KYCDocumentModel(
+          userId: userId,
+          documentType: documentType,
+          blobName: actualBlobName,
+          uploadedAt: DateTime.now(),
+          kkModel: kkData,
+        );
+      } else {
+        // Fallback: upload without specific data
+        kycDoc = KYCDocumentModel(
+          userId: userId,
+          documentType: documentType,
+          blobName: actualBlobName,
+          uploadedAt: DateTime.now(),
+        );
+      }
+
+      if (kDebugMode) {
+        print('KYC Document data:');
+        print(kycDoc.toMap());
+      }
+      final docRef = await _kycCollection.add(kycDoc.toMap());
+
+      // Update user status to 'pending' after successful upload
+      await _firestore.collection('users').doc(userId).update({
+        'status': 'pending',
+        'updatedAt': Timestamp.now(),
+      });
+
+      if (kDebugMode) {
+        print('✅ KYC document record created with ID: ${docRef.id}');
+        print('✅ User status updated to pending');
+      }
+
+      return docRef.id;
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error uploading KYC document with data: $e');
+      }
+      rethrow;
+    }
+  }
+
   // Get all KYC documents for a user
   Future<List<KYCDocumentModel>> getUserDocuments(String userId) async {
     try {

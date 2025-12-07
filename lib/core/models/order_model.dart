@@ -71,6 +71,8 @@ class OrderModel {
   final double shippingCost;      // Ongkir
   final double totalAmount;       // Subtotal + ongkir
   final OrderStatus status;
+  final String paymentMethod;     // Metode pembayaran (Transfer Bank, QRIS, E-Wallet)
+  final String shippingMethod;    // Metode pengiriman (Reguler, Express, Ambil Sendiri)
   final String? notes;            // Catatan pembeli
   final String? cancelReason;     // Alasan cancel (jika ada)
   final DateTime createdAt;
@@ -92,6 +94,8 @@ class OrderModel {
     this.shippingCost = 0,
     required this.totalAmount,
     this.status = OrderStatus.pending,
+    this.paymentMethod = 'Transfer Bank',
+    this.shippingMethod = 'Pengiriman Reguler',
     this.notes,
     this.cancelReason,
     required this.createdAt,
@@ -141,6 +145,55 @@ class OrderModel {
     return status == OrderStatus.shipped;
   }
 
+  // Copy with method for updating fields
+  OrderModel copyWith({
+    String? id,
+    String? orderId,
+    String? buyerId,
+    String? buyerName,
+    String? buyerPhone,
+    String? buyerAddress,
+    String? sellerId,
+    String? sellerName,
+    String? sellerPhone,
+    List<OrderItemModel>? items,
+    double? subtotal,
+    double? shippingCost,
+    double? totalAmount,
+    OrderStatus? status,
+    String? paymentMethod,
+    String? shippingMethod,
+    String? notes,
+    String? cancelReason,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    DateTime? completedAt,
+  }) {
+    return OrderModel(
+      id: id ?? this.id,
+      orderId: orderId ?? this.orderId,
+      buyerId: buyerId ?? this.buyerId,
+      buyerName: buyerName ?? this.buyerName,
+      buyerPhone: buyerPhone ?? this.buyerPhone,
+      buyerAddress: buyerAddress ?? this.buyerAddress,
+      sellerId: sellerId ?? this.sellerId,
+      sellerName: sellerName ?? this.sellerName,
+      sellerPhone: sellerPhone ?? this.sellerPhone,
+      items: items ?? this.items,
+      subtotal: subtotal ?? this.subtotal,
+      shippingCost: shippingCost ?? this.shippingCost,
+      totalAmount: totalAmount ?? this.totalAmount,
+      status: status ?? this.status,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      shippingMethod: shippingMethod ?? this.shippingMethod,
+      notes: notes ?? this.notes,
+      cancelReason: cancelReason ?? this.cancelReason,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      completedAt: completedAt ?? this.completedAt,
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -155,8 +208,10 @@ class OrderModel {
       'items': items.map((item) => item.toMap()).toList(),
       'subtotal': subtotal,
       'shippingCost': shippingCost,
-      'totalAmount': totalAmount,
+      'total': totalAmount,
       'status': status.name,
+      'paymentMethod': paymentMethod,
+      'shippingMethod': shippingMethod,
       'notes': notes,
       'cancelReason': cancelReason,
       'createdAt': Timestamp.fromDate(createdAt),
@@ -182,60 +237,18 @@ class OrderModel {
           .toList() ?? [],
       subtotal: (data['subtotal'] ?? 0).toDouble(),
       shippingCost: (data['shippingCost'] ?? 0).toDouble(),
-      totalAmount: (data['totalAmount'] ?? 0).toDouble(),
+      totalAmount: (data['total'] ?? data['totalAmount'] ?? 0).toDouble(),
       status: OrderStatus.values.firstWhere(
         (e) => e.name == data['status'],
         orElse: () => OrderStatus.pending,
       ),
+      paymentMethod: data['paymentMethod'] ?? 'Transfer Bank',
+      shippingMethod: data['shippingMethod'] ?? 'Pengiriman Reguler',
       notes: data['notes'],
       cancelReason: data['cancelReason'],
       createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       completedAt: (data['completedAt'] as Timestamp?)?.toDate(),
-    );
-  }
-
-  OrderModel copyWith({
-    String? id,
-    String? orderId,
-    String? buyerId,
-    String? buyerName,
-    String? buyerPhone,
-    String? buyerAddress,
-    String? sellerId,
-    String? sellerName,
-    String? sellerPhone,
-    List<OrderItemModel>? items,
-    double? subtotal,
-    double? shippingCost,
-    double? totalAmount,
-    OrderStatus? status,
-    String? notes,
-    String? cancelReason,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-    DateTime? completedAt,
-  }) {
-    return OrderModel(
-      id: id ?? this.id,
-      orderId: orderId ?? this.orderId,
-      buyerId: buyerId ?? this.buyerId,
-      buyerName: buyerName ?? this.buyerName,
-      buyerPhone: buyerPhone ?? this.buyerPhone,
-      buyerAddress: buyerAddress ?? this.buyerAddress,
-      sellerId: sellerId ?? this.sellerId,
-      sellerName: sellerName ?? this.sellerName,
-      sellerPhone: sellerPhone ?? this.sellerPhone,
-      items: items ?? this.items,
-      subtotal: subtotal ?? this.subtotal,
-      shippingCost: shippingCost ?? this.shippingCost,
-      totalAmount: totalAmount ?? this.totalAmount,
-      status: status ?? this.status,
-      notes: notes ?? this.notes,
-      cancelReason: cancelReason ?? this.cancelReason,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
-      completedAt: completedAt ?? this.completedAt,
     );
   }
 }

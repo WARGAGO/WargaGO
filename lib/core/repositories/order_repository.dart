@@ -35,6 +35,9 @@ class OrderRepository {
     required String buyerName,
     required String buyerPhone,
     required String buyerAddress,
+    required double shippingCost,
+    required String shippingMethod,
+    required String paymentMethod,
     String? notes,
   }) async {
     try {
@@ -51,12 +54,21 @@ class OrderRepository {
       if (buyerAddress.trim().isEmpty) {
         return Result.error('Alamat pengiriman tidak boleh kosong');
       }
+      if (shippingMethod.trim().isEmpty) {
+        return Result.error('Metode pengiriman tidak boleh kosong');
+      }
+      if (paymentMethod.trim().isEmpty) {
+        return Result.error('Metode pembayaran tidak boleh kosong');
+      }
 
       final orderId = await _service.createOrder(
         cartItems: cartItems,
         buyerName: buyerName,
         buyerPhone: buyerPhone,
         buyerAddress: buyerAddress,
+        shippingCost: shippingCost,
+        shippingMethod: shippingMethod,
+        paymentMethod: paymentMethod,
         notes: notes,
       );
 
