@@ -14,15 +14,17 @@ class OrderProvider extends ChangeNotifier {
 
   // State
   List<OrderModel> _orders = [];
+  List<OrderModel> _sellerOrders = [];
   bool _isLoading = false;
   String? _error;
 
   // Getters
   List<OrderModel> get orders => _orders;
+  List<OrderModel> get sellerOrders => _sellerOrders;
   bool get isLoading => _isLoading;
   String? get error => _error;
 
-  // Filtered orders by status
+  // Filtered orders by status (for buyer)
   List<OrderModel> get allOrders => _orders;
   List<OrderModel> get pendingOrders =>
       _orders.where((o) => o.status == OrderStatus.pending).toList();
@@ -43,6 +45,9 @@ class OrderProvider extends ChangeNotifier {
     required String buyerName,
     required String buyerPhone,
     required String buyerAddress,
+    required double shippingCost,
+    required String shippingMethod,
+    required String paymentMethod,
     String? notes,
   }) async {
     _error = null;
@@ -53,6 +58,9 @@ class OrderProvider extends ChangeNotifier {
         buyerName: buyerName,
         buyerPhone: buyerPhone,
         buyerAddress: buyerAddress,
+        shippingCost: shippingCost,
+        shippingMethod: shippingMethod,
+        paymentMethod: paymentMethod,
         notes: notes,
       );
 
@@ -96,6 +104,34 @@ class OrderProvider extends ChangeNotifier {
       _error = 'Gagal memuat pesanan: ${e.toString()}';
       if (kDebugMode) {
         print('Error loading orders: $e');
+      }
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // ============================================================================
+  // LOAD SELLER ORDERS
+  // ============================================================================
+  Future<void> loadSellerOrders({OrderStatus? status}) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final result = await _repository.getSellerOrders(status: status);
+
+      if (result.isSuccess && result.data != null) {
+        _sellerOrders = result.data!;
+        _error = null;
+      } else {
+        _error = result.error;
+      }
+    } catch (e) {
+      _error = 'Gagal memuat pesanan: ${e.toString()}';
+      if (kDebugMode) {
+        print('Error loading seller orders: $e');
       }
     } finally {
       _isLoading = false;
@@ -214,22 +250,27 @@ class OrderProvider extends ChangeNotifier {
   }
 
   // ============================================================================
-  // COMPLETE ORDER (buyer terima pesanan)
+  // COMPLETE ORDER (for buyer)
   // ============================================================================
   Future<bool> completeOrder(String orderId) async {
     _error = null;
 
     try {
-      final result = await _repository.completeOrder(orderId);
+      final result = await _repository.updateOrderStatus(
+        orderId: orderId,
+        newStatus: OrderStatus.completed,
+      );
 
       if (result.isSuccess) {
         // Update local state
         final index = _orders.indexWhere((o) => o.id == orderId);
         if (index != -1) {
-          _orders[index] = _orders[index].copyWith(
+          // Remove from current list
+          final order = _orders[index];
+          _orders[index] = order.copyWith(
             status: OrderStatus.completed,
-            completedAt: DateTime.now(),
             updatedAt: DateTime.now(),
+            completedAt: DateTime.now(),
           );
           notifyListeners();
         }
@@ -276,4 +317,3 @@ class OrderProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
-

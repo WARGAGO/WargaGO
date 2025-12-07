@@ -5,10 +5,12 @@
 // ============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/models/marketplace_product_model.dart';
 import '../pages/product_detail_page.dart';
+import 'product_network_image.dart';
 
 class MarketplacePopularProducts extends StatelessWidget {
   const MarketplacePopularProducts({super.key});
@@ -47,13 +49,16 @@ class MarketplacePopularProducts extends StatelessWidget {
         const SizedBox(height: 12),
         StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
-              .collection('marketplace_products')
+              .collection('products')
               .where('isActive', isEqualTo: true)
-              .orderBy('soldCount', descending: true)
+              .orderBy('terjual', descending: true)
               .limit(10)
-              .snapshots(),
+              .snapshots(includeMetadataChanges: true), // Force real-time updates
           builder: (context, snapshot) {
             if (snapshot.hasError) {
+              if (kDebugMode) {
+                print('❌ Error loading products: ${snapshot.error}');
+              }
               return const SizedBox.shrink();
             }
 
@@ -65,10 +70,33 @@ class MarketplacePopularProducts extends StatelessWidget {
             }
 
             if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              return const SizedBox.shrink();
+              if (kDebugMode) {
+                print('📦 No products available in Popular Products');
+              }
+              return Padding(
+                padding: const EdgeInsets.all(20),
+                child: Center(
+                  child: Text(
+                    'Belum ada produk tersedia',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: const Color(0xFF6B7280),
+                    ),
+                  ),
+                ),
+              );
             }
 
             final products = snapshot.data!.docs;
+
+            // Check if data is from cache or server
+            final isFromCache = snapshot.data!.metadata.isFromCache;
+
+            if (kDebugMode) {
+              final source = isFromCache ? 'CACHE' : 'SERVER';
+              print('🔄 Popular Products updated: ${products.length} products (Source: $source)');
+              print('   Product IDs: ${products.map((p) => p.id).take(3).toList()}');
+            }
 
             return SizedBox(
               height: 240,
@@ -78,7 +106,27 @@ class MarketplacePopularProducts extends StatelessWidget {
                 itemCount: products.length,
                 itemBuilder: (context, index) {
                   final doc = products[index];
-                  final product = MarketplaceProductModel.fromFirestore(doc);
+
+                  // Convert new products collection to old model format
+                  final productData = doc.data() as Map<String, dynamic>;
+                  final product = MarketplaceProductModel(
+                    id: doc.id,
+                    productName: productData['nama'] ?? '',
+                    description: productData['deskripsi'] ?? '',
+                    price: (productData['harga'] ?? 0).toDouble(),
+                    stock: productData['stok'] ?? 0,
+                    category: productData['kategori'] ?? '',
+                    imageUrls: List<String>.from(productData['imageUrls'] ?? []),
+                    sellerId: productData['sellerId'] ?? '',
+                    sellerName: productData['sellerName'] ?? '',
+                    unit: 'kg', // Default unit
+                    isActive: productData['isActive'] ?? true,
+                    soldCount: productData['terjual'] ?? 0,
+                    rating: 5.0, // Default rating
+                    reviewCount: 0,
+                    createdAt: (productData['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+                    updatedAt: (productData['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+                  );
 
                   return _buildPopularProductCard(context, product);
                 },
@@ -120,22 +168,17 @@ class MarketplacePopularProducts extends StatelessWidget {
             // Product Image
             Stack(
               children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(16),
-                  ),
-                  child: product.imageUrls.isNotEmpty
-                      ? Image.network(
-                          product.imageUrls.first,
-                          width: double.infinity,
-                          height: 120,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return _buildPlaceholderImage();
-                          },
-                        )
-                      : _buildPlaceholderImage(),
-                ),
+                product.imageUrls.isNotEmpty
+                    ? ProductNetworkImage(
+                        imageUrl: product.imageUrls.first,
+                        width: double.infinity,
+                        height: 120,
+                        fit: BoxFit.cover,
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(16),
+                        ),
+                      )
+                    : _buildPlaceholderImage(),
                 // Best Seller Badge
                 if (product.soldCount > 50)
                   Positioned(

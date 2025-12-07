@@ -1,190 +1,186 @@
 // ============================================================================
-// FIRESTORE SECURITY RULES - KELOLA LAPAK
+// FIRESTORE RULES - KELOLA LAPAK (Seller Management)
 // ============================================================================
-// Tambahkan rules berikut ke file firestore.rules
+// Rules untuk collection pending_sellers dan approved_sellers
 // ============================================================================
 
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper Functions
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-
-    function isAdmin() {
-      return isAuthenticated() &&
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
-
     // ========================================================================
     // PENDING SELLERS COLLECTION
     // ========================================================================
+    // Menyimpan semua seller yang mendaftar (pending/approved/rejected/suspended)
     match /pending_sellers/{sellerId} {
 
-      // READ RULES
-      // User can read their own pending seller OR admin can read all
-      allow read: if isAuthenticated() &&
-                     (resource.data.userId == request.auth.uid || isAdmin());
+      // Helper functions
+      function isAuthenticated() {
+        return request.auth != null;
+      }
 
-      // CREATE RULES
-      // User can create their own pending seller
-      // - Must be authenticated
-      // - userId must match auth.uid
-      // - User must not already have a pending seller
-      // - All required fields must be present
-      allow create: if isAuthenticated() &&
-                       request.resource.data.userId == request.auth.uid &&
-                       !exists(/databases/$(database)/documents/pending_sellers/$(request.auth.uid)) &&
-                       request.resource.data.keys().hasAll([
-                         'userId', 'nik', 'namaLengkap', 'namaToko',
-                         'nomorTelepon', 'alamatToko', 'deskripsiUsaha',
-                         'kategoriProduk', 'fotoKTPUrl', 'fotoSelfieKTPUrl'
-                       ]) &&
-                       request.resource.data.nik.size() == 16 &&
-                       request.resource.data.kategoriProduk.size() > 0 &&
-                       request.resource.data.status == 'pending';
+      function isAdmin() {
+        return isAuthenticated()
+          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles.hasAny(['admin', 'super_admin']);
+      }
 
-      // UPDATE RULES
-      // Only admin can update (for verification)
-      allow update: if isAdmin() &&
-                       // Admin can only change these fields:
-                       request.resource.data.diff(resource.data).affectedKeys()
-                         .hasOnly(['status', 'verifiedAt', 'verifiedBy',
-                                   'catatanAdmin', 'alasanPenolakan', 'updatedAt']);
+      function isOwner() {
+        return isAuthenticated()
+          && resource.data.userId == request.auth.uid;
+      }
 
-      // DELETE RULES
-      // Only admin can delete
+      function hasValidData() {
+        let data = request.resource.data;
+        return data.keys().hasAll([
+          'userId', 'nik', 'namaLengkap', 'namaToko',
+          'nomorTelepon', 'alamatToko', 'rt', 'rw',
+          'deskripsiUsaha', 'kategoriProduk',
+          'fotoKTPUrl', 'fotoSelfieKTPUrl', 'status'
+        ])
+        && data.userId is string
+        && data.nik is string
+        && data.nik.size() == 16
+        && data.namaLengkap is string
+        && data.namaLengkap.size() > 0
+        && data.namaToko is string
+        && data.namaToko.size() > 0
+        && data.nomorTelepon is string
+        && data.kategoriProduk is list
+        && data.kategoriProduk.size() > 0
+        && data.status in ['pending', 'approved', 'rejected', 'suspended'];
+      }
+
+      // CREATE: Warga bisa create untuk diri sendiri
+      allow create: if isAuthenticated()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && hasValidData();
+
+      // READ:
+      // - Warga hanya bisa read dokumen sendiri
+      // - Admin bisa read semua
+      allow read: if isAuthenticated()
+        && (isOwner() || isAdmin());
+
+      // UPDATE:
+      // - Hanya admin yang bisa update (untuk approve/reject/suspend)
+      allow update: if isAdmin();
+
+      // DELETE:
+      // - Hanya admin yang bisa delete
       allow delete: if isAdmin();
     }
 
     // ========================================================================
     // APPROVED SELLERS COLLECTION
     // ========================================================================
+    // Menyimpan seller yang sudah disetujui (untuk akses cepat)
     match /approved_sellers/{userId} {
 
-      // READ RULES
-      // Public can read (to see active sellers in marketplace)
-      allow read: if true;
+      // Helper functions
+      function isAuthenticated() {
+        return request.auth != null;
+      }
 
-      // CREATE RULES
-      // Only admin can create (when approving seller)
-      allow create: if isAdmin() &&
-                       request.resource.data.userId == userId &&
-                       request.resource.data.status == 'active';
+      function isAdmin() {
+        return isAuthenticated()
+          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles.hasAny(['admin', 'super_admin']);
+      }
 
-      // UPDATE RULES
-      // Admin can update all fields
-      // Seller can update limited fields (for their profile)
-      allow update: if isAdmin() ||
-                       (isOwner(userId) &&
-                        request.resource.data.diff(resource.data).affectedKeys()
-                          .hasOnly(['namaToko', 'deskripsiUsaha', 'kategoriProduk',
-                                    'nomorTelepon', 'alamatToko', 'fotoTokoUrl', 'updatedAt']));
+      function isOwner() {
+        return isAuthenticated()
+          && request.auth.uid == userId;
+      }
 
-      // DELETE RULES
-      // Only admin can delete
+      // CREATE: Hanya admin (saat approve seller)
+      allow create: if isAdmin();
+
+      // READ:
+      // - Seller bisa read data sendiri
+      // - Admin bisa read semua
+      // - Warga bisa read untuk lihat info toko
+      allow read: if isAuthenticated();
+
+      // UPDATE:
+      // - Admin untuk suspend/reactivate/update data
+      // - Seller untuk update info toko sendiri (limited fields)
+      allow update: if isAdmin()
+        || (isOwner() && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['namaToko', 'alamatToko', 'deskripsiUsaha', 'nomorTelepon', 'kategoriProduk', 'fotoTokoUrl', 'updatedAt']));
+
+      // DELETE: Hanya admin
       allow delete: if isAdmin();
     }
 
     // ========================================================================
-    // USERS COLLECTION (Update existing rules)
+    // SELLER PRODUCTS COLLECTION
     // ========================================================================
-    match /users/{userId} {
-      // Add to existing rules...
+    // Products dari seller yang sudah approved
+    match /seller_products/{productId} {
 
-      // Allow user to read their own data
-      allow read: if isAuthenticated() &&
-                     (request.auth.uid == userId || isAdmin());
+      function isAuthenticated() {
+        return request.auth != null;
+      }
 
-      // Allow user to update their own data (limited fields)
-      allow update: if isAuthenticated() && request.auth.uid == userId &&
-                       // Users cannot change their own role or isSeller
-                       !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'roles', 'isSeller']);
+      function isAdmin() {
+        return isAuthenticated()
+          && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles.hasAny(['admin', 'super_admin']);
+      }
 
-      // Only admin can update roles and isSeller
-      // This is called when approving seller
-      allow update: if isAdmin();
+      function isProductOwner() {
+        return isAuthenticated()
+          && resource.data.sellerId == request.auth.uid;
+      }
+
+      function isSeller() {
+        return isAuthenticated()
+          && exists(/databases/$(database)/documents/approved_sellers/$(request.auth.uid))
+          && get(/databases/$(database)/documents/approved_sellers/$(request.auth.uid)).data.status == 'active';
+      }
+
+      // CREATE: Seller yang aktif bisa create product
+      allow create: if isSeller()
+        && request.resource.data.sellerId == request.auth.uid;
+
+      // READ: Semua user yang authenticated bisa read
+      allow read: if isAuthenticated();
+
+      // UPDATE: Owner product atau admin
+      allow update: if isProductOwner() || isAdmin();
+
+      // DELETE: Owner product atau admin
+      allow delete: if isProductOwner() || isAdmin();
     }
 
     // ========================================================================
-    // ADDITIONAL INDEXES NEEDED
+    // SELLER REVIEWS COLLECTION
     // ========================================================================
-    // Run these commands in Firebase Console or add to firestore.indexes.json:
+    // Reviews untuk seller
+    match /seller_reviews/{reviewId} {
 
-    // 1. Index for pending_sellers by status and createdAt
-    // Collection: pending_sellers
-    // Fields: status (Ascending), createdAt (Descending)
+      function isAuthenticated() {
+        return request.auth != null;
+      }
 
-    // 2. Index for pending_sellers by userId
-    // Collection: pending_sellers
-    // Fields: userId (Ascending)
+      function isReviewOwner() {
+        return isAuthenticated()
+          && resource.data.reviewerId == request.auth.uid;
+      }
 
-    // 3. Index for approved_sellers by status
-    // Collection: approved_sellers
-    // Fields: status (Ascending), updatedAt (Descending)
+      // CREATE: User yang sudah pernah beli dari seller
+      allow create: if isAuthenticated()
+        && request.resource.data.reviewerId == request.auth.uid;
+
+      // READ: Semua user bisa read
+      allow read: if true;
+
+      // UPDATE: Owner review saja
+      allow update: if isReviewOwner();
+
+      // DELETE: Owner review atau admin
+      allow delete: if isReviewOwner()
+        || get(/databases/$(database)/documents/users/$(request.auth.uid)).data.roles.hasAny(['admin', 'super_admin']);
+    }
   }
 }
-
-// ============================================================================
-// TESTING COMMANDS (Firebase Console)
-// ============================================================================
-
-// Test 1: User can create pending seller
-/*
-const testCreate = {
-  userId: 'USER_ID_HERE',
-  nik: '1234567890123456',
-  namaLengkap: 'Test User',
-  namaToko: 'Test Toko',
-  nomorTelepon: '08123456789',
-  alamatToko: 'Test Address',
-  rt: '001',
-  rw: '002',
-  deskripsiUsaha: 'Test description',
-  kategoriProduk: ['sayuran'],
-  fotoKTPUrl: 'https://example.com/ktp.jpg',
-  fotoSelfieKTPUrl: 'https://example.com/selfie.jpg',
-  status: 'pending',
-  createdAt: new Date()
-};
-*/
-
-// Test 2: Admin can approve seller
-/*
-const testApprove = {
-  status: 'approved',
-  verifiedAt: new Date(),
-  verifiedBy: 'ADMIN_ID_HERE',
-  catatanAdmin: 'Approved',
-  updatedAt: new Date()
-};
-*/
-
-// Test 3: Admin can reject seller
-/*
-const testReject = {
-  status: 'rejected',
-  alasanPenolakan: 'Dokumen tidak jelas',
-  verifiedAt: new Date(),
-  verifiedBy: 'ADMIN_ID_HERE',
-  updatedAt: new Date()
-};
-*/
-
-// ============================================================================
-// NOTES
-// ============================================================================
-/*
-1. Make sure to update existing firestore.rules, don't replace entirely
-2. Test rules in Firebase Console before deploying to production
-3. Monitor security rules logs for any violations
-4. Update indexes as needed for better query performance
-5. Consider adding rate limiting for create operations (Cloud Functions)
-*/
 

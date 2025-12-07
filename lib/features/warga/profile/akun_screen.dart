@@ -5,8 +5,11 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/constants/app_routes.dart';
+import '../../../core/services/seller_service.dart';
+import '../../../core/models/pending_seller_model.dart';
 import 'edit_profil_screen.dart';
 import '../marketplace/pages/seller_registration_page.dart';
+import '../penjual/produk_saya_screen.dart';
 
 class AkunScreen extends StatefulWidget {
   const AkunScreen({super.key});
@@ -237,12 +240,156 @@ class _AkunScreenState extends State<AkunScreen> with SingleTickerProviderStateM
     );
   }
 
-  void _handleTokoSayaTap(BuildContext context) {
-    // TODO: Implementasi cek apakah user sudah terdaftar sebagai penjual
-    
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const SellerRegistrationPage()),
+  void _handleTokoSayaTap(BuildContext context) async {
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    try {
+      final sellerService = SellerService();
+      final sellerStatus = await sellerService.checkUserSellerStatus();
+
+      // Close loading safely
+      if (!context.mounted) return;
+
+      Navigator.of(context, rootNavigator: true).pop();
+
+      // Wait for next frame to ensure dialog is completely dismissed
+      await Future.delayed(const Duration(milliseconds: 200));
+
+      if (!context.mounted) return;
+
+      // Navigate based on status
+      if (sellerStatus == null) {
+        // Belum terdaftar sebagai seller
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const SellerRegistrationPage(),
+          ),
+        );
+      } else {
+        // Sudah terdaftar, check status
+        switch (sellerStatus.status) {
+          case SellerVerificationStatus.approved:
+            // Seller sudah diverifikasi → ke halaman produk (seller dashboard)
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const ProdukSayaScreen(),
+              ),
+            );
+            break;
+
+          case SellerVerificationStatus.pending:
+            // Masih menunggu verifikasi → tampilkan dialog status
+            _showPendingDialog(context);
+            break;
+
+          case SellerVerificationStatus.rejected:
+            // Ditolak → ke form pendaftaran (bisa retry)
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const SellerRegistrationPage(),
+              ),
+            );
+            break;
+
+          case SellerVerificationStatus.suspended:
+            // Di-suspend → tampilkan dialog
+            _showSuspendedDialog(context);
+            break;
+        }
+      }
+    } catch (e) {
+      // Close loading if still open - use try-catch untuk handle jika dialog sudah ditutup
+      try {
+        if (context.mounted) {
+          Navigator.of(context, rootNavigator: true).pop();
+        }
+      } catch (_) {
+        // Dialog already closed, ignore
+      }
+
+      // Show error after delay
+      await Future.delayed(const Duration(milliseconds: 200));
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal memeriksa status seller: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showPendingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.hourglass_empty, color: Colors.orange),
+            const SizedBox(width: 12),
+            Text(
+              'Menunggu Verifikasi',
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+        content: Text(
+          'Pendaftaran seller Anda sedang diproses oleh admin. Harap tunggu konfirmasi.',
+          style: GoogleFonts.poppins(fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'OK',
+              style: GoogleFonts.poppins(color: Colors.orange),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSuspendedDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.block, color: Colors.red),
+            const SizedBox(width: 12),
+            Text(
+              'Akun Disuspend',
+              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+        content: Text(
+          'Akun seller Anda telah disuspend. Silakan hubungi admin untuk informasi lebih lanjut.',
+          style: GoogleFonts.poppins(fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'OK',
+              style: GoogleFonts.poppins(color: Colors.red),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

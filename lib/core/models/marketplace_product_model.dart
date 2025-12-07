@@ -92,6 +92,30 @@ class MarketplaceProductModel {
     );
   }
 
+  // Create from new 'products' collection format (ProductModel)
+  factory MarketplaceProductModel.fromProductCollection(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return MarketplaceProductModel(
+      id: doc.id,
+      sellerId: data['sellerId'] ?? '',
+      sellerName: data['sellerName'] ?? '',
+      productName: data['nama'] ?? '', // Mapped from 'nama'
+      description: data['deskripsi'] ?? '', // Mapped from 'deskripsi'
+      price: (data['harga'] ?? 0).toDouble(), // Mapped from 'harga'
+      stock: data['stok'] ?? 0, // Mapped from 'stok'
+      category: data['kategori'] ?? '', // Mapped from 'kategori'
+      subcategory: null,
+      imageUrls: List<String>.from(data['imageUrls'] ?? []),
+      unit: 'kg', // Default unit for vegetables
+      isActive: data['isActive'] ?? true,
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      soldCount: data['terjual'] ?? 0, // Mapped from 'terjual'
+      rating: 5.0, // Default rating
+      reviewCount: 0,
+    );
+  }
+
   // Create from Map
   factory MarketplaceProductModel.fromMap(Map<String, dynamic> data) {
     return MarketplaceProductModel(

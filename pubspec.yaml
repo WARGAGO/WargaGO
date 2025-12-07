@@ -44,6 +44,7 @@ dependencies:
   google_sign_in: ^6.2.1
   url_launcher: ^6.3.1
   cached_network_image: ^3.4.1
+  fl_chart: ^0.69.0
 
   # UI Enhancement for KYC
   flutter_test:

@@ -42,9 +42,33 @@ class MarketplaceProvider extends ChangeNotifier {
 
     // Filter by category
     if (_selectedCategory != 'Semua') {
-      filtered = filtered
-          .where((product) => product.category == _selectedCategory)
-          .toList();
+      filtered = filtered.where((product) {
+        return _categoryMatches(product.category, _selectedCategory);
+      }).toList();
+
+      if (kDebugMode) {
+        print('🔍 Filtering by category: $_selectedCategory');
+        print('   Total products before filter: ${_products.length}');
+        print('   Products found after filter: ${filtered.length}');
+
+        if (_products.isNotEmpty) {
+          final allCategories = _products.map((p) => p.category).toSet().toList();
+          print('   All available categories: $allCategories');
+        }
+
+        if (filtered.isNotEmpty) {
+          print('   Sample matched products:');
+          for (var p in filtered.take(3)) {
+            print('     - ${p.productName} (category: ${p.category})');
+          }
+        } else {
+          print('   ⚠��� No products matched! Checking why:');
+          for (var p in _products.take(3)) {
+            final matches = _categoryMatches(p.category, _selectedCategory);
+            print('     - ${p.productName} (${p.category}) → Match: $matches');
+          }
+        }
+      }
     }
 
     // Filter by subcategory (for vegetables)
@@ -66,6 +90,48 @@ class MarketplaceProvider extends ChangeNotifier {
     }
 
     return filtered;
+  }
+
+  // Helper method to check if categories match (supports variations)
+  bool _categoryMatches(String productCategory, String selectedCategory) {
+    final prodCat = productCategory.toLowerCase().trim();
+    final selCat = selectedCategory.toLowerCase().trim();
+
+    // Direct exact match
+    if (prodCat == selCat) {
+      return true;
+    }
+
+    // Normalize variations: "Sayuran" ↔ "Sayur"
+    final normalizedProd = prodCat.replaceAll('sayuran ', 'sayur ');
+    final normalizedSel = selCat.replaceAll('sayuran ', 'sayur ');
+
+    if (normalizedProd == normalizedSel) {
+      return true;
+    }
+
+    // Also try the reverse: "Sayur" → "Sayuran"
+    final reverseProd = prodCat.replaceAll('sayur ', 'sayuran ');
+    final reverseSel = selCat.replaceAll('sayur ', 'sayuran ');
+
+    if (reverseProd == reverseSel) {
+      return true;
+    }
+
+    // Check if one contains the other (for partial matches)
+    if (prodCat.contains(selCat) || selCat.contains(prodCat)) {
+      // But make sure it's a meaningful match, not just substring
+      final words1 = prodCat.split(' ');
+      final words2 = selCat.split(' ');
+
+      // Check if all significant words match
+      final intersection = words1.where((w) => words2.contains(w) && w.length > 2).toList();
+      if (intersection.length >= 2) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   // ============================================================================
@@ -204,6 +270,19 @@ class MarketplaceProvider extends ChangeNotifier {
   // ============================================================================
   void setCategory(String category) {
     _selectedCategory = category;
+
+    if (kDebugMode) {
+      print('📂 Category changed to: $category');
+      print('   Total products: ${_products.length}');
+      print('   Filtered products: ${filteredProducts.length}');
+
+      // Show product categories for debugging
+      if (_products.isNotEmpty) {
+        final uniqueCategories = _products.map((p) => p.category).toSet().toList();
+        print('   Available categories in products: $uniqueCategories');
+      }
+    }
+
     notifyListeners();
   }
 

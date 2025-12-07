@@ -6,70 +6,111 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import '../../../../core/models/order_model.dart';
+import '../pages/order_detail_page.dart';
 
 class OrderCard extends StatelessWidget {
-  final String orderId;
-  final String date;
-  final String storeName;
-  final List<Map<String, dynamic>> items;
-  final String total;
-  final String status;
-  final String statusText;
-  final Color statusColor;
+  // Primary: OrderModel
+  final OrderModel? orderModel;
+
+  // Legacy parameters for backward compatibility
+  final String? orderId;
+  final String? date;
+  final String? storeName;
+  final List<Map<String, dynamic>>? items;
+  final String? total;
+  final String? status;
+  final String? statusText;
+  final Color? statusColor;
 
   const OrderCard({
     super.key,
-    required this.orderId,
-    required this.date,
-    required this.storeName,
-    required this.items,
-    required this.total,
-    required this.status,
-    required this.statusText,
-    required this.statusColor,
+    this.orderModel,
+    this.orderId,
+    this.date,
+    this.storeName,
+    this.items,
+    this.total,
+    this.status,
+    this.statusText,
+    this.statusColor,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: const Color(0xFFE5E7EB),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
+    // Use orderModel if available, otherwise use legacy parameters
+    final displayOrderId = orderModel?.orderId ?? orderId ?? '';
+    final displayDate = orderModel != null
+        ? DateFormat('dd MMM yyyy', 'id_ID').format(orderModel!.createdAt)
+        : date ?? '';
+    final displayStoreName = orderModel?.sellerName ?? storeName ?? '';
+    final displayItems = orderModel?.items.map((item) => {
+      'name': item.productName,
+      'qty': item.quantity,
+      'unit': item.unit,
+    }).toList() ?? items ?? [];
+    final displayTotal = orderModel != null
+        ? 'Rp ${orderModel!.totalAmount.toStringAsFixed(0)}'
+        : total ?? '';
+    final displayStatus = orderModel?.status.name ?? status ?? '';
+    final displayStatusText = orderModel?.statusText ?? statusText ?? '';
+    final displayStatusColor = orderModel != null
+        ? Color(orderModel!.statusColorValue)
+        : (statusColor ?? Colors.grey);
+
+    return GestureDetector(
+      onTap: () {
+        // Only navigate if we have a valid OrderModel
+        if (orderModel != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => OrderDetailPage(order: orderModel!),
+            ),
+          );
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: const Color(0xFFE5E7EB),
+            width: 1,
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          _buildHeader(),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header
+            _buildHeader(displayStoreName, displayStatusText, displayStatusColor),
 
-          // Order Details
-          _buildOrderDetails(),
+            // Order Details
+            _buildOrderDetails(displayOrderId, displayDate, displayItems, displayTotal),
 
-          // Actions
-          if (status == 'completed') _buildActions(context),
-        ],
+            // Actions
+            if (displayStatus == 'completed') _buildActions(context),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(String storeName, String statusText, Color statusColor) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8F9FD),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+      decoration: const BoxDecoration(
+        color: Color(0xFFF8F9FD),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -119,7 +160,7 @@ class OrderCard extends StatelessWidget {
     );
   }
 
-  Widget _buildOrderDetails() {
+  Widget _buildOrderDetails(String orderId, String date, List<Map<String, dynamic>> items, String total) {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -146,7 +187,7 @@ class OrderCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          
+
           // Items
           ...items.map((item) => Padding(
             padding: const EdgeInsets.only(bottom: 6),
@@ -171,11 +212,11 @@ class OrderCard extends StatelessWidget {
               ],
             ),
           )),
-          
+
           const SizedBox(height: 12),
           const Divider(height: 1, color: Color(0xFFE5E7EB)),
           const SizedBox(height: 12),
-          
+
           // Total
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -264,3 +305,4 @@ class OrderCard extends StatelessWidget {
     );
   }
 }
+
