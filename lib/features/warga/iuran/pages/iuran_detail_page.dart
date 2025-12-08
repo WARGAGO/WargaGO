@@ -77,12 +77,16 @@ class IuranDetailPage extends StatelessWidget {
             ),
           ),
           
+          
           // Bottom Payment Button (hanya jika belum lunas)
           if (status == 'belum_lunas')
-            IuranPaymentButton(jumlah: jumlah),
+            IuranPaymentButton(
+              jumlah: jumlah,
+              namaIuran: namaIuran,
+              tanggal: tanggal,
+            ),
         ],
       ),
     );
   }
 }
-

@@ -1,18 +1,23 @@
 // ============================================================================
 // IURAN PAYMENT BUTTON WIDGET
 // ============================================================================
-// Widget tombol pembayaran dengan bottom sheet metode pembayaran
+// Widget tombol pembayaran dengan navigasi ke halaman checkout
 // ============================================================================
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import '../pages/iuran_checkout_page.dart';
 
 class IuranPaymentButton extends StatelessWidget {
   final int jumlah;
+  final String namaIuran;
+  final String tanggal;
 
   const IuranPaymentButton({
     super.key,
     required this.jumlah,
+    required this.namaIuran,
+    required this.tanggal,
   });
 
   @override
@@ -67,7 +72,16 @@ class IuranPaymentButton extends StatelessWidget {
               height: 52,
               child: ElevatedButton(
                 onPressed: () {
-                  _showPaymentBottomSheet(context, currencyFormat);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => IuranCheckoutPage(
+                        namaIuran: namaIuran,
+                        jumlah: jumlah,
+                        tanggal: tanggal,
+                      ),
+                    ),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2F80ED),
@@ -99,161 +113,5 @@ class IuranPaymentButton extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  void _showPaymentBottomSheet(BuildContext context, NumberFormat currencyFormat) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE5E7EB),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'Pilih Metode Pembayaran',
-                style: GoogleFonts.poppins(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF1F2937),
-                ),
-              ),
-              const SizedBox(height: 24),
-              
-              _buildPaymentMethodTile(
-                context: context,
-                icon: Icons.account_balance_wallet_rounded,
-                title: 'Saldo Digital',
-                subtitle: 'Bayar dengan saldo digital',
-                onTap: () {
-                  Navigator.pop(context);
-                  _processPayment(context, 'Saldo Digital');
-                },
-              ),
-              const SizedBox(height: 12),
-              _buildPaymentMethodTile(
-                context: context,
-                icon: Icons.account_balance_rounded,
-                title: 'Transfer Bank',
-                subtitle: 'Bayar dengan transfer bank',
-                onTap: () {
-                  Navigator.pop(context);
-                  _processPayment(context, 'Transfer Bank');
-                },
-              ),
-              const SizedBox(height: 12),
-              _buildPaymentMethodTile(
-                context: context,
-                icon: Icons.credit_card_rounded,
-                title: 'Kartu Kredit/Debit',
-                subtitle: 'Bayar dengan kartu',
-                onTap: () {
-                  Navigator.pop(context);
-                  _processPayment(context, 'Kartu Kredit/Debit');
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPaymentMethodTile({
-    required BuildContext context,
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          border: Border.all(color: const Color(0xFFE5E7EB)),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: const Color(0xFF2F80ED).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, color: const Color(0xFF2F80ED), size: 24),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF1F2937),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w400,
-                      color: const Color(0xFF6B7280),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(
-              Icons.chevron_right_rounded,
-              color: Color(0xFF9CA3AF),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _processPayment(BuildContext context, String method) {
-    // TODO: Implement actual payment processing
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Pembayaran dengan $method sedang diproses',
-          style: GoogleFonts.poppins(),
-        ),
-        backgroundColor: const Color(0xFF10B981),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-      ),
-    );
-    
-    // Kembali ke halaman sebelumnya setelah delay
-    Future.delayed(const Duration(seconds: 2), () {
-      if (context.mounted) {
-        Navigator.pop(context);
-      }
-    });
   }
 }
