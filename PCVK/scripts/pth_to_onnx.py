@@ -49,7 +49,7 @@ def load_model(model_path, model_type, **kwargs):
             num_features=kwargs.get("num_features", 44),
             num_classes=kwargs.get("num_classes", 5),
             hidden_dims=kwargs.get("hidden_dims", [256, 512, 256, 128]),
-            dropout_rate=kwargs.get("dropout_rate", 0.5),
+            dropout_rate=kwargs.get("dropout_rate", 0.3),
             use_residual=kwargs.get("use_residual", True),
         )
     elif model_type == "efficientnet":
@@ -123,6 +123,7 @@ def convert_to_onnx(
         input_names=input_names,
         output_names=output_names,
         dynamic_axes=dynamic_axes,
+        external_data=False
     )
     
     print(f"ONNX model saved to: {output_path}")
@@ -262,8 +263,8 @@ def main():
     parser.add_argument(
         "--opset_version",
         type=int,
-        default=17,
-        help="ONNX opset version (default: 17, recommended range: 11-20)",
+        default=20,
+        help="ONNX opset version (default: 20, recommended range: 11-20)",
     )
     parser.add_argument(
         "--batch_size",

@@ -42,3 +42,5 @@ test_*.py
 *_test.py
 
 efficientnetv2.pth
+efficientnetv2.onnx
+efficientnetv2.onnx.data

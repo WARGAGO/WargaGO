@@ -63,6 +63,7 @@ def gradio_predict(
         
         # Get model
         model = model_manager.get_model(model_type)
+        is_onnx = model_manager.get_model_type(model_type) == 'onnx'
         
         # EfficientNetV2 uses direct image without preprocessing
         if model_type == "efficientnetv2":
@@ -77,7 +78,8 @@ def gradio_predict(
                 use_segmentation=False,
                 seg_method="none",
                 apply_brightness_contrast=False,
-                model_type=model_type
+                model_type=model_type,
+                is_onnx=is_onnx
             )
             
             # Calculate prediction time
@@ -157,7 +159,8 @@ def gradio_predict(
             use_segmentation=False,  # Already segmented above
             seg_method="none",
             apply_brightness_contrast=False,
-            model_type=model_type
+            model_type=model_type,
+            is_onnx=is_onnx
         )
 
         # Calculate prediction time
