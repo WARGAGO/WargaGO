@@ -46,7 +46,7 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
   // Model settings
   bool _useSegmentation = true;
   String _segMethod = 'u2netp';
-  bool _applyBrightnessContrast = false;
+  bool _applyBrightnessContrast = true;
   bool _returnProcessedImage = false;
 
   // HSV settings (for HSV segmentation method)

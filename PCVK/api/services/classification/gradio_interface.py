@@ -234,7 +234,7 @@ def create_gradio_interface():
                     # Brightness & Contrast Enhancement
                     apply_brightness_contrast = gr.Checkbox(
                         value=True,
-                        label="Gunakan Brightness & Contrast Lv2",
+                        label="Gunakan Brightness & Contrast Enhancement (CLAHE)",
                         info="Menerapkan peningkatan kecerahan dan kontras adaptif",
                     )
 

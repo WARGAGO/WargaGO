@@ -243,7 +243,7 @@ def predict_image(
         segmented_img = apply_clahe(apply_automatic_brightness_contrast(segmented_img))
     
     # Extract features
-    segmented_img = apply_clahe(apply_automatic_brightness_contrast(segmented_img))
+    # segmented_img = apply_clahe(apply_automatic_brightness_contrast(segmented_img))
     features = extract_features_from_image(segmented_img)
     
     # Predict

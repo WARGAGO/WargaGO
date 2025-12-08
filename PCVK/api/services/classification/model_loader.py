@@ -98,7 +98,7 @@ class ModelManager:
                     num_features=NUM_FEATURES,
                     num_classes=len(CLASS_NAMES),
                     hidden_dims=[256, 512, 256, 128],
-                    dropout_rate=0.5,
+                    dropout_rate=0.3,
                     use_residual=True
                 )
             elif model_type == "efficientnetv2":
