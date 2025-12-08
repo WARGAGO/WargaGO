@@ -14,11 +14,17 @@ export const options = {
     http_req_duration: ["p(95)<7000"],
   },
   stages: [
-    { duration: "30s", target: 5 }, 
+    { duration: "30s", target: 5 },
     { duration: "1m", target: 10 },
-    { duration: "30s", target: 0 }, 
+    { duration: "30s", target: 0 },
   ],
 };
+
+export function handleSummary(data) {
+  return {
+    "ocr_summary.json": JSON.stringify(data, null, 2),
+  };
+}
 
 export default function () {
   const resHealth = http.get(`${BASE_URL}/health`);

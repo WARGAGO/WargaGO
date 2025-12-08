@@ -147,6 +147,7 @@ async def predict(
         
         # Get model
         model = model_manager.get_model(model_type)
+        is_onnx = model_manager.get_model_type(model_type) == 'onnx'
         
         # Perform prediction
         predicted_class, confidence_value, all_confidences, _ = predict_image(
@@ -156,7 +157,8 @@ async def predict(
             seg_method=seg_method,
             apply_brightness_contrast=apply_brightness_contrast,
             model_type=model_type,
-            return_segmented_image=False
+            return_segmented_image=False,
+            is_onnx=is_onnx
         )
         
         # Calculate prediction time
@@ -214,6 +216,7 @@ async def batch_predict(
     
     # Get model
     model = model_manager.get_model(model_type)
+    is_onnx = model_manager.get_model_type(model_type) == 'onnx'
     
     # Start timing for total batch
     batch_start_time = time.time()
@@ -245,7 +248,8 @@ async def batch_predict(
                 seg_method=seg_method,
                 apply_brightness_contrast=apply_brightness_contrast,
                 model_type=model_type,
-                return_segmented_image=False
+                return_segmented_image=False,
+                is_onnx=is_onnx
             )
             
             # Calculate prediction time
@@ -493,6 +497,7 @@ async def websocket_predict(websocket: WebSocket):
                 
                 # Get model
                 model = model_manager.get_model(model_type)
+                is_onnx = model_manager.get_model_type(model_type) == 'onnx'
                 
                 # Determine if we should return processed image
                 return_processed = config["return_processed_image"] and model_type != "efficientnetv2"
@@ -505,7 +510,8 @@ async def websocket_predict(websocket: WebSocket):
                     seg_method=config["seg_method"],
                     apply_brightness_contrast=config["apply_brightness_contrast"],
                     model_type=model_type,
-                    return_segmented_image=return_processed
+                    return_segmented_image=return_processed,
+                    is_onnx=is_onnx
                 )
                 
                 # Calculate prediction time

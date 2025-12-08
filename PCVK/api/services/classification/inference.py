@@ -9,7 +9,7 @@ import torchvision.transforms as T
 from PIL import Image
 import sys
 import os
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Union
 
 # Add lib directory to path
 lib_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'lib')
@@ -19,6 +19,11 @@ if lib_path not in sys.path:
 from lib.extract_features import extract_all_features
 from lib.segment import apply_automatic_brightness_contrast, apply_clahe, auto_segment
 from api.configs.pcvk_config import CLASS_NAMES, DEVICE
+from api.services.classification.onnx_utils import (
+    ONNXInferenceSession,
+    predict_onnx_mlp,
+    predict_onnx_efficientnet
+)
 
 
 def preprocess_image(image: Image.Image, target_size: Tuple[int, int] = (224, 224)) -> np.ndarray:
@@ -81,19 +86,25 @@ def extract_features_from_image(image: np.ndarray) -> np.ndarray:
 
 
 def predict_from_features(
-    model: torch.nn.Module,
-    features: np.ndarray
+    model: Union[torch.nn.Module, ONNXInferenceSession],
+    features: np.ndarray,
+    is_onnx: bool = False
 ) -> Tuple[str, float, Dict[str, float]]:
     """
     Perform prediction from features
     
     Args:
-        model: PyTorch model
+        model: PyTorch model or ONNX session
         features: Feature vector
+        is_onnx: Whether the model is ONNX
     
     Returns:
         Tuple of (predicted_class, confidence, all_confidences)
     """
+    if is_onnx:
+        return predict_onnx_mlp(model, features, CLASS_NAMES)
+    
+    # PyTorch inference
     # Convert to tensor
     features_tensor = torch.tensor(features, dtype=torch.float32).unsqueeze(0)
     features_tensor = features_tensor.to(DEVICE)
@@ -118,19 +129,28 @@ def predict_from_features(
 
 
 def predict_from_tensor(
-    model: torch.nn.Module,
-    image_tensor: torch.Tensor
+    model: Union[torch.nn.Module, ONNXInferenceSession],
+    image_tensor: Union[torch.Tensor, np.ndarray],
+    is_onnx: bool = False
 ) -> Tuple[str, float, Dict[str, float]]:
     """
     Perform prediction from image tensor (for EfficientNetV2)
     
     Args:
-        model: PyTorch model (EfficientNetV2)
+        model: PyTorch model (EfficientNetV2) or ONNX session
         image_tensor: Preprocessed image tensor
+        is_onnx: Whether the model is ONNX
     
     Returns:
         Tuple of (predicted_class, confidence, all_confidences)
     """
+    if is_onnx:
+        # Convert torch tensor to numpy if needed
+        if isinstance(image_tensor, torch.Tensor):
+            image_tensor = image_tensor.cpu().numpy()
+        return predict_onnx_efficientnet(model, image_tensor, CLASS_NAMES)
+    
+    # PyTorch inference
     # Add batch dimension if needed
     if image_tensor.dim() == 3:
         image_tensor = image_tensor.unsqueeze(0)
@@ -157,25 +177,27 @@ def predict_from_tensor(
 
 
 def predict_image(
-    model: torch.nn.Module,
+    model: Union[torch.nn.Module, ONNXInferenceSession],
     image: Image.Image,
     use_segmentation: bool = True,
     seg_method: str = "hsv",
     apply_brightness_contrast: bool = True,
     model_type: str = "mlpv2",
-    return_segmented_image: bool = False
+    return_segmented_image: bool = False,
+    is_onnx: bool = False
 ) -> Tuple[str, float, Dict[str, float], np.ndarray]:
     """
     Complete prediction pipeline
     
     Args:
-        model: PyTorch model
+        model: PyTorch model or ONNX session
         image: PIL Image
         use_segmentation: Whether to apply segmentation
         seg_method: Segmentation method
         apply_brightness_contrast: Whether to apply brightness and contrast enhancement
         model_type: Type of model (mlpv2, mlpv2_auto-clahe, efficientnetv2)
         return_segmented_image: Whether to return the segmented image (only for non-efficientnet models)
+        is_onnx: Whether the model is ONNX
     
     Returns:
         Tuple of (predicted_class, confidence, all_confidences, segmented_image)
@@ -194,9 +216,17 @@ def predict_image(
         if image.mode != 'RGB':
             image = image.convert('RGB')
         
-        # Transform and predict
+        # Transform
         image_tensor = transform(image)
-        predicted_class, confidence, all_confidences = predict_from_tensor(model, image_tensor)
+        
+        if is_onnx:
+            # Convert to numpy for ONNX
+            image_np = image_tensor.cpu().numpy()
+            predicted_class, confidence, all_confidences = predict_from_tensor(model, image_np, is_onnx=True)
+        else:
+            # Use torch tensor for PyTorch
+            predicted_class, confidence, all_confidences = predict_from_tensor(model, image_tensor, is_onnx=False)
+        
         return predicted_class, confidence, all_confidences, None
     
     # Feature-based models (MLP variants)
@@ -213,11 +243,11 @@ def predict_image(
         segmented_img = apply_clahe(apply_automatic_brightness_contrast(segmented_img))
     
     # Extract features
-    segmented_img = apply_clahe(apply_automatic_brightness_contrast(segmented_img))
+    # segmented_img = apply_clahe(apply_automatic_brightness_contrast(segmented_img))
     features = extract_features_from_image(segmented_img)
     
     # Predict
-    predicted_class, confidence, all_confidences = predict_from_features(model, features)
+    predicted_class, confidence, all_confidences = predict_from_features(model, features, is_onnx=is_onnx)
     
     # Return segmented image if requested
     segmented_result = segmented_img if return_segmented_image else None

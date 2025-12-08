@@ -5,7 +5,7 @@ Model loading and management
 import os
 import sys
 import torch
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 # Add lib directory to path
 lib_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'lib')
@@ -14,27 +14,66 @@ if lib_path not in sys.path:
 
 from lib.model_v2 import ModelMLPV2
 from lib.model_effnet import EfficientNetV2Model
-from api.configs.pcvk_config import MODEL_PATHS, CLASS_NAMES, DEVICE, NUM_FEATURES
+from api.configs.pcvk_config import MODEL_PATHS, ONNX_MODEL_PATHS, CLASS_NAMES, DEVICE, NUM_FEATURES, PREFER_ONNX
+from api.services.classification.onnx_utils import ONNXInferenceSession
 
 
 class ModelManager:
     """Manages loading and accessing ML models"""
     
     def __init__(self):
-        self.models: Dict[str, torch.nn.Module] = {}
+        self.models: Dict[str, Union[torch.nn.Module, ONNXInferenceSession]] = {}
+        self.model_types: Dict[str, str] = {}  # Track whether model is 'pytorch' or 'onnx'
     
-    def load_model(self, model_type: str) -> bool:
+    def load_model(self, model_type: str, force_pytorch: bool = False) -> bool:
         """
         Load a specific model
         
         Args:
-            model_type: Type of model to load 
+            model_type: Type of model to load
+            force_pytorch: Force loading PyTorch model even if ONNX is preferred
         
         Returns:
             True if successful, False otherwise
         """
         try:
-            print(f"Loading {model_type} model...")
+            # Determine whether to use ONNX or PyTorch
+            use_onnx = PREFER_ONNX and not force_pytorch and model_type in ONNX_MODEL_PATHS
+            
+            if use_onnx:
+                onnx_path = ONNX_MODEL_PATHS[model_type]
+                if os.path.exists(onnx_path):
+                    print(f"Loading {model_type} model (ONNX)...")
+                    session = ONNXInferenceSession(onnx_path)
+                    self.models[model_type] = session
+                    self.model_types[model_type] = 'onnx'
+                    print(f"ONNX model {model_type} loaded successfully")
+                    return True
+                else:
+                    print(f"ONNX model not found at {onnx_path}, falling back to PyTorch")
+                    use_onnx = False
+            
+            if not use_onnx:
+                return self._load_pytorch_model(model_type)
+                
+        except Exception as e:
+            print(f"Error loading model {model_type}: {e}")
+            import traceback
+            traceback.print_exc()
+            return False
+    
+    def _load_pytorch_model(self, model_type: str) -> bool:
+        """
+        Load a PyTorch model
+        
+        Args:
+            model_type: Type of model to load
+        
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            print(f"Loading {model_type} model (PyTorch)...")
             
             if model_type not in MODEL_PATHS:
                 raise ValueError(f"Unknown model type: {model_type}")
@@ -59,7 +98,7 @@ class ModelManager:
                     num_features=NUM_FEATURES,
                     num_classes=len(CLASS_NAMES),
                     hidden_dims=[256, 512, 256, 128],
-                    dropout_rate=0.5,
+                    dropout_rate=0.3,
                     use_residual=True
                 )
             elif model_type == "efficientnetv2":
@@ -84,11 +123,12 @@ class ModelManager:
             model = model.to(DEVICE)
             model.eval()
             self.models[model_type] = model
-            print(f"Model {model_type} loaded successfully on {DEVICE}")
+            self.model_types[model_type] = 'pytorch'
+            print(f"PyTorch model {model_type} loaded successfully on {DEVICE}")
             return True
-        
+            
         except Exception as e:
-            print(f"Error loading model {model_type}: {e}")
+            print(f"Error loading PyTorch model {model_type}: {e}")
             import traceback
             traceback.print_exc()
             return False
@@ -105,7 +145,7 @@ class ModelManager:
         self.load_model("efficientnetv2")
         return True
     
-    def get_model(self, model_type: str) -> Optional[torch.nn.Module]:
+    def get_model(self, model_type: str) -> Optional[Union[torch.nn.Module, ONNXInferenceSession]]:
         """
         Get a loaded model
         
@@ -116,6 +156,18 @@ class ModelManager:
             Model instance or None if not loaded
         """
         return self.models.get(model_type)
+    
+    def get_model_type(self, model_type: str) -> Optional[str]:
+        """
+        Get the type of loaded model (pytorch or onnx)
+        
+        Args:
+            model_type: Type of model
+        
+        Returns:
+            'pytorch', 'onnx', or None if not loaded
+        """
+        return self.model_types.get(model_type)
     
     def is_loaded(self, model_type: str) -> bool:
         """Check if a model is loaded"""

@@ -46,7 +46,7 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
   // Model settings
   bool _useSegmentation = true;
   String _segMethod = 'u2netp';
-  bool _applyBrightnessContrast = false;
+  bool _applyBrightnessContrast = true;
   bool _returnProcessedImage = false;
 
   // HSV settings (for HSV segmentation method)
@@ -88,14 +88,18 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
             predictionTimeMs: result.predictionTimeMs,
           );
           _veggieRotationManager.startRotation(_result!.predictedClass);
-          setState(() => _reconnecting = false);
+          if ((_pcvkStreamService.isStreaming && !_returnProcessedImage) ||
+              (_useEfficient ?? false)) {
+            setState(() => _reconnecting = false);
+          }
         },
         onProcessedImage: (uint8List) {
-          if (!_pcvkStreamService.isStreaming) {
-            setState(() => _processedImageBytes = null);
-            return;
-          }
-          setState(() => _processedImageBytes = uint8List);
+          setState(
+            () => _processedImageBytes =
+                _pcvkStreamService.isStreaming && _returnProcessedImage
+                ? uint8List
+                : null,
+          );
         },
         onConnected: () => setState(() => _reconnecting = false),
         onConnectionClosed: () {

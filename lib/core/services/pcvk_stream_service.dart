@@ -15,6 +15,7 @@ class PCVKStreamService {
   bool _isStreaming = false;
   get isStreaming => _isStreaming;
   bool _isProcessingFrame = false;
+  bool _isWaitingForPrediction = false;
   StreamSubscription? _channelSubscription;
 
   // Ping tracking
@@ -144,7 +145,7 @@ class PCVKStreamService {
     });
 
     await _cameraController!.startImageStream((CameraImage image) async {
-      if (_isProcessingFrame) return;
+      if (_isProcessingFrame || _isWaitingForPrediction) return;
 
       // Frame skipping logic for smoother performance
       _frameSkipCount++;
@@ -172,6 +173,7 @@ class PCVKStreamService {
     if (_isStreaming) {
       await _cameraController?.stopImageStream();
       _isStreaming = false;
+      _isWaitingForPrediction = false;
       _pingTimer?.cancel();
       _pingTimer = null;
     }
@@ -253,6 +255,8 @@ class PCVKStreamService {
 
     final completeSignal = jsonEncode({'complete': true});
     _channel?.sink.add(completeSignal);
+
+    _isWaitingForPrediction = true;
   }
 
   void _handleServerMessage(dynamic message) {
@@ -292,6 +296,7 @@ class PCVKStreamService {
           }
         } else if (data.containsKey('predicted_class')) {
           onPredictionResult?.call(WebSocketPredictResponse.fromJson(data));
+          _isWaitingForPrediction = false;
         } else if (data.containsKey('error')) {
           onError?.call(data['error']);
           if (kDebugMode) {
