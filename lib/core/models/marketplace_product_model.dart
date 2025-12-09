@@ -2,9 +2,11 @@
 // MARKETPLACE PRODUCT MODEL
 // ============================================================================
 // Model untuk produk marketplace dengan support multiple images
+// ⭐ Auto-clean SAS tokens from Azure Blob URLs (for public container)
 // ============================================================================
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:wargago/core/utils/azure_blob_url_helper.dart'; // ⭐ ADDED
 
 class MarketplaceProductModel {
   final String id;
@@ -57,7 +59,7 @@ class MarketplaceProductModel {
       'stock': stock,
       'category': category,
       'subcategory': subcategory,
-      'imageUrls': imageUrls,
+      'imageUrls': AzureBlobUrlHelper.cleanUrlList(imageUrls), // ⭐ Clean SAS tokens
       'unit': unit,
       'isActive': isActive,
       'createdAt': Timestamp.fromDate(createdAt),

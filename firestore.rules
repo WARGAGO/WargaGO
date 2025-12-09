@@ -97,6 +97,33 @@ service cloud.firestore {
     }
 
     // ========================================================================
+    // DATA_PENDUDUK COLLECTION - Complete Resident Data (including keluargaId)
+    // ========================================================================
+    match /data_penduduk/{pendudukId} {
+      // Read: User bisa read data sendiri, admin bisa read semua
+      allow read: if isSignedIn() &&
+                     (request.auth.uid == resource.data.userId || isAdmin());
+
+      // Create: User yang baru register bisa create data penduduk untuk dirinya
+      allow create: if isSignedIn() &&
+                       hasValidData() &&
+                       'userId' in request.resource.data &&
+                       request.auth.uid == request.resource.data.userId &&
+                       'namaLengkap' in request.resource.data &&
+                       'nik' in request.resource.data;
+
+      // Update: User bisa update data sendiri, admin bisa update semua
+      allow update: if (isSignedIn() &&
+                        'userId' in resource.data &&
+                        request.auth.uid == resource.data.userId &&
+                        request.resource.data.userId == resource.data.userId) ||
+                       isAdmin();
+
+      // Delete: Hanya admin yang bisa delete
+      allow delete: if isAdmin();
+    }
+
+    // ========================================================================
     // AGENDA COLLECTION - Kegiatan & Broadcast
     // ========================================================================
     match /agenda/{agendaId} {
@@ -123,7 +150,28 @@ service cloud.firestore {
     // ========================================================================
     match /keuangan/{transactionId} {
       allow read: if isSignedIn();
-      allow create, update, delete: if isAdmin();
+
+      // Create: Admin bisa create apapun, Warga hanya bisa create pemasukan iuran mereka sendiri
+      allow create: if isAdmin() || (
+        isSignedIn() &&
+        // Validasi: Harus pemasukan dari iuran
+        request.resource.data.jenis == 'Pemasukan' &&
+        request.resource.data.kategori == 'Iuran Warga' &&
+        // Validasi: keluargaId harus sesuai dengan keluargaId user
+        request.resource.data.keluargaId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.keluargaId &&
+        // Validasi: Harus ada tagihanId (reference)
+        'tagihanId' in request.resource.data &&
+        // Validasi: Harus ada buktiTransaksi
+        'buktiTransaksi' in request.resource.data &&
+        // Validasi: Harus ada required fields
+        'nominal' in request.resource.data &&
+        'tanggal' in request.resource.data &&
+        'jenisIuranId' in request.resource.data &&
+        'jenisIuranName' in request.resource.data &&
+        'periode' in request.resource.data
+      );
+
+      allow update, delete: if isAdmin();
     }
 
     match /pemasukan/{pemasukanId} {
@@ -142,6 +190,38 @@ service cloud.firestore {
     }
 
     match /tagihan/{tagihanId} {
+      // Read: Warga bisa baca tagihan keluarganya, admin bisa baca semua
+      allow read: if isSignedIn() && (
+        resource.data.keluargaId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.keluargaId ||
+        isAdmin()
+      );
+
+      // Create: Hanya admin
+      allow create: if isAdmin();
+
+      // Update: Admin full access, warga bisa update untuk submit bukti pembayaran
+      allow update: if isAdmin() || (
+        isSignedIn() &&
+        // Warga hanya bisa update tagihan keluarganya sendiri
+        resource.data.keluargaId == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.keluargaId &&
+        // Hanya field berikut yang boleh diubah warga saat submit bukti:
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'buktiPembayaran',
+          'metodePembayaran',
+          'tanggalBayar',
+          'updatedAt',
+          'status'
+        ]) &&
+        // Status hanya boleh diubah ke "Lunas" (auto-paid) atau tetap sama
+        (request.resource.data.status == 'Lunas' ||
+         request.resource.data.status == resource.data.status)
+      );
+
+      // Delete: Hanya admin
+      allow delete: if isAdmin();
+    }
+
+    match /keluarga/{keluargaId} {
       allow read: if isSignedIn();
       allow create, update, delete: if isAdmin();
     }
@@ -230,7 +310,6 @@ service cloud.firestore {
       // Update:
       // - Seller bisa update semua field produknya
       // - Buyer bisa update stock & soldCount saat checkout (untuk kurangi stock)
-      // Tidak boleh mengubah sellerId
       allow update: if isSignedIn() && (
                        // Seller update produknya sendiri
                        (resource.data.sellerId == request.auth.uid &&
@@ -240,75 +319,36 @@ service cloud.firestore {
                         request.resource.data.sellerId == resource.data.sellerId)
                      );
 
-      // Delete: Hanya owner (seller) yang bisa delete produknya
-      allow delete: if isSignedIn() &&
-                       resource.data.sellerId == request.auth.uid;
+      // Delete: Seller bisa delete produknya sendiri
+      allow delete: if isSignedIn() && resource.data.sellerId == request.auth.uid;
     }
 
     // ========================================================================
-    // PRODUCTS COLLECTION - Produk Sayuran (New Implementation)
+    // PRODUCTS COLLECTION - Produk Sayuran (Alternative Collection)
     // ========================================================================
     match /products/{productId} {
       // Read: Semua authenticated user bisa lihat produk aktif
       allow read: if isSignedIn();
 
       // Create: User yang login bisa create produk sebagai seller
-      // Validasi: sellerId harus sama dengan auth.uid
       allow create: if isSignedIn() &&
                        hasValidData() &&
                        'sellerId' in request.resource.data &&
-                       request.auth.uid == request.resource.data.sellerId &&
-                       'nama' in request.resource.data &&
-                       'deskripsi' in request.resource.data &&
-                       'harga' in request.resource.data &&
-                       'stok' in request.resource.data &&
-                       'kategori' in request.resource.data &&
-                       'imageUrls' in request.resource.data &&
-                       request.resource.data.harga is number &&
-                       request.resource.data.harga > 0 &&
-                       request.resource.data.stok is number &&
-                       request.resource.data.stok >= 0 &&
-                       request.resource.data.imageUrls is list &&
-                       request.resource.data.imageUrls.size() > 0 &&
-                       request.resource.data.imageUrls.size() <= 3;
+                       request.auth.uid == request.resource.data.sellerId;
 
-      // Update:
-      // - Seller bisa update semua field produknya
-      // - Buyer bisa update stok & soldCount saat checkout (untuk kurangi stok)
-      // Tidak boleh mengubah sellerId
+      // Update: Seller bisa update produknya sendiri, atau buyer bisa update stock
       allow update: if isSignedIn() && (
                        // Seller update produknya sendiri
                        (resource.data.sellerId == request.auth.uid &&
                         request.resource.data.sellerId == resource.data.sellerId) ||
-                       // Buyer update stok & soldCount saat order (hanya field ini)
+                       // Buyer update stok & soldCount saat order
                        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stok', 'soldCount']) &&
                         request.resource.data.sellerId == resource.data.sellerId)
                      );
 
-      // Delete: Hanya owner (seller) yang bisa delete produknya
+      // Delete: Seller bisa delete produknya sendiri atau admin
       allow delete: if isSignedIn() &&
-                       resource.data.sellerId == request.auth.uid;
-    }
-
-    // ========================================================================
-    // PENDING SELLERS COLLECTION (for seller registration)
-    // ========================================================================
-    match /pending_sellers/{sellerId} {
-      // Read: User bisa read data sendiri, admin bisa read semua
-      allow read: if isSignedIn() &&
-                     (request.auth.uid == sellerId || isAdmin());
-
-      // Create: User yang login bisa daftar sebagai seller
-      allow create: if isSignedIn() &&
-                       hasValidData() &&
-                       request.auth.uid == sellerId;
-
-      // Update: Admin bisa approve/reject, user bisa update data sendiri
-      allow update: if isAdmin() ||
-                       (isSignedIn() && request.auth.uid == sellerId);
-
-      // Delete: Admin bisa delete
-      allow delete: if isAdmin();
+                       (resource.data.sellerId == request.auth.uid || isAdmin());
     }
 
     // ========================================================================
@@ -471,6 +511,36 @@ service cloud.firestore {
       // DELETE: Only admin can delete
       allow delete: if isAdmin();
     }
+
+    // ========================================================================
+    // IURAN COLLECTION - Manajemen Iuran/Fee
+    // ========================================================================
+    match /iuran/{iuranId} {
+      // Read: Semua authenticated user bisa lihat iuran
+      allow read: if isSignedIn();
+
+      // Create: Hanya admin yang bisa create iuran baru
+      allow create: if isAdmin() &&
+                       hasValidData() &&
+                       'judul' in request.resource.data &&
+                       'deskripsi' in request.resource.data &&
+                       'nominal' in request.resource.data &&
+                       'tanggalJatuhTempo' in request.resource.data &&
+                       'tanggalBuat' in request.resource.data &&
+                       'tipe' in request.resource.data &&
+                       'status' in request.resource.data &&
+                       request.resource.data.nominal is number &&
+                       request.resource.data.nominal > 0;
+
+      // Update: Hanya admin yang bisa update iuran
+      allow update: if isAdmin();
+
+      // Delete: Hanya admin yang bisa delete iuran
+      allow delete: if isAdmin();
+    }
+
+    // NOTE: tagihan collection rules already defined above (around line 171)
+    // Removed duplicate definition to fix compilation error
+
   }
 }
-

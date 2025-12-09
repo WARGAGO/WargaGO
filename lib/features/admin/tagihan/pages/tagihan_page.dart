@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // ⭐ ADDED for user authentication
 import 'package:wargago/core/providers/tagihan_provider.dart';
 import 'package:wargago/core/models/tagihan_model.dart';
 import '../widgets/tagihan_card.dart';
@@ -324,9 +325,25 @@ class _TagihanPageState extends State<TagihanPage> {
             ElevatedButton(
               onPressed: () async {
                 Navigator.pop(context);
+
+                // ⭐ Get current user ID
+                final currentUser = FirebaseAuth.instance.currentUser;
+                if (currentUser == null) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Error: User tidak terautentikasi'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                  return;
+                }
+
                 final success = await context.read<TagihanProvider>().markAsLunas(
                       tagihan.id,
                       metodePembayaran: metodePembayaran,
+                      userId: currentUser.uid, // ⭐ ADDED: Pass current user ID
                       catatan: catatan,
                     );
                 if (success && mounted) {

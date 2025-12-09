@@ -17,9 +17,11 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
   late TextEditingController _nikController;
   late TextEditingController _noTeleponController;
   late TextEditingController _alamatController;
-  bool _isLoading = false;
+  late TextEditingController _keluargaIdController; // ⭐ ADDED
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+
+  bool _isLoading = false; // ⭐ ADDED
 
   @override
   void initState() {
@@ -30,12 +32,12 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
     _nikController = TextEditingController(text: user?.nik ?? '');
     _noTeleponController = TextEditingController(text: user?.noTelepon ?? '');
     _alamatController = TextEditingController(text: user?.alamat ?? '');
+    _keluargaIdController = TextEditingController(text: user?.keluargaId ?? ''); // ⭐ ADDED
 
     _animationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
       vsync: this,
-      duration: const Duration(milliseconds: 600),
     );
-
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
@@ -49,6 +51,7 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
     _nikController.dispose();
     _noTeleponController.dispose();
     _alamatController.dispose();
+    _keluargaIdController.dispose(); // ⭐ ADDED
     _animationController.dispose();
     super.dispose();
   }
@@ -224,7 +227,7 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
 
                       _buildModernTextField(
                         controller: _noTeleponController,
-                        label: 'Nomor Telepon',
+                        label: 'No. Telepon',
                         hint: 'Masukkan nomor telepon',
                         icon: Icons.phone_outlined,
                         keyboardType: TextInputType.phone,
@@ -240,7 +243,29 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
                         maxLines: 3,
                       ),
 
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
+
+                      // ⭐ ADDED: Keluarga ID Field
+                      _buildModernTextField(
+                        controller: _keluargaIdController,
+                        label: 'ID Keluarga',
+                        hint: 'Contoh: keluarga_001',
+                        icon: Icons.family_restroom_rounded,
+                        keyboardType: TextInputType.text,
+                        helperText: 'ID keluarga diperlukan untuk melihat tagihan iuran.\nHubungi admin jika tidak tahu ID keluarga Anda.',
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'ID Keluarga tidak boleh kosong';
+                          }
+                          // Check format (alphanumeric + underscore)
+                          if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value)) {
+                            return 'Format tidak valid (hanya huruf, angka, dan underscore)';
+                          }
+                          return null;
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
 
                       // Info Box
                       Container(
@@ -249,25 +274,25 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
                           color: const Color(0xFF2F80ED).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: const Color(0xFF2F80ED).withValues(alpha: 0.2),
+                            color: const Color(0xFF2F80ED).withValues(alpha: 0.3),
                             width: 1,
                           ),
                         ),
                         child: Row(
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.info_outline_rounded,
-                              color: Color(0xFF2F80ED),
+                              color: const Color(0xFF2F80ED),
                               size: 22,
                             ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                'Email tidak dapat diubah. Hubungi admin jika perlu mengubah email.',
+                                'Pastikan data yang Anda masukkan benar dan sesuai dengan identitas resmi.',
                                 style: GoogleFonts.poppins(
                                   fontSize: 12,
-                                  color: const Color(0xFF2F80ED),
-                                  height: 1.4,
+                                  color: const Color(0xFF1F2937),
+                                  height: 1.5,
                                 ),
                               ),
                             ),
@@ -297,8 +322,9 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
     required String label,
     required String hint,
     required IconData icon,
-    TextInputType? keyboardType,
+    TextInputType keyboardType = TextInputType.text,
     int maxLines = 1,
+    String? helperText, // ⭐ ADDED
     String? Function(String?)? validator,
   }) {
     return Column(
@@ -353,8 +379,8 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(
-                  color: const Color(0xFFE5E7EB),
+                borderSide: const BorderSide(
+                  color: Color(0xFFE5E7EB),
                   width: 1,
                 ),
               ),
@@ -383,6 +409,13 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
                 horizontal: 16,
                 vertical: maxLines > 1 ? 16 : 14,
               ),
+              helperText: helperText, // ⭐ ADDED
+              helperMaxLines: 3, // ⭐ ADDED
+              helperStyle: GoogleFonts.poppins( // ⭐ ADDED
+                fontSize: 11,
+                color: const Color(0xFF6B7280),
+                height: 1.4,
+              ),
             ),
           ),
         ),
@@ -393,10 +426,10 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
   Widget _buildSaveButton() {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
         gradient: const LinearGradient(
           colors: [Color(0xFF2F80ED), Color(0xFF1E5BB8)],
         ),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF2F80ED).withValues(alpha: 0.3),
@@ -411,16 +444,15 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
           onTap: _isLoading ? null : _saveChanges,
           borderRadius: BorderRadius.circular(16),
           child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 18),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            alignment: Alignment.center,
             child: _isLoading
-                ? const Center(
-                    child: SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2.5,
-                      ),
+                ? const SizedBox(
+                    height: 24,
+                    width: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2.5,
                     ),
                   )
                 : Row(
@@ -462,7 +494,7 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
       final user = authProvider.userModel;
 
       if (user == null) {
-        throw Exception('User not found');
+        throw Exception('User data not found');
       }
 
       // Update user profile via Firestore
@@ -471,6 +503,7 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
         nik: _nikController.text.trim().isEmpty ? null : _nikController.text.trim(),
         noTelepon: _noTeleponController.text.trim().isEmpty ? null : _noTeleponController.text.trim(),
         alamat: _alamatController.text.trim().isEmpty ? null : _alamatController.text.trim(),
+        keluargaId: _keluargaIdController.text.trim().isEmpty ? null : _keluargaIdController.text.trim(), // ⭐ ADDED
       );
 
       // Update to Firestore
@@ -484,6 +517,8 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
               style: GoogleFonts.poppins(),
             ),
             backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
         Navigator.pop(context);
@@ -497,6 +532,8 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
               style: GoogleFonts.poppins(),
             ),
             backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         );
       }
@@ -509,3 +546,4 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
     }
   }
 }
+

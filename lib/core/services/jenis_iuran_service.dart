@@ -19,7 +19,7 @@ class JenisIuranService {
   // CREATE
   // ============================================================================
 
-  /// Create jenis iuran baru
+  /// Create jenis iuran baru + Auto Generate Tagihan untuk semua warga
   Future<String?> createJenisIuran(JenisIuranModel jenisIuran) async {
     try {
       print('=== JenisIuranService: createJenisIuran ===');
@@ -30,12 +30,94 @@ class JenisIuranService {
       data['updatedAt'] = FieldValue.serverTimestamp();
 
       final docRef = await _firestore.collection(_collection).add(data);
+      final jenisIuranId = docRef.id;
 
-      print('✅ Jenis iuran created with ID: ${docRef.id}');
-      return docRef.id;
+      print('✅ Jenis iuran created with ID: $jenisIuranId');
+
+      // 🆕 AUTO-GENERATE TAGIHAN untuk semua warga
+      await _autoGenerateTagihanForAllWarga(jenisIuranId, jenisIuran);
+
+      return jenisIuranId;
     } catch (e) {
       print('❌ Error createJenisIuran: $e');
       rethrow;
+    }
+  }
+
+  /// Auto-generate tagihan untuk semua keluarga
+  Future<void> _autoGenerateTagihanForAllWarga(
+    String jenisIuranId,
+    JenisIuranModel jenisIuran,
+  ) async {
+    try {
+      print('🔄 Auto-generating tagihan for all keluarga...');
+
+      // Get all data_penduduk yang punya keluargaId
+      final pendudukSnapshot = await _firestore
+          .collection('data_penduduk')
+          .where('status', isEqualTo: 'Terverifikasi')
+          .get();
+
+      // Collect unique keluargaId
+      final Set<String> keluargaIds = {};
+      for (var doc in pendudukSnapshot.docs) {
+        final keluargaId = doc.data()['keluargaId'] as String?;
+        if (keluargaId != null && keluargaId.isNotEmpty) {
+          keluargaIds.add(keluargaId);
+        }
+      }
+
+      print('📊 Found ${keluargaIds.length} unique keluarga to bill');
+
+      // Generate tagihan untuk setiap keluarga
+      final batch = _firestore.batch();
+      int count = 0;
+
+      for (final keluargaId in keluargaIds) {
+        final tagihanRef = _firestore.collection('tagihan').doc();
+
+        // Calculate deadline based on kategori
+        final now = DateTime.now();
+        final deadline = jenisIuran.kategoriIuran == 'bulanan'
+            ? DateTime(now.year, now.month + 1, 0) // End of next month
+            : DateTime(now.year, now.month, now.day + 30); // 30 days from now
+
+        final tagihanData = {
+          'jenisIuranId': jenisIuranId,
+          'jenisIuranNama': jenisIuran.namaIuran,
+          'keluargaId': keluargaId,
+          'nominal': jenisIuran.jumlahIuran,
+          'status': 'Belum Dibayar',
+          'periodeTanggal': Timestamp.fromDate(now),
+          'deadline': Timestamp.fromDate(deadline),
+          'tanggalBayar': null,
+          'metodePembayaran': null,
+          'buktiPembayaran': null,
+          'catatan': 'Auto-generated dari jenis iuran: ${jenisIuran.namaIuran}',
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+          'isActive': true,
+        };
+
+        batch.set(tagihanRef, tagihanData);
+        count++;
+
+        // Commit in batches of 500 (Firestore limit)
+        if (count % 500 == 0) {
+          await batch.commit();
+          print('✅ Committed batch of 500 tagihan');
+        }
+      }
+
+      // Commit remaining
+      if (count % 500 != 0) {
+        await batch.commit();
+      }
+
+      print('✅ Successfully generated $count tagihan for all keluarga!');
+    } catch (e) {
+      print('❌ Error auto-generating tagihan: $e');
+      // Don't throw - jenis iuran already created, tagihan generation is bonus
     }
   }
 

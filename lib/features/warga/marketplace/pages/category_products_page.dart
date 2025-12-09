@@ -26,6 +26,7 @@ class CategoryProductsPage extends StatefulWidget {
 }
 
 class _CategoryProductsPageState extends State<CategoryProductsPage> with WidgetsBindingObserver {
+  MarketplaceProvider? _provider; // ⭐ Save provider reference
 
   @override
   void initState() {
@@ -34,6 +35,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> with Widget
     // Load products when page opens
     Future.microtask(() {
       final provider = Provider.of<MarketplaceProvider>(context, listen: false);
+      _provider = provider; // ⭐ Save reference
       provider.setCategory(widget.category);
       provider.loadProducts(refresh: true);
     });
@@ -42,8 +44,8 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> with Widget
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    // Reset category when leaving
-    Provider.of<MarketplaceProvider>(context, listen: false).setCategory('Semua');
+    // ⭐ Use saved reference instead of accessing context
+    _provider?.setCategory('Semua');
     super.dispose();
   }
 
@@ -318,6 +320,53 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> with Widget
         Icons.image,
         size: 40,
         color: Color(0xFF2F80ED),
+      ),
+    );
+  }
+
+  // ⭐ New: Error image widget with better feedback
+  Widget _buildErrorImage({bool isExpiredToken = false}) {
+    return Container(
+      width: double.infinity,
+      height: 140,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Colors.orange.withValues(alpha: 0.2),
+            Colors.red.withValues(alpha: 0.2),
+          ],
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            isExpiredToken ? Icons.access_time : Icons.broken_image,
+            size: 32,
+            color: Colors.orange[700],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            isExpiredToken ? 'Token Expired' : 'Gagal Memuat',
+            style: GoogleFonts.poppins(
+              fontSize: 10,
+              color: Colors.orange[700],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          if (isExpiredToken)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                'Refresh halaman',
+                style: GoogleFonts.poppins(
+                  fontSize: 8,
+                  color: Colors.orange[600],
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+        ],
       ),
     );
   }

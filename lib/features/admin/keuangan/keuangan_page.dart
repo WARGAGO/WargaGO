@@ -13,6 +13,7 @@ import 'package:wargago/core/providers/pengeluaran_provider.dart';
 import 'package:wargago/core/providers/laporan_keuangan_detail_provider.dart';
 import 'package:wargago/core/models/laporan_keuangan_detail_model.dart';
 import '../agenda/kegiatan/kegiatan_page.dart';
+import '../kelola_iuran/pages/kelola_iuran_page.dart';
 import 'kelola_pemasukan/kelola_pemasukan_page.dart';
 import 'kelola_pengeluaran/kelola_pengeluaran_page.dart';
 import 'daftar_metode_page.dart';
@@ -954,25 +955,49 @@ class _KeuanganPageState extends State<KeuanganPage> {
           ],
         ),
         const SizedBox(height: 16),
-        // Row kedua: Kelola Agenda (FULL WIDTH dari kiri ke kanan)
-        SizedBox(
-          width: double.infinity, // Memastikan card lebar penuh
-          child: _buildKelolaButton(
-            icon: Icons.event_note_rounded,
-            label: 'Kelola Agenda',
-            iconColor: const Color(0xFFFBBF24), // Yellow/Amber icon
-            backgroundColor1: const Color(0xFF2988EA), // Biru
-            backgroundColor2: const Color(0xFF2988EA), // Biru
-            onTap: () {
-              Navigator.of(context, rootNavigator: true).push(
-                MaterialPageRoute(
-                  builder: (context) => const AgendaPage(),
-                  fullscreenDialog: true,
-                ),
-              );
-            },
-            height: 130, // SAMA TINGGI dengan card Pemasukan & Pengeluaran
-          ),
+        // Row kedua: Kelola Agenda & Kelola Iuran (2 CARD BERSEBELAHAN)
+        Row(
+          children: [
+            // Kelola Agenda
+            Expanded(
+              child: _buildKelolaButton(
+                icon: Icons.event_note_rounded,
+                label: 'Kelola Agenda',
+                iconColor: const Color(0xFFFBBF24), // Yellow/Amber icon
+                backgroundColor1: const Color(0xFF2988EA), // Biru
+                backgroundColor2: const Color(0xFF2988EA), // Biru
+                onTap: () {
+                  Navigator.of(context, rootNavigator: true).push(
+                    MaterialPageRoute(
+                      builder: (context) => const AgendaPage(),
+                      fullscreenDialog: true,
+                    ),
+                  );
+                },
+                height: 130,
+              ),
+            ),
+            const SizedBox(width: 16),
+            // Kelola Iuran (NEW!)
+            Expanded(
+              child: _buildKelolaButton(
+                icon: Icons.account_balance_wallet_rounded,
+                label: 'Kelola Iuran',
+                iconColor: const Color(0xFF6C63FF), // Purple icon
+                backgroundColor1: const Color(0xFF6C63FF), // Purple gradient
+                backgroundColor2: const Color(0xFF56CCF2), // Blue gradient
+                onTap: () {
+                  Navigator.of(context, rootNavigator: true).push(
+                    MaterialPageRoute(
+                      builder: (context) => const KelolaIuranPage(),
+                      fullscreenDialog: true,
+                    ),
+                  );
+                },
+                height: 130,
+              ),
+            ),
+          ],
         ),
       ],
     );

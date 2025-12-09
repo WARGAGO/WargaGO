@@ -22,7 +22,7 @@ class KelolaPenggunaPage extends StatefulWidget {
 
 class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
   String _selectedFilter = 'Semua';
-  final List<String> _filterOptions = ['Semua', 'Admin', 'Warga', 'Pending'];
+  final List<String> _filterOptions = ['Semua', 'Admin', 'Warga', 'Pending', 'Approved']; // ⭐ Added 'Approved'
   final UserRepository _userRepository = UserRepository();
   String _searchQuery = '';
 
@@ -306,6 +306,20 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
 
         // No data
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          // Custom message based on filter
+          String emptyMessage;
+          if (_selectedFilter == 'Pending') {
+            emptyMessage = 'Tidak ada pengguna yang menunggu approval';
+          } else if (_selectedFilter == 'Approved') {
+            emptyMessage = 'Belum ada pengguna yang di-approve';
+          } else if (_selectedFilter == 'Admin') {
+            emptyMessage = 'Tidak ada admin terdaftar';
+          } else if (_selectedFilter == 'Warga') {
+            emptyMessage = 'Tidak ada warga terdaftar';
+          } else {
+            emptyMessage = 'Belum ada pengguna terdaftar';
+          }
+
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -326,14 +340,36 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  _selectedFilter == 'Semua'
-                      ? 'Belum ada pengguna terdaftar'
-                      : 'Tidak ada pengguna dengan filter $_selectedFilter',
+                  emptyMessage,
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     color: Colors.grey[400],
                   ),
+                  textAlign: TextAlign.center,
                 ),
+                // ⭐ NEW: Hint for approved users
+                if (_selectedFilter == 'Pending') ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    margin: const EdgeInsets.symmetric(horizontal: 40),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF10B981).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: const Color(0xFF10B981).withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Text(
+                      '💡 User yang sudah approved ada di tab "Approved"',
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        color: const Color(0xFF059669),
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
               ],
             ),
           );
@@ -358,7 +394,12 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
         } else if (_selectedFilter == 'Pending') {
           users = users.where((user) {
             final status = user.status.toLowerCase();
-            return status == 'pending'; // Only 'pending', NOT 'unverified'
+            return status == 'pending' || status == 'unverified'; // Pending and unverified
+          }).toList();
+        } else if (_selectedFilter == 'Approved') { // ⭐ NEW: Filter for approved users
+          users = users.where((user) {
+            final status = user.status.toLowerCase();
+            return status == 'approved';
           }).toList();
         }
 

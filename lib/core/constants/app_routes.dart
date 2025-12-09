@@ -18,6 +18,8 @@ class AppRoutes {
   // ========== WARGA ROUTES ==========
   static const String wargaRegister = '/warga/register';
   static const String wargaKYC = '/warga/kyc';
+  static const String wargaAlamatRumah = '/warga/alamat-rumah'; // 🆕 After KYC
+  static const String wargaDataKeluarga = '/warga/data-keluarga'; // 🆕 After Alamat
   static const String wargaDashboard = '/warga/dashboard';
 
   static const String wargaMarketplace = '/warga/marketplace';

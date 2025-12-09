@@ -14,6 +14,7 @@ import 'core/providers/warga_provider.dart';
 import 'core/providers/rumah_provider.dart';
 import 'core/providers/keluarga_provider.dart';
 import 'core/providers/jenis_iuran_provider.dart';
+import 'core/providers/iuran_warga_provider.dart'; // ⭐ Iuran Warga Provider
 import 'core/providers/agenda_provider.dart';
 import 'core/providers/pemasukan_lain_provider.dart';
 import 'core/providers/pengeluaran_provider.dart';
@@ -61,6 +62,16 @@ void main() async {
 
   if (kDebugMode) {
     print('✅ Firestore configured for real-time updates');
+
+    // ⭐ AZURE SAS TOKEN CLEANUP - Uncomment to run ONCE
+    // Cleans SAS token parameters from all product image URLs in Firestore
+    // Run this ONCE after setting Azure container to PUBLIC
+    //
+    // await CleanAzureSasTokens.checkStatus();
+    // await CleanAzureSasTokens.cleanAllProducts();
+    // await CleanAzureSasTokens.cleanProductsCollection();
+    //
+    // After running successfully, COMMENT these lines again!
   }
 
   // Load .env only if file exists (for local development/testing)
@@ -154,6 +165,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => RumahProvider()),
         ChangeNotifierProvider(create: (_) => KeluargaProvider()),
         ChangeNotifierProvider(create: (_) => JenisIuranProvider()),
+        ChangeNotifierProvider(create: (_) => IuranWargaProvider()), // ⭐ Iuran Warga Provider
         ChangeNotifierProvider(create: (_) => AgendaProvider()),
         ChangeNotifierProvider(create: (_) => PemasukanLainProvider()),
         ChangeNotifierProvider(create: (_) => PengeluaranProvider()),

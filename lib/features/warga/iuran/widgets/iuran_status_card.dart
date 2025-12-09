@@ -16,10 +16,29 @@ class IuranStatusCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isLunas = status == 'lunas';
-    final statusColor = isLunas ? const Color(0xFF10B981) : const Color(0xFFEF4444);
-    final statusText = isLunas ? 'Lunas' : 'Belum Dibayar';
-    final statusIcon = isLunas ? Icons.check_circle_rounded : Icons.error_rounded;
+    Color statusColor;
+    String statusText;
+    IconData statusIcon;
+
+    // Handle Firestore status values
+    switch (status) {
+      case 'Lunas':
+        statusColor = const Color(0xFF10B981);
+        statusText = 'Lunas';
+        statusIcon = Icons.check_circle_rounded;
+        break;
+      case 'Terlambat':
+        statusColor = const Color(0xFFF59E0B);
+        statusText = 'Terlambat';
+        statusIcon = Icons.warning_rounded;
+        break;
+      case 'Belum Dibayar':
+      default:
+        statusColor = const Color(0xFFEF4444);
+        statusText = 'Belum Dibayar';
+        statusIcon = Icons.error_rounded;
+        break;
+    }
 
     return Container(
       padding: const EdgeInsets.all(20),

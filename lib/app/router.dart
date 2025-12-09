@@ -13,6 +13,8 @@ import 'package:wargago/features/common/pre_auth/pre_auth_page.dart';
 import 'package:wargago/features/common/auth/presentation/pages/unified_login_page.dart';
 import 'package:wargago/features/common/auth/presentation/pages/warga/warga_register_page.dart';
 import 'package:wargago/features/common/auth/presentation/pages/warga/kyc_upload_page.dart';
+import 'package:wargago/features/common/auth/presentation/pages/warga/alamat_rumah_page.dart';
+import 'package:wargago/features/common/auth/presentation/pages/warga/data_keluarga_page.dart';
 import 'package:wargago/features/common/auth/presentation/pages/status/pending_approval_page.dart';
 import 'package:wargago/features/common/auth/presentation/pages/status/rejected_page.dart';
 import 'package:wargago/features/admin/dashboard/dashboard_page.dart';
@@ -82,6 +84,23 @@ class AppRouterConfig {
         path: AppRoutes.wargaKYC,
         name: 'wargaKYC',
         builder: (context, state) => const KYCUploadPage(),
+      ),
+      // 🆕 NEW: Alamat Rumah & Data Keluarga Flow
+      GoRoute(
+        path: AppRoutes.wargaAlamatRumah,
+        name: 'wargaAlamatRumah',
+        builder: (context, state) {
+          final kycData = state.extra as Map<String, dynamic>;
+          return AlamatRumahPage(kycData: kycData);
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.wargaDataKeluarga,
+        name: 'wargaDataKeluarga',
+        builder: (context, state) {
+          final completeData = state.extra as Map<String, dynamic>;
+          return DataKeluargaPage(completeData: completeData);
+        },
       ),
 
       GoRoute(

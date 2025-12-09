@@ -11,6 +11,7 @@ class UserModel {
   final String role;
   final String status;
   final String? password;
+  final String? keluargaId; // ⭐ ADDED: Link to keluarga collection
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -27,9 +28,9 @@ class UserModel {
     this.password,
     required this.createdAt,
     this.updatedAt,
+    this.keluargaId, // ⭐ ADDED
   });
 
-  /// Helper method to parse DateTime from various formats
   static DateTime? _parseDateTime(dynamic value) {
     if (value == null) return null;
 
@@ -69,6 +70,7 @@ class UserModel {
         password: map['password'],
         createdAt: _parseDateTime(map['createdAt']) ?? DateTime.now(),
         updatedAt: _parseDateTime(map['updatedAt']),
+        keluargaId: map['keluargaId'], // ⭐ ADDED
       );
       
       print('✅ UserModel created successfully');
@@ -101,6 +103,7 @@ class UserModel {
       'password': password,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt?.toIso8601String(),
+      'keluargaId': keluargaId, // ⭐ ADDED
     };
 
     print('UserModel.toMap() completed successfully');
@@ -120,6 +123,7 @@ class UserModel {
     String? password,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? keluargaId, // ⭐ ADDED
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -134,8 +138,8 @@ class UserModel {
       password: password ?? this.password,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      keluargaId: keluargaId ?? this.keluargaId, // ⭐ ADDED
     );
   }
 }
-
 

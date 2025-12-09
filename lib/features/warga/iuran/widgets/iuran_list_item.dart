@@ -1,3 +1,4 @@
+// filepath: c:\Peyimpanan Pribadi\Data D\New folder (2)\Semester 5\PBL 2025\lib\features\warga\iuran\widgets\iuran_list_item.dart
 // ============================================================================
 // IURAN LIST ITEM WIDGET
 // ============================================================================
@@ -5,34 +6,62 @@
 // ============================================================================
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import '../../../../core/models/tagihan_model.dart';
 import '../pages/iuran_detail_page.dart';
 
 class IuranListItem extends StatelessWidget {
-  final String nama;
-  final String tanggal;
-  final String status; // 'lunas', 'belum_lunas', 'tersedia'
+  final TagihanModel tagihan;
 
   const IuranListItem({
     super.key,
-    required this.nama,
-    required this.tanggal,
-    required this.status,
+    required this.tagihan,
   });
+
+  Color _getStatusColor() {
+    switch (tagihan.status) {
+      case 'Lunas':
+        return const Color(0xFF10B981);
+      case 'Terlambat':
+        return const Color(0xFFEF4444);
+      default:
+        return const Color(0xFFFBBF24);
+    }
+  }
+
+  IconData _getStatusIcon() {
+    switch (tagihan.status) {
+      case 'Lunas':
+        return Icons.check_circle_rounded;
+      case 'Terlambat':
+        return Icons.error_rounded;
+      default:
+        return Icons.pending_rounded;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final currencyFormat = NumberFormat.currency(
+      locale: 'id_ID',
+      symbol: 'Rp ',
+      decimalDigits: 0,
+    );
+
+    final dateFormat = DateFormat('dd MMM yyyy', 'id_ID');
+
     return InkWell(
       onTap: () {
-        // Navigate to detail page
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => IuranDetailPage(
-              namaIuran: nama,
-              jumlah: 100000, // TODO: Pass real data
-              tanggal: tanggal,
-              status: status,
-              keterangan: 'Iuran wajib untuk keamanan lingkungan RT/RW',
+              tagihanId: tagihan.id, // ⭐ ADDED: Pass tagihan ID
+              namaIuran: tagihan.jenisIuranName,
+              jumlah: tagihan.nominal.toInt(),
+              tanggal: dateFormat.format(tagihan.periodeTanggal),
+              status: tagihan.status,
+              keterangan: tagihan.catatan,
             ),
           ),
         );
@@ -66,78 +95,79 @@ class IuranListItem extends StatelessWidget {
                 _getStatusIcon(),
                 color: _getStatusColor(),
                 size: 24,
+              ),
             ),
-          ),
+            const SizedBox(width: 14),
 
-          const SizedBox(width: 14),
-
-          // Info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  nama,
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: const Color(0xFF1F2937),
-                    letterSpacing: 0.1,
+            // Info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    tagihan.jenisIuranName,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF1F2937),
+                      letterSpacing: 0.1,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  tanggal,
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w400,
-                    color: _getStatusTextColor(),
-                    letterSpacing: 0.1,
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(
+                        tagihan.periode,
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
+                          color: const Color(0xFF6B7280),
+                          letterSpacing: 0.1,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '•',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: const Color(0xFF6B7280),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        currencyFormat.format(tagihan.nominal),
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF2F80ED),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+
+            // Status Badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: _getStatusColor().withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                tagihan.status,
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: _getStatusColor(),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
-    ),
     );
   }
-
-  IconData _getStatusIcon() {
-    switch (status) {
-      case 'lunas':
-        return Icons.check_circle_rounded;
-      case 'belum_lunas':
-        return Icons.account_balance_wallet_rounded;
-      case 'tersedia':
-        return Icons.location_on_rounded;
-      default:
-        return Icons.receipt_rounded;
-    }
-  }
-
-  Color _getStatusColor() {
-    switch (status) {
-      case 'lunas':
-        return const Color(0xFF10B981);
-      case 'belum_lunas':
-        return const Color(0xFF2F80ED);
-      case 'tersedia':
-        return const Color(0xFF10B981);
-      default:
-        return const Color(0xFF6B7280);
-    }
-  }
-
-  Color _getStatusTextColor() {
-    switch (status) {
-      case 'lunas':
-        return const Color(0xFF10B981);
-      case 'tersedia':
-        return const Color(0xFF10B981);
-      default:
-        return const Color(0xFF6B7280);
-    }
-  }
 }
+

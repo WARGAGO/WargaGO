@@ -2,20 +2,20 @@
 // IURAN HEADER CARD WIDGET
 // ============================================================================
 // Widget untuk menampilkan info iuran belum dibayar dengan tombol bayar
+// ✅ UPDATED: Now using real data from IuranWargaProvider
 // ============================================================================
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/providers/iuran_warga_provider.dart';
 import '../pages/iuran_detail_page.dart';
 
 class IuranHeaderCard extends StatelessWidget {
-  final int jumlahBelumDibayar;
-  final String jatuhTempo;
+  final IuranWargaProvider provider;
 
   const IuranHeaderCard({
     super.key,
-    required this.jumlahBelumDibayar,
-    required this.jatuhTempo,
+    required this.provider,
   });
 
   @override
@@ -25,38 +25,50 @@ class IuranHeaderCard extends StatelessWidget {
       symbol: 'Rp. ',
       decimalDigits: 0,
     );
+    final dateFormat = DateFormat('dd MMM yyyy', 'id_ID');
 
-    return InkWell(
-      onTap: () {
+    // Get first unpaid tagihan for detail navigation
+    final firstUnpaid = provider.tagihanAktif.isNotEmpty 
+        ? provider.tagihanAktif.first 
+        : provider.tagihanTerlambat.isNotEmpty 
+            ? provider.tagihanTerlambat.first 
+            : null;
+
+    // Calculate total unpaid
+    final totalBelumDibayar = provider.totalBelumDibayar;
+    final countTunggakan = provider.countTunggakan;
+
+    return GestureDetector(
+      onTap: firstUnpaid != null ? () {
         Navigator.push(
           context,
           MaterialPageRoute(
             builder: (context) => IuranDetailPage(
-              namaIuran: 'Iuran Keamanan',
-              jumlah: jumlahBelumDibayar,
-              tanggal: jatuhTempo,
-              status: 'belum_lunas',
-              keterangan: 'Iuran wajib untuk keamanan lingkungan RT/RW',
+              tagihanId: firstUnpaid.id, // ⭐ ADDED: Pass tagihan ID
+              namaIuran: firstUnpaid.jenisIuranName,
+              jumlah: firstUnpaid.nominal.toInt(),
+              tanggal: dateFormat.format(firstUnpaid.periodeTanggal),
+              status: firstUnpaid.status,
+              keterangan: firstUnpaid.catatan,
             ),
           ),
         );
-      },
-      borderRadius: BorderRadius.circular(16),
+      } : null,
       child: Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFF2F80ED),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF2F80ED).withValues(alpha: 0.3),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: const Color(0xFF2F80ED),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF2F80ED).withValues(alpha: 0.3),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
         children: [
           Expanded(
             child: Column(
@@ -73,7 +85,7 @@ class IuranHeaderCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  currencyFormat.format(jumlahBelumDibayar),
+                  currencyFormat.format(totalBelumDibayar),
                   style: GoogleFonts.poppins(
                     fontSize: 24,
                     fontWeight: FontWeight.w700,
@@ -82,37 +94,70 @@ class IuranHeaderCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFF3D00).withValues(alpha: 0.25),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: const Color(0xFFFF5722),
-                      width: 1.5,
+                if (countTunggakan > 0)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF3D00).withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: const Color(0xFFFF5722),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.access_time_rounded,
+                          color: Color(0xFFFFFFFF),
+                          size: 14,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '$countTunggakan tagihan belum dibayar',
+                          style: GoogleFonts.poppins(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFFFFFFFF),
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                else
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF10B981).withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: const Color(0xFF10B981),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.check_circle_rounded,
+                          color: Color(0xFFFFFFFF),
+                          size: 14,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Semua iuran lunas',
+                          style: GoogleFonts.poppins(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFFFFFFFF),
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.access_time_rounded,
-                        color: Color(0xFFFFFFFF),
-                        size: 14,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Jatuh tempo pada $jatuhTempo',
-                        style: GoogleFonts.poppins(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFFFFFFFF),
-                          letterSpacing: 0.2,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ],
             ),
           ),

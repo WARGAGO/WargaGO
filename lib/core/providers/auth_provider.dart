@@ -619,6 +619,39 @@ class AuthProvider with ChangeNotifier {
           return false;
         }
 
+        // 🆕 AUTO-CREATE entry in data_penduduk for Google Sign-In users
+        if (kDebugMode) {
+          print('🆕 Creating data_penduduk entry for Google user...');
+        }
+        try {
+          await _firestore.collection('data_penduduk').add({
+            'userId': userCredential.user!.uid,
+            'namaLengkap': userCredential.user!.displayName ?? '',
+            'email': userCredential.user!.email ?? '',
+            'nik': '',
+            'jenisKelamin': '',
+            'noTelepon': '',
+            'alamat': '',
+            'keluargaId': '', // Empty - will be set by admin
+            'status': 'Pending', // Pending approval
+            'tempatLahir': '',
+            'tanggalLahir': null,
+            'agama': '',
+            'pendidikan': '',
+            'pekerjaan': '',
+            'statusPerkawinan': '',
+            'createdAt': FieldValue.serverTimestamp(),
+            'updatedAt': FieldValue.serverTimestamp(),
+          });
+          if (kDebugMode) {
+            print('✅ data_penduduk entry created for Google user!');
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('⚠️ Failed to create data_penduduk for Google user: $e');
+          }
+        }
+
         user = newUser;
         if (kDebugMode) {
           print('✅ New warga account created!');
@@ -844,6 +877,44 @@ class AuthProvider with ChangeNotifier {
         return false;
       }
 
+      // 🆕 AUTO-CREATE entry in data_penduduk collection
+      // This allows admin to easily set keluargaId without manual data entry
+      if (kDebugMode) {
+        print('🆕 Creating data_penduduk entry...');
+      }
+      try {
+        await _firestore.collection('data_penduduk').add({
+          'userId': userCredential.user!.uid,
+          'namaLengkap': nama,
+          'email': email,
+          'nik': nik ?? '',
+          'jenisKelamin': jenisKelamin ?? '',
+          'noTelepon': noTelepon ?? '',
+          'alamat': alamat ?? '',
+          'keluargaId': '', // Empty - will be set by admin
+          'status': 'Pending', // Pending approval
+          'tempatLahir': '',
+          'tanggalLahir': null,
+          'agama': '',
+          'pendidikan': '',
+          'pekerjaan': '',
+          'statusPerkawinan': '',
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
+        if (kDebugMode) {
+          print('✅ data_penduduk entry created!');
+          print('   Admin can now approve and set keluargaId');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          print('⚠️ Failed to create data_penduduk entry: $e');
+          print('   User can still proceed, admin will need to add manually');
+        }
+        // Don't fail registration if data_penduduk creation fails
+        // User can still proceed with registration
+      }
+
       // Auto login after registration for warga
       _userModel = newUser;
       _isAuthenticated = true;
@@ -948,6 +1019,7 @@ class AuthProvider with ChangeNotifier {
         print('NIK: ${updatedUser.nik}');
         print('No Telepon: ${updatedUser.noTelepon}');
         print('Alamat: ${updatedUser.alamat}');
+        print('⭐ Keluarga ID: ${updatedUser.keluargaId}'); // ⭐ ADDED DEBUG
       }
 
       _isLoading = true;
@@ -961,8 +1033,16 @@ class AuthProvider with ChangeNotifier {
         'jenisKelamin': updatedUser.jenisKelamin,
         'noTelepon': updatedUser.noTelepon,
         'alamat': updatedUser.alamat,
+        'keluargaId': updatedUser.keluargaId, // ⭐ ADDED - FIX UTAMA!
         'updatedAt': DateTime.now().toIso8601String(),
       };
+
+      if (kDebugMode) {
+        print('📝 Update data:');
+        updateData.forEach((key, value) {
+          print('   $key: $value');
+        });
+      }
 
       final success = await _firestoreService.updateUser(updatedUser.id, updateData);
 
@@ -974,6 +1054,7 @@ class AuthProvider with ChangeNotifier {
 
         if (kDebugMode) {
           print('✅ Profile updated successfully');
+          print('✅ New keluargaId in memory: ${_userModel?.keluargaId}');
         }
         return true;
       } else {

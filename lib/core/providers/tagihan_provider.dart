@@ -260,6 +260,7 @@ class TagihanProvider with ChangeNotifier {
   Future<bool> markAsLunas(
     String id, {
     required String metodePembayaran,
+    required String userId, // ⭐ ADDED: userId parameter
     String? buktiPembayaran,
     String? catatan,
   }) async {
@@ -268,17 +269,20 @@ class TagihanProvider with ChangeNotifier {
       _error = null;
       notifyListeners();
 
-      await _service.markAsLunas(
+      final keuanganId = await _service.markAsLunas(
         id,
         metodePembayaran: metodePembayaran,
         buktiPembayaran: buktiPembayaran,
         catatan: catatan,
-      );
+        userId: userId,
+      ); // ⭐ FIXED: Proper closing parenthesis
+
       await loadStatistics();
 
       _isLoading = false;
       notifyListeners();
-      return true;
+      debugPrint('✅ Payment successful, keuangan ID: $keuanganId');
+      return true; // ⭐ FIXED: Add missing return statement
     } catch (e) {
       _error = e.toString();
       _isLoading = false;

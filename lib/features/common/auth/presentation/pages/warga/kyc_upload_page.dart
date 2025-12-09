@@ -36,7 +36,11 @@ class _KYCUploadPageState extends State<KYCUploadPage> {
   File? _ktpFile;
   File? _kkFile;
   File? _akteFile;
-  KTPModel? _ktpData; // Store OCR result
+  KTPModel? _ktpData; // Store OCR result from KTP
+
+  // 🆕 Store RT/RW from KTP alamat
+  String? _rtFromKTP;
+  String? _rwFromKTP;
 
   bool _isUploading = false;
   bool _isProcessingOCR = false;
@@ -118,6 +122,95 @@ class _KYCUploadPageState extends State<KYCUploadPage> {
             _ktpFile = file;
             _ktpData = result; // Use the updated data from confirmation page
           });
+
+          // 🆕 Extract RT/RW from KTP alamat
+          if (result.alamat != null && result.alamat!.isNotEmpty) {
+            debugPrint('\n🔍 ========== [KTP] EXTRACTING RT/RW ==========');
+            debugPrint('📝 Original alamat: "${result.alamat}"');
+
+            final alamat = result.alamat!;
+            final alamatUpper = alamat.toUpperCase();
+
+            debugPrint('📝 Uppercase alamat: "$alamatUpper"');
+
+            // Try multiple RT/RW patterns - from most specific to least specific
+            final patterns = [
+              // Pattern 1: "RT 001 / RW 002" or "RT 001/RW 002"
+              RegExp(r'RT\s*[:\.]?\s*(\d{1,3})\s*/?\s*RW\s*[:\.]?\s*(\d{1,3})', caseSensitive: false),
+
+              // Pattern 2: "RT: 001 RW: 002" (with colon)
+              RegExp(r'RT\s*:\s*(\d{1,3}).*?RW\s*:\s*(\d{1,3})', caseSensitive: false),
+
+              // Pattern 3: "RT. 001 RW. 002" (with dot)
+              RegExp(r'RT\.\s*(\d{1,3}).*?RW\.\s*(\d{1,3})', caseSensitive: false),
+
+              // Pattern 4: "RT001/RW002" (no space)
+              RegExp(r'RT(\d{1,3})/RW(\d{1,3})', caseSensitive: false),
+
+              // Pattern 5: Just numbers "001/002" or "001 / 002"
+              RegExp(r'\b(\d{3})\s*/\s*(\d{3})\b'),
+
+              // Pattern 6: "001-002" (with dash)
+              RegExp(r'\b(\d{3})-(\d{3})\b'),
+            ];
+
+            bool found = false;
+            for (int i = 0; i < patterns.length; i++) {
+              final pattern = patterns[i];
+              final match = pattern.firstMatch(alamatUpper);
+
+              if (match != null) {
+                debugPrint('✅ Pattern ${i + 1} MATCHED!');
+                debugPrint('   Pattern: ${pattern.pattern}');
+                debugPrint('   Match: "${match.group(0)}"');
+
+                if (match.groupCount >= 2) {
+                  final rt = match.group(1);
+                  final rw = match.group(2);
+
+                  if (rt != null && rw != null) {
+                    _rtFromKTP = rt.padLeft(3, '0');
+                    _rwFromKTP = rw.padLeft(3, '0');
+                    debugPrint('   ✅ Extracted: RT=$_rtFromKTP, RW=$_rwFromKTP');
+                    found = true;
+                    break;
+                  }
+                }
+              } else {
+                debugPrint('❌ Pattern ${i + 1} NOT matched');
+              }
+            }
+
+            if (!found) {
+              debugPrint('⚠️ ========== NO RT/RW PATTERN MATCHED! ==========');
+              debugPrint('   This might be because:');
+              debugPrint('   1. Alamat format is different from expected patterns');
+              debugPrint('   2. RT/RW not included in KTP alamat field');
+              debugPrint('   3. OCR misread the text');
+              debugPrint('   💡 User will need to input RT/RW manually');
+              debugPrint('================================================');
+            }
+          } else {
+            debugPrint('⚠️ [KTP] Alamat is NULL or EMPTY - cannot extract RT/RW');
+          }
+
+          // Show notification about extracted RT/RW from KTP
+          if (_rtFromKTP != null && _rwFromKTP != null) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('✅ RT/RW dari KTP berhasil dibaca:\nRT: $_rtFromKTP, RW: $_rwFromKTP'),
+                  backgroundColor: Colors.green,
+                  duration: const Duration(seconds: 3),
+                ),
+              );
+            }
+            debugPrint('✅ [KTP] RT/RW extraction SUCCESS!');
+          } else {
+            debugPrint('⚠️ [KTP] RT/RW extraction FAILED - will be manual input');
+          }
+
+          debugPrint('🏁 ========== EXTRACTION COMPLETE ==========\n');
         }
       }
     } catch (e) {
@@ -135,11 +228,21 @@ class _KYCUploadPageState extends State<KYCUploadPage> {
     }
   }
 
-  /// Upload KK
+  /// Upload KK - Just save file (data already from KTP OCR)
   Future<void> _uploadKK() async {
     final file = await _pickImage();
     if (file != null) {
       setState(() => _kkFile = file);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ KK berhasil diupload'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
     }
   }
 
@@ -211,15 +314,48 @@ class _KYCUploadPageState extends State<KYCUploadPage> {
 
       if (!mounted) return;
 
-      // Show success and navigate to dashboard
+      // 🆕 Prepare KYC data to pass to next page (RT/RW from KTP alamat!)
+      final kycData = {
+        'userId': userId,
+        'namaLengkap': _ktpData?.nama ?? '',
+        'nik': _ktpData?.nik ?? '',
+        'tempatLahir': _ktpData?.tempatLahir ?? '',
+        'tanggalLahir': _ktpData?.tanggalLahir ?? '',
+        'jenisKelamin': _ktpData?.jenisKelamin ?? '',
+        'agama': _ktpData?.agama ?? '',
+        'statusPerkawinan': _ktpData?.statusPerkawinan ?? '',
+        'pekerjaan': _ktpData?.pekerjaan ?? '',
+        'alamat': _ktpData?.alamat ?? '',
+        // RT/RW from KTP alamat OCR!
+        'nomorKK': '', // Manual input by user
+        'rt': _rtFromKTP ?? '', // From KTP alamat
+        'rw': _rwFromKTP ?? '', // From KTP alamat
+      };
+
+      // 🔍 DEBUG: Log OCR data being passed
+      debugPrint('\n📤 ========== [KYC Upload] PASSING DATA ==========');
+      debugPrint('   userId: "${kycData['userId']}"');
+      debugPrint('   namaLengkap: "${kycData['namaLengkap']}"');
+      debugPrint('   nik: "${kycData['nik']}"');
+      debugPrint('   alamat: "${kycData['alamat']}"');
+      debugPrint('   📦 DATA FOR DATA KELUARGA:');
+      debugPrint('   nomorKK: "${kycData['nomorKK']}" ← Manual input');
+      debugPrint('   rt: "${kycData['rt']}" ${kycData['rt'] == '' ? '❌ EMPTY (Manual input needed)' : '✅ (From KTP alamat)'}');
+      debugPrint('   rw: "${kycData['rw']}" ${kycData['rw'] == '' ? '❌ EMPTY (Manual input needed)' : '✅ (From KTP alamat)'}');
+      debugPrint('   📊 EXTRACTION STATE:');
+      debugPrint('   _rtFromKTP: ${_rtFromKTP ?? 'NULL'}');
+      debugPrint('   _rwFromKTP: ${_rwFromKTP ?? 'NULL'}');
+      debugPrint('================================================\n');
+
+      // 🆕 Navigate to Alamat Rumah page (NEW FLOW!)
       AuthDialogs.showSuccess(
         context,
         'Upload Berhasil',
-        'Dokumen Anda berhasil diupload. Admin akan memverifikasi dokumen Anda dalam 1-3 hari kerja.',
-        buttonText: 'Ke Dashboard',
+        'Dokumen Anda berhasil diupload. Selanjutnya, lengkapi data alamat rumah dan keluarga.',
+        buttonText: 'Lanjutkan',
         onPressed: () {
           context.pop(); // Close dialog
-          context.go(AppRoutes.wargaDashboard);
+          context.push(AppRoutes.wargaAlamatRumah, extra: kycData);
         },
       );
     } catch (e) {

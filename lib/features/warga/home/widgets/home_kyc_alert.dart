@@ -94,7 +94,7 @@ class HomeKycAlert extends StatelessWidget {
                 Text(
                   isKycPending
                       ? 'KYC Anda sedang diverifikasi oleh admin'
-                      : 'Upload KTP & KK untuk akses fitur lengkap',
+                      : 'Upload KTP untuk akses fitur lengkap',
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     fontWeight: FontWeight.w400,

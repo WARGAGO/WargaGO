@@ -393,15 +393,57 @@ class KYCService {
         'rejectionReason': null,
       });
 
-      // Update user status to 'approved'
-      await _firestore.collection('users').doc(kycDoc.userId).update({
-        'status': 'approved',
-        'updatedAt': Timestamp.now(),
-      });
-
       if (kDebugMode) {
         print('✅ Document approved: $documentId');
-        print('✅ User status updated to approved: ${kycDoc.userId}');
+      }
+
+      // Check if required KYC documents are now approved
+      // ⭐ UPDATED: Only KTP is required, KK is optional
+      final userDocs = await _kycCollection
+          .where('userId', isEqualTo: kycDoc.userId)
+          .get();
+
+      bool hasApprovedKTP = false;
+      bool hasApprovedKK = false;
+
+      for (var doc in userDocs.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        final docType = data['documentType'] as String?;
+        final status = data['status'] as String?;
+
+        if (docType == 'ktp' && status == 'approved') {
+          hasApprovedKTP = true;
+        } else if (docType == 'kk' && status == 'approved') {
+          hasApprovedKK = true;
+        }
+      }
+
+      // ⭐ UPDATED: Update user status to 'approved' if KTP is approved (KK is optional)
+      if (hasApprovedKTP) {
+        await _firestore.collection('users').doc(kycDoc.userId).update({
+          'status': 'approved',
+          'updatedAt': Timestamp.now(),
+        });
+
+        if (kDebugMode) {
+          print('✅ KTP approved - User status updated to approved: ${kycDoc.userId}');
+          if (hasApprovedKK) {
+            print('   (KK also approved)');
+          } else {
+            print('   (KK optional - not required)');
+          }
+        }
+      } else {
+        // Keep status as 'pending' if KTP is not approved yet
+        await _firestore.collection('users').doc(kycDoc.userId).update({
+          'status': 'pending',
+          'updatedAt': Timestamp.now(),
+        });
+
+        if (kDebugMode) {
+          print('⏳ KTP not approved yet - User status remains pending: ${kycDoc.userId}');
+          print('   KTP approved: $hasApprovedKTP (required), KK approved: $hasApprovedKK (optional)');
+        }
       }
     } catch (e) {
       if (kDebugMode) {

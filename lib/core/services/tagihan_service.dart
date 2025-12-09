@@ -186,21 +186,76 @@ class TagihanService {
   }
 
   // UPDATE - Tandai tagihan sebagai lunas
-  Future<void> markAsLunas(
+  // ⚠️ IMPROVED: Now uses atomic transaction to update tagihan + insert keuangan
+  Future<String> markAsLunas(
     String id, {
     required String metodePembayaran,
     String? buktiPembayaran,
     String? catatan,
+    String? userId,
   }) async {
     try {
-      await updateTagihan(id, {
+      debugPrint('🔵 [TagihanService] markAsLunas - START');
+
+      // 1. Get tagihan data first
+      final tagihanDoc = await _firestore.collection(_collection).doc(id).get();
+      if (!tagihanDoc.exists) {
+        throw Exception('Tagihan tidak ditemukan');
+      }
+
+      final tagihanData = tagihanDoc.data()!;
+      final nominal = (tagihanData['nominal'] as num?)?.toDouble() ?? 0.0;
+      final jenisIuranName = tagihanData['jenisIuranName'] ?? '';
+      final keluargaName = tagihanData['keluargaName'] ?? '';
+      final periode = tagihanData['periode'] ?? '';
+      final jenisIuranId = tagihanData['jenisIuranId'] ?? '';
+      final keluargaId = tagihanData['keluargaId'] ?? '';
+
+      // 2. Prepare atomic transaction
+      final now = DateTime.now();
+      final keuanganDocRef = _firestore.collection('keuangan').doc();
+      final batch = _firestore.batch();
+
+      // 2a. Update tagihan
+      batch.update(_firestore.collection(_collection).doc(id), {
         'status': 'Lunas',
-        'tanggalBayar': FieldValue.serverTimestamp(),
+        'tanggalBayar': Timestamp.fromDate(now),
         'metodePembayaran': metodePembayaran,
         if (buktiPembayaran != null) 'buktiPembayaran': buktiPembayaran,
         if (catatan != null) 'catatan': catatan,
+        'updatedAt': FieldValue.serverTimestamp(),
       });
+
+      // 2b. Insert to keuangan as pemasukan
+      batch.set(keuanganDocRef, {
+        'type': 'pemasukan',
+        'amount': nominal,
+        'kategori': jenisIuranName,
+        'category': jenisIuranName,
+        'deskripsi': 'Pembayaran $jenisIuranName - $keluargaName - $periode',
+        'description': 'Pembayaran $jenisIuranName - $keluargaName - $periode',
+        'tanggal': Timestamp.fromDate(now),
+        'bukti': buktiPembayaran,
+        'proof': buktiPembayaran,
+        'createdBy': userId ?? 'system',
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+        'isActive': true,
+        // Metadata for tracking
+        'sourceType': 'iuran',
+        'sourceId': id,
+        'keluargaId': keluargaId,
+        'keluargaName': keluargaName,
+        'jenisIuranId': jenisIuranId,
+        'metodePembayaran': metodePembayaran,
+      });
+
+      // 3. Commit atomic batch
+      await batch.commit();
+
       debugPrint('✅ Tagihan marked as Lunas: $id');
+      debugPrint('✅ Keuangan created: ${keuanganDocRef.id}');
+      return keuanganDocRef.id;
     } catch (e) {
       debugPrint('❌ Error marking tagihan as Lunas: $e');
       rethrow;

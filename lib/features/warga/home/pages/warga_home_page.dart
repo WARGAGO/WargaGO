@@ -9,8 +9,11 @@ import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/providers/auth_provider.dart';
 import '../../../../core/constants/app_routes.dart';
+import '../../../../core/services/kyc_service.dart';
+import '../../../../core/enums/kyc_enum.dart';
 import '../widgets/home_app_bar.dart';
 import '../widgets/home_kyc_alert.dart';
 import '../widgets/home_info_cards.dart';
@@ -20,8 +23,15 @@ import '../widgets/home_news_carousel.dart';
 import '../widgets/home_upcoming_events.dart';
 import '../widgets/home_emergency_contacts.dart';
 
-class WargaHomePage extends StatelessWidget {
+class WargaHomePage extends StatefulWidget {
   const WargaHomePage({super.key});
+
+  @override
+  State<WargaHomePage> createState() => _WargaHomePageState();
+}
+
+class _WargaHomePageState extends State<WargaHomePage> {
+  final KYCService _kycService = KYCService();
 
   @override
   Widget build(BuildContext context) {
@@ -30,105 +40,236 @@ class WargaHomePage extends StatelessWidget {
         final user = authProvider.userModel;
         final userName = user?.nama ?? 'Warga';
         final userStatus = user?.status ?? 'unverified';
+        final userId = user?.id;
 
         if (kDebugMode) {
           print('🏠 WargaHomePage rebuild');
           print('   User: $userName');
           print('   Status: $userStatus');
+          print('   User ID: $userId');
         }
 
-        // Determine alert status
-        // Status bisa: 'approved', 'unverified', 'pending', 'rejected'
-        // - approved: KYC sudah di-approve admin, full access
-        // - unverified: Belum upload KYC ATAU belum di-approve admin
-        // - pending: Sudah upload KYC, menunggu approval admin
-        // - rejected: Ditolak admin (tidak bisa login sampai sini)
-
-        final bool isApproved = userStatus == 'approved';
-        final bool isPending = userStatus == 'pending';
-
-        if (kDebugMode) {
-          print('   isApproved: $isApproved');
-          print('   isPending: $isPending');
-          print('   Show KYC Alert: ${!isApproved}');
+        // If no user ID, show basic UI
+        if (userId == null) {
+          return _buildBasicScaffold(userName, authProvider);
         }
 
-        return Scaffold(
-          backgroundColor: const Color(0xFFF8F9FD),
-          body: SafeArea(
-            child: Column(
-              children: [
-                // 1. App Bar (Header)
-                HomeAppBar(
-                  notificationCount: 3,
-                  userName: userName,
-                ),
+        // Stream KYC documents to check actual upload status
+        return StreamBuilder<QuerySnapshot>(
+          stream: _kycService.getUserKYCDocuments(userId),
+          builder: (context, snapshot) {
+            // Determine KYC status from actual documents
+            bool hasKTPDocument = false;
+            bool hasKKDocument = false;
+            KYCStatus? ktpStatus;
+            KYCStatus? kkStatus;
 
-                // 2. Scrollable Content (termasuk KYC Alert di dalamnya)
-                Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: () async {
-                      // Refresh user data from Firestore
-                      await authProvider.refreshUserData();
-                    },
-                    color: const Color(0xFF2F80ED),
-                    child: SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // KYC Alert - Sekarang di dalam scroll (ikut scroll)
-                          if (!isApproved)
-                            HomeKycAlert(
-                              isKycComplete: isApproved,
-                              isKycPending: isPending,
-                              onUploadTap: () {
-                                context.push(AppRoutes.wargaKYC);
-                              },
-                            ),
+            if (kDebugMode) {
+              print('🔍 ========== KYC STATUS CHECK ==========');
+              print('📦 Snapshot hasData: ${snapshot.hasData}');
+              print('📦 Document count: ${snapshot.data?.docs.length ?? 0}');
+            }
 
-                          if (!isApproved) const SizedBox(height: 16),
+            if (snapshot.hasData && snapshot.data != null) {
+              for (var doc in snapshot.data!.docs) {
+                final data = doc.data() as Map<String, dynamic>;
+                final docTypeStr = data['documentType'] as String?;
+                final statusStr = data['status'] as String?;
 
-                          // News Carousel - Berita & Pengumuman
-                          const HomeNewsCarousel(),
-                          const SizedBox(height: 24),
+                if (kDebugMode) {
+                  print('📄 Document ID: ${doc.id}');
+                  print('   Type: $docTypeStr');
+                  print('   Status: $statusStr');
+                  print('   Raw data: $data');
+                }
+
+                if (docTypeStr == 'ktp') {
+                  hasKTPDocument = true;
+                  // Case-insensitive status parsing
+                  ktpStatus = KYCStatus.values.firstWhere(
+                    (e) => e.toString().split('.').last.toLowerCase() == statusStr?.toLowerCase(),
+                    orElse: () => KYCStatus.pending,
+                  );
+                  if (kDebugMode) {
+                    print('   ✅ KTP detected - Parsed status: $ktpStatus');
+                  }
+                } else if (docTypeStr == 'kk') {
+                  hasKKDocument = true;
+                  // Case-insensitive status parsing
+                  kkStatus = KYCStatus.values.firstWhere(
+                    (e) => e.toString().split('.').last.toLowerCase() == statusStr?.toLowerCase(),
+                    orElse: () => KYCStatus.pending,
+                  );
+                  if (kDebugMode) {
+                    print('   ✅ KK detected - Parsed status: $kkStatus');
+                  }
+                }
+              }
+            }
+
+            // Determine overall KYC completion status
+            // Complete: KTP is approved (KK is OPTIONAL)
+            // Pending: KTP uploaded but not approved yet
+            // Incomplete: No KTP uploaded
+
+            // ⭐ UPDATED: KK is optional, only KTP is required
+            bool isKycComplete = hasKTPDocument && ktpStatus == KYCStatus.approved;
+
+            // ⭐ UPDATED: Pending if KTP exists but not approved yet
+            bool isKycPending = hasKTPDocument &&
+                               !isKycComplete &&
+                               ktpStatus != KYCStatus.rejected;
+
+            if (kDebugMode) {
+              print('🎯 ========== FINAL STATUS ==========');
+              print('   👤 User Status: $userStatus');
+              print('   📄 Has KTP: $hasKTPDocument (Status: $ktpStatus) - REQUIRED');
+              print('   📄 Has KK: $hasKKDocument (Status: $kkStatus) - OPTIONAL');
+              print('   🔍 KTP == approved? ${ktpStatus == KYCStatus.approved}');
+              print('   ✅ isKycComplete: $isKycComplete (KTP approved = complete)');
+              print('   ⏳ isKycPending: $isKycPending');
+              print('   🎯 Show KYC Alert: ${!isKycComplete}');
+              if (!isKycComplete && hasKTPDocument) {
+                print('   ⚠️ ALERT AKAN MUNCUL KARENA:');
+                if (!hasKTPDocument) {
+                  print('      - KTP belum ada (WAJIB)');
+                } else if (ktpStatus != KYCStatus.approved) {
+                  print('      - KTP status: $ktpStatus (harus approved)');
+                }
+              } else if (!isKycComplete && !hasKTPDocument) {
+                print('   ⚠️ ALERT AKAN MUNCUL KARENA:');
+                print('      - KTP belum di-upload (WAJIB)');
+              }
+              print('========================================');
+            }
+
+            return Scaffold(
+              backgroundColor: const Color(0xFFF8F9FD),
+              body: SafeArea(
+                child: Column(
+                  children: [
+                    // 1. App Bar (Header)
+                    HomeAppBar(
+                      notificationCount: 3,
+                      userName: userName,
+                    ),
+
+                    // 2. Scrollable Content (termasuk KYC Alert di dalamnya)
+                    Expanded(
+                      child: RefreshIndicator(
+                        onRefresh: () async {
+                          // Refresh user data from Firestore
+                          await authProvider.refreshUserData();
+                        },
+                        color: const Color(0xFF2F80ED),
+                        child: SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // KYC Alert - Sekarang di dalam scroll (ikut scroll)
+                              if (!isKycComplete)
+                                HomeKycAlert(
+                                  isKycComplete: isKycComplete,
+                                  isKycPending: isKycPending,
+                                  onUploadTap: () {
+                                    context.push(AppRoutes.wargaKYC);
+                                  },
+                                ),
+
+                              if (!isKycComplete) const SizedBox(height: 16),
+
+                              // News Carousel - Berita & Pengumuman
+                              const HomeNewsCarousel(),
+                              const SizedBox(height: 24),
 
 
-                          // Info Cards
-                          const HomeInfoCards(),
-                          const SizedBox(height: 28),
+                              // Info Cards
+                              const HomeInfoCards(),
+                              const SizedBox(height: 28),
 
 
-                          // Quick Access Section
-                          _buildSectionTitle('Akses Cepat'),
-                          const SizedBox(height: 16),
-                          const HomeQuickAccessGrid(),
-                          const SizedBox(height: 28),
+                              // Quick Access Section
+                              _buildSectionTitle('Akses Cepat'),
+                              const SizedBox(height: 16),
+                              const HomeQuickAccessGrid(),
+                              const SizedBox(height: 28),
 
-                          // Upcoming Events - Kegiatan Mendatang
-                          const HomeUpcomingEvents(),
-                          const SizedBox(height: 24),
+                              // Upcoming Events - Kegiatan Mendatang
+                              const HomeUpcomingEvents(),
+                              const SizedBox(height: 24),
 
-                          // Emergency Contacts - Kontak Darurat
-                          const HomeEmergencyContacts(),
-                          const SizedBox(height: 24),
+                              // Emergency Contacts - Kontak Darurat
+                              const HomeEmergencyContacts(),
+                              const SizedBox(height: 24),
 
-                          // Feature List Section
-                          _buildSectionTitle('Fitur Lainnya'),
-                          const SizedBox(height: 16),
-                          const HomeFeatureList(),
-                          const SizedBox(height: 20),
-                        ],
+                              // Feature List Section
+                              _buildSectionTitle('Fitur Lainnya'),
+                              const SizedBox(height: 16),
+                              const HomeFeatureList(),
+                              const SizedBox(height: 20),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
+    );
+  }
+
+  Scaffold _buildBasicScaffold(String userName, AuthProvider authProvider) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F9FD),
+      body: SafeArea(
+        child: Column(
+          children: [
+            HomeAppBar(
+              notificationCount: 3,
+              userName: userName,
+            ),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  await authProvider.refreshUserData();
+                },
+                color: const Color(0xFF2F80ED),
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const HomeNewsCarousel(),
+                      const SizedBox(height: 24),
+                      const HomeInfoCards(),
+                      const SizedBox(height: 28),
+                      _buildSectionTitle('Akses Cepat'),
+                      const SizedBox(height: 16),
+                      const HomeQuickAccessGrid(),
+                      const SizedBox(height: 28),
+                      const HomeUpcomingEvents(),
+                      const SizedBox(height: 24),
+                      const HomeEmergencyContacts(),
+                      const SizedBox(height: 24),
+                      _buildSectionTitle('Fitur Lainnya'),
+                      const SizedBox(height: 16),
+                      const HomeFeatureList(),
+                      const SizedBox(height: 20),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

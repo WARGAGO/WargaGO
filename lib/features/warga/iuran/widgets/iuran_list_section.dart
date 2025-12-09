@@ -1,14 +1,22 @@
 // ============================================================================
 // IURAN LIST SECTION WIDGET
 // ============================================================================
-// Widget section daftar iuran dengan tabs (Semua, Lunas, Belum Lunas)
+// Widget section daftar iuran dengan tabs (Aktif, Terlambat, Lunas)
+// ✅ UPDATED: Now using real data from IuranWargaProvider
 // ============================================================================
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/providers/iuran_warga_provider.dart';
+import '../../../../core/models/tagihan_model.dart';
 import 'iuran_list_item.dart';
 
 class IuranListSection extends StatefulWidget {
-  const IuranListSection({super.key});
+  final IuranWargaProvider provider;
+  
+  const IuranListSection({
+    super.key,
+    required this.provider,
+  });
 
   @override
   State<IuranListSection> createState() => _IuranListSectionState();
@@ -21,7 +29,7 @@ class _IuranListSectionState extends State<IuranListSection>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this, initialIndex: 2);
+    _tabController = TabController(length: 3, vsync: this, initialIndex: 0);
   }
 
   @override
@@ -35,7 +43,7 @@ class _IuranListSectionState extends State<IuranListSection>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header dengan filter button
+        // Header
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
           child: Row(
@@ -48,24 +56,6 @@ class _IuranListSectionState extends State<IuranListSection>
                   fontWeight: FontWeight.w700,
                   color: const Color(0xFF1F2937),
                   letterSpacing: -0.3,
-                ),
-              ),
-              InkWell(
-                onTap: () {
-                  // TODO: Implement filter
-                },
-                borderRadius: BorderRadius.circular(10),
-                child: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF2F80ED),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(
-                    Icons.tune_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
                 ),
               ),
             ],
@@ -107,10 +97,10 @@ class _IuranListSectionState extends State<IuranListSection>
               fontWeight: FontWeight.w500,
             ),
             padding: const EdgeInsets.all(4),
-            tabs: const [
-              Tab(text: 'Semua'),
-              Tab(text: 'Lunas'),
-              Tab(text: 'Belum Lunas'),
+            tabs: [
+              Tab(text: 'Aktif (${widget.provider.tagihanAktif.length})'),
+              Tab(text: 'Terlambat (${widget.provider.tagihanTerlambat.length})'),
+              Tab(text: 'Lunas (${widget.provider.historyPembayaran.length})'),
             ],
           ),
         ),
@@ -123,9 +113,9 @@ class _IuranListSectionState extends State<IuranListSection>
           child: TabBarView(
             controller: _tabController,
             children: [
-              _buildIuranList('semua'),
-              _buildIuranList('lunas'),
-              _buildIuranList('belum_lunas'),
+              _buildIuranList(widget.provider.tagihanAktif, 'aktif'),
+              _buildIuranList(widget.provider.tagihanTerlambat, 'terlambat'),
+              _buildIuranList(widget.provider.historyPembayaran, 'lunas'),
             ],
           ),
         ),
@@ -133,49 +123,26 @@ class _IuranListSectionState extends State<IuranListSection>
     );
   }
 
-  Widget _buildIuranList(String filter) {
-    // Dummy data
-    final List<Map<String, dynamic>> dummyIuran = [
-      {
-        'nama': 'Iuran Keamanan',
-        'tanggal': '6 Nov 2025',
-        'status': 'belum_lunas',
-      },
-      {
-        'nama': 'Iuran Kebersihan',
-        'tanggal': '10 Nov 2025',
-        'status': 'belum_lunas',
-      },
-      {
-        'nama': 'Iuran Listrik',
-        'tanggal': '15 Nov 2025',
-        'status': 'belum_lunas',
-      },
-    ];
-
-    // Filter berdasarkan tab
-    List<Map<String, dynamic>> filteredIuran;
-    if (filter == 'lunas') {
-      filteredIuran = dummyIuran.where((i) => i['status'] == 'lunas').toList();
-    } else if (filter == 'belum_lunas') {
-      filteredIuran = dummyIuran.where((i) => i['status'] != 'lunas').toList();
-    } else {
-      filteredIuran = dummyIuran;
-    }
-
-    if (filteredIuran.isEmpty) {
+  Widget _buildIuranList(List<TagihanModel> tagihanList, String type) {
+    if (tagihanList.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.inbox_rounded,
+              type == 'lunas' 
+                  ? Icons.check_circle_outline
+                  : Icons.inbox_rounded,
               size: 60,
               color: const Color(0xFF9CA3AF).withValues(alpha: 0.5),
             ),
             const SizedBox(height: 12),
             Text(
-              'Tidak ada data',
+              type == 'lunas' 
+                  ? 'Belum ada pembayaran'
+                  : type == 'aktif'
+                      ? 'Tidak ada tagihan aktif'
+                      : 'Tidak ada tagihan terlambat',
               style: GoogleFonts.poppins(
                 fontSize: 14,
                 color: const Color(0xFF9CA3AF),
@@ -188,13 +155,11 @@ class _IuranListSectionState extends State<IuranListSection>
 
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      itemCount: filteredIuran.length,
+      itemCount: tagihanList.length,
       itemBuilder: (context, index) {
-        final iuran = filteredIuran[index];
+        final tagihan = tagihanList[index];
         return IuranListItem(
-          nama: iuran['nama'],
-          tanggal: iuran['tanggal'],
-          status: iuran['status'],
+          tagihan: tagihan,
         );
       },
     );
