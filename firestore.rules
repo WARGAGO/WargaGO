@@ -27,6 +27,25 @@ service cloud.firestore {
              get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
+    // Helper function - check if user is bendahara
+    function isBendahara() {
+      return isSignedIn() &&
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'bendahara';
+    }
+
+    // Helper function - check if user is sekretaris
+    function isSekretaris() {
+      return isSignedIn() &&
+             exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'sekretaris';
+    }
+
+    // Helper function - check if user is staff (admin, bendahara, or sekretaris)
+    function isStaff() {
+      return isAdmin() || isBendahara() || isSekretaris();
+    }
+
     // Helper function - check if data is valid
     function hasValidData() {
       return request.resource.data != null;
@@ -36,8 +55,12 @@ service cloud.firestore {
     // USERS COLLECTION - Firebase Auth Users
     // ========================================================================
     match /users/{userId} {
-      // Read: User bisa read data sendiri, admin bisa read semua
-      allow read: if isOwner(userId) || isAdmin();
+      // Read individual document: User bisa read data sendiri, staff bisa read semua
+      allow get: if isOwner(userId) || isStaff();
+
+      // List/Query: Allow authenticated users to query by email (for login fallback)
+      // This is needed for legacy admin accounts where document ID != Firebase UID
+      allow list: if isSignedIn();
 
       // Create: Hanya user yang baru register (auth.uid sama dengan userId)
       // Tidak perlu password field karena sudah di-handle Firebase Auth
@@ -48,11 +71,11 @@ service cloud.firestore {
                        'nama' in request.resource.data &&
                        'role' in request.resource.data;
 
-      // Update: User bisa update data sendiri (kecuali role), admin bisa update semua
+      // Update: User bisa update data sendiri (kecuali role), staff bisa update semua
       allow update: if (isOwner(userId) &&
                         (!('role' in request.resource.data) ||
                          request.resource.data.role == resource.data.role)) ||
-                       isAdmin();
+                       isStaff();
 
       // Delete: Hanya admin yang bisa delete user
       allow delete: if isAdmin();

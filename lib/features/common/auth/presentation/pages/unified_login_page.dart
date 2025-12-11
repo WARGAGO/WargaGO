@@ -233,6 +233,8 @@ class _LoginFieldsState extends State<_LoginFields> {
 
     // Auto-detect role berdasarkan email domain
     final isAdminEmail = email.endsWith('@jawara.com');
+    final isBendaharaEmail = email.endsWith('@bendahara.jawara.com');
+    final isSekretarisEmail = email.endsWith('@sekretaris.jawara.com');
 
     final success = await authProvider.signIn(
       email: email,
@@ -256,11 +258,32 @@ class _LoginFieldsState extends State<_LoginFields> {
         return;
       }
 
-      if (!isAdminEmail && user?.role == 'admin') {
+      if (isBendaharaEmail && user?.role != 'bendahara') {
         AuthDialogs.showError(
           context,
           'Login Ditolak',
-          'Akun admin harus menggunakan email @jawara.com',
+          'Email @bendahara.jawara.com hanya untuk bendahara.',
+        );
+        await authProvider.signOut();
+        return;
+      }
+
+      if (isSekretarisEmail && user?.role != 'sekretaris') {
+        AuthDialogs.showError(
+          context,
+          'Login Ditolak',
+          'Email @sekretaris.jawara.com hanya untuk sekretaris.',
+        );
+        await authProvider.signOut();
+        return;
+      }
+
+      if (!isAdminEmail && !isBendaharaEmail && !isSekretarisEmail &&
+          (user?.role == 'admin' || user?.role == 'bendahara' || user?.role == 'sekretaris')) {
+        AuthDialogs.showError(
+          context,
+          'Login Ditolak',
+          'Akun ${user?.role} harus menggunakan email khusus',
         );
         await authProvider.signOut();
         return;
@@ -270,6 +293,12 @@ class _LoginFieldsState extends State<_LoginFields> {
       if (user?.role == 'admin') {
         // Admin -> Dashboard Admin
         context.go(AppRoutes.adminDashboard);
+      } else if (user?.role == 'bendahara') {
+        // Bendahara -> Dashboard Bendahara
+        context.go(AppRoutes.bendaharaDashboard);
+      } else if (user?.role == 'sekretaris') {
+        // Sekretaris -> Dashboard Sekretaris
+        context.go(AppRoutes.sekretarisDashboard);
       } else if (user?.role == 'warga') {
         // Semua warga (approved, pending, unverified) bisa masuk dashboard
         // Rejected sudah diblokir di AuthProvider
@@ -304,6 +333,8 @@ class _LoginFieldsState extends State<_LoginFields> {
 
         // Auto-detect role berdasarkan email domain
         final isAdminEmail = email.endsWith('@jawara.com');
+        final isBendaharaEmail = email.endsWith('@bendahara.jawara.com');
+        final isSekretarisEmail = email.endsWith('@sekretaris.jawara.com');
 
         // Validasi: Pastikan email domain sesuai dengan role di database
         if (isAdminEmail && user?.role != 'admin') {
@@ -316,11 +347,32 @@ class _LoginFieldsState extends State<_LoginFields> {
           return;
         }
 
-        if (!isAdminEmail && user?.role == 'admin') {
+        if (isBendaharaEmail && user?.role != 'bendahara') {
           AuthDialogs.showError(
             context,
             'Login Ditolak',
-            'Akun admin harus menggunakan email @jawara.com',
+            'Email @bendahara.jawara.com hanya untuk bendahara.',
+          );
+          await authProvider.signOut();
+          return;
+        }
+
+        if (isSekretarisEmail && user?.role != 'sekretaris') {
+          AuthDialogs.showError(
+            context,
+            'Login Ditolak',
+            'Email @sekretaris.jawara.com hanya untuk sekretaris.',
+          );
+          await authProvider.signOut();
+          return;
+        }
+
+        if (!isAdminEmail && !isBendaharaEmail && !isSekretarisEmail &&
+            (user?.role == 'admin' || user?.role == 'bendahara' || user?.role == 'sekretaris')) {
+          AuthDialogs.showError(
+            context,
+            'Login Ditolak',
+            'Akun ${user?.role} harus menggunakan email khusus',
           );
           await authProvider.signOut();
           return;
@@ -330,6 +382,12 @@ class _LoginFieldsState extends State<_LoginFields> {
         if (user?.role == 'admin') {
           // Admin -> Dashboard Admin
           context.go(AppRoutes.adminDashboard);
+        } else if (user?.role == 'bendahara') {
+          // Bendahara -> Dashboard Bendahara
+          context.go(AppRoutes.bendaharaDashboard);
+        } else if (user?.role == 'sekretaris') {
+          // Sekretaris -> Dashboard Sekretaris
+          context.go(AppRoutes.sekretarisDashboard);
         } else if (user?.role == 'warga') {
           // Semua warga (approved, pending, unverified) bisa masuk dashboard
           // Rejected sudah diblokir di AuthProvider

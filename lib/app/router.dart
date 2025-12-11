@@ -28,6 +28,8 @@ import 'package:wargago/features/warga/profile/akun_screen.dart';
 import 'package:wargago/features/warga/profile/edit_profil_screen.dart';
 import 'package:wargago/features/warga/profile/toko_saya_screen.dart';
 import 'package:wargago/features/warga/iuran/pages/iuran_warga_page.dart';
+import 'package:wargago/features/bendahara/dashboard/bendahara_dashboard_page.dart';
+import 'package:wargago/features/sekertaris/dashboard/sekretaris_dashboard_page.dart';
 
 import '../features/common/classification/classification_camera.dart';
 
@@ -72,6 +74,20 @@ class AppRouterConfig {
         path: AppRoutes.forgotPassword,
         name: 'forgotPassword',
         builder: (context, state) => const LupaPage(),
+      ),
+
+      // ========== BENDAHARA ROUTES ==========
+      GoRoute(
+        path: AppRoutes.bendaharaDashboard,
+        name: 'bendaharaDashboard',
+        builder: (context, state) => const BendaharaDashboardPage(),
+      ),
+
+      // ========== SEKRETARIS ROUTES ==========
+      GoRoute(
+        path: AppRoutes.sekretarisDashboard,
+        name: 'sekretarisDashboard',
+        builder: (context, state) => const SekretarisDashboardPage(),
       ),
 
       // ========== WARGA ROUTES ==========

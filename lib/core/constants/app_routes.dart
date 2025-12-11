@@ -15,6 +15,12 @@ class AppRoutes {
   static const String adminDashboard = '/admin/dashboard';
   static const String adminVerifyWarga = '/admin/verify-warga';
 
+  // ========== BENDAHARA ROUTES ==========
+  static const String bendaharaDashboard = '/bendahara/dashboard';
+
+  // ========== SEKRETARIS ROUTES ==========
+  static const String sekretarisDashboard = '/sekretaris/dashboard';
+
   // ========== WARGA ROUTES ==========
   static const String wargaRegister = '/warga/register';
   static const String wargaKYC = '/warga/kyc';
