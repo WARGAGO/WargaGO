@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wargago/features/sekertaris/agenda/widgets/agenda_card.dart';
+import 'package:wargago/features/sekertaris/agenda/pages/tambah_agenda_page.dart';
 
 /// Halaman Agenda untuk Sekretaris
 /// Menampilkan semua agenda/kegiatan dengan filter dan pencarian
@@ -103,8 +104,17 @@ class _SekretarisAgendaPageState extends State<SekretarisAgendaPage>
                               Icons.add,
                               color: Color(0xFF2F80ED),
                             ),
-                            onPressed: () {
-                              // TODO: Tambah agenda baru
+                            onPressed: () async {
+                              final result = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const TambahAgendaPage(),
+                                ),
+                              );
+                              if (result == true) {
+                                // Refresh data jika berhasil menambah agenda
+                                setState(() {});
+                              }
                             },
                           ),
                         ),
