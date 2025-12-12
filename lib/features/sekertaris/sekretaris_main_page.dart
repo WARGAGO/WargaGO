@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:wargago/features/sekertaris/dashboard/sekretaris_dashboard_page.dart';
 import 'package:wargago/features/sekertaris/agenda/pages/sekretaris_agenda_page.dart';
 import 'package:wargago/features/sekertaris/notulen/pages/sekretaris_notulen_page.dart';
+import 'package:wargago/features/sekertaris/profil/pages/sekretaris_profile_page.dart';
 import 'package:wargago/features/sekertaris/widgets/sekretaris_bottom_navbar.dart';
 
 /// Main Page untuk Sekretaris dengan Bottom Navigation
@@ -26,7 +27,7 @@ class _SekretarisMainPageState extends State<SekretarisMainPage> {
       const SekretarisDashboardPage(), // Index 0: Dashboard
       const SekretarisAgendaPage(), // Index 1: Agenda
       const SekretarisNotulenPage(), // Index 2: Notulen
-      _buildPlaceholderPage('Profil', Icons.person), // Index 3: Profil
+      const SekretarisProfilePage(), // Index 3: Profil
     ];
   }
 
@@ -44,44 +45,6 @@ class _SekretarisMainPageState extends State<SekretarisMainPage> {
             _currentIndex = index;
           });
         },
-      ),
-    );
-  }
-
-  // Placeholder page untuk halaman yang belum dibuat
-  Widget _buildPlaceholderPage(String title, IconData icon) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-        backgroundColor: const Color(0xFF2F80ED),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 80,
-              color: Colors.grey.shade300,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Halaman $title',
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Sedang dalam pengembangan',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade600,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
