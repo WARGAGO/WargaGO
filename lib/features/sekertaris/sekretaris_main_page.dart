@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:wargago/features/sekertaris/dashboard/sekretaris_dashboard_page.dart';
 import 'package:wargago/features/sekertaris/agenda/pages/sekretaris_agenda_page.dart';
+import 'package:wargago/features/sekertaris/notulen/pages/sekretaris_notulen_page.dart';
 import 'package:wargago/features/sekertaris/widgets/sekretaris_bottom_navbar.dart';
 
 /// Main Page untuk Sekretaris dengan Bottom Navigation
@@ -24,7 +25,7 @@ class _SekretarisMainPageState extends State<SekretarisMainPage> {
     _pages = [
       const SekretarisDashboardPage(), // Index 0: Dashboard
       const SekretarisAgendaPage(), // Index 1: Agenda
-      _buildPlaceholderPage('Notulen', Icons.description), // Index 2: Notulen
+      const SekretarisNotulenPage(), // Index 2: Notulen
       _buildPlaceholderPage('Profil', Icons.person), // Index 3: Profil
     ];
   }
