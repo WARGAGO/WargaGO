@@ -27,7 +27,8 @@ class GeminiService {
 
     // List of model names to try (from most specific to most general)
     final modelNames = [
-      'gemini-2.5-flash'
+      'gemini-2.5-flash',
+      'gemini-2.5-flash-lite'
     ];
 
     Exception? lastError;
@@ -65,10 +66,12 @@ class GeminiService {
   }
 
   /// Get recipe recommendations from PHOTO (Gemini Vision)
+  /// With automatic retry mechanism and model fallback for server overload (503)
   Future<VegetableRecipeResponse> getRecipeRecommendationsFromPhoto({
     required String imagePath,
     required String vegetableName,
     int recipeCount = 3,
+    int maxRetries = 3,
   }) async {
     final apiKey = dotenv.env['GEMINI_API_KEY'];
 
@@ -76,153 +79,337 @@ class GeminiService {
       throw Exception('Gemini API Key tidak ditemukan!');
     }
 
-    try {
-      if (kDebugMode) {
-        print('🔍 Using Gemini Vision for $vegetableName');
-        print('📷 Analyzing photo: $imagePath');
-      }
-
-      // Create vision model (supports image + text)
-      final model = GenerativeModel(
-        model: 'gemini-2.5-flash', // Supports vision
-        apiKey: apiKey,
-      );
-
-      // Read image file
-      final imageFile = File(imagePath);
-      final imageBytes = await imageFile.readAsBytes();
-
-      // Build prompt for vision analysis
-      final prompt = _buildVisionRecipePrompt(vegetableName, recipeCount);
-
-      // Create content with image + text
-      final content = [
-        Content.multi([
-          TextPart(prompt),
-          DataPart('image/jpeg', imageBytes),
-        ])
-      ];
-
-      if (kDebugMode) {
-        print('📤 Sending photo to Gemini Vision...');
-      }
-
-      final response = await model.generateContent(content);
-
-      if (kDebugMode) {
-        print('📥 Response received from Gemini Vision');
-      }
-
-      if (response.text == null || response.text!.isEmpty) {
-        throw Exception('Empty response from Gemini Vision');
-      }
-
-      if (kDebugMode) {
-        print('✅ Success with Gemini Vision!');
-      }
-
-      return VegetableRecipeResponse(
-        vegetableName: vegetableName,
-        recipes: _parseRecipeResponse(response.text!),
-        rawResponse: response.text!,
-      );
-    } catch (e) {
-      if (kDebugMode) {
-        print('❌ Gemini Vision error: $e');
-      }
-      throw Exception('Error analisis foto dengan Gemini Vision: $e');
-    }
-  }
-
-  /// Get recipe recommendations based on vegetable name (Text-only)
-  Future<VegetableRecipeResponse> getRecipeRecommendations({
-    required String vegetableName,
-    int recipeCount = 3,
-  }) async {
-    final apiKey = dotenv.env['GEMINI_API_KEY'];
-
-    if (apiKey == null || apiKey.isEmpty) {
-      throw Exception('Gemini API Key tidak ditemukan!');
-    }
-
-    // List of models to try in order
-    // Trying Gemini 2.0 first, fallback to 1.5 if not free
+    // List of models to try (fallback mechanism)
     final modelNames = [
-      'gemini-2.5-flash'
+      'gemini-2.5-flash',       // Primary model
+      'gemini-2.5-flash-lite',  // Fallback model (lighter, less overloaded)
     ];
 
     Exception? lastError;
 
-    for (final modelName in modelNames) {
-      try {
-        if (kDebugMode) {
-          print('🔍 Trying model: $modelName for $vegetableName');
+    // Try each model
+    for (int modelIndex = 0; modelIndex < modelNames.length; modelIndex++) {
+      final modelName = modelNames[modelIndex];
+
+      if (kDebugMode) {
+        if (modelIndex == 0) {
+          print('🎯 Using primary model: $modelName');
+        } else {
+          print('🔄 Fallback to alternative model: $modelName');
         }
+      }
 
-        // Create new model for each attempt
-        final model = GenerativeModel(
-          model: modelName,
-          apiKey: apiKey,
-        );
-
-        final prompt = _buildRecipePrompt(vegetableName, recipeCount);
-        final content = [Content.text(prompt)];
-
-        if (kDebugMode) {
-          print('📤 Sending request to Gemini...');
-        }
-
-        final response = await model.generateContent(content);
-
-        if (kDebugMode) {
-          print('📥 Response received from $modelName');
-        }
-
-        if (response.text == null || response.text!.isEmpty) {
-          throw Exception('Empty response from Gemini');
-        }
-
-        if (kDebugMode) {
-          print('✅ Success with model: $modelName');
-        }
-
-        // Success! Save this model for future use
-        _model = model;
-
-        return VegetableRecipeResponse(
-          vegetableName: vegetableName,
-          recipes: _parseRecipeResponse(response.text!),
-          rawResponse: response.text!,
-        );
-
-      } on GenerativeAIException catch (e) {
-        if (kDebugMode) {
-          print('❌ Model $modelName failed: ${e.message}');
-        }
-
-        // Check if it's quota exceeded error
-        if (e.message.contains('quota exceeded') || e.message.contains('Quota exceeded')) {
+      // Retry mechanism for current model
+      for (int attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
           if (kDebugMode) {
-            print('⚠️  Model $modelName has quota limit 0 (not free), trying next model...');
+            print('🔍 Model: $modelName - Attempt $attempt/$maxRetries for $vegetableName');
+            print('📷 Analyzing photo: $imagePath');
           }
-          lastError = Exception('Quota exceeded: ${e.message}');
-          continue; // Skip to next model
-        }
 
-        lastError = Exception('Gemini API Error: ${e.message}');
-        continue; // Try next model
+          // Create vision model
+          final model = GenerativeModel(
+            model: modelName,
+            apiKey: apiKey,
+          );
 
-      } catch (e) {
-        if (kDebugMode) {
-          print('❌ Model $modelName error: $e');
+          // Read image file
+          final imageFile = File(imagePath);
+          final imageBytes = await imageFile.readAsBytes();
+
+          // Build prompt
+          final prompt = _buildVisionRecipePrompt(vegetableName, recipeCount);
+
+          // Create content
+          final content = [
+            Content.multi([
+              TextPart(prompt),
+              DataPart('image/jpeg', imageBytes),
+            ])
+          ];
+
+          if (kDebugMode) {
+            print('📤 Sending photo to Gemini Vision ($modelName)...');
+          }
+
+          final response = await model.generateContent(content);
+
+          if (kDebugMode) {
+            print('📥 Response received from $modelName');
+          }
+
+          if (response.text == null || response.text!.isEmpty) {
+            throw Exception('Empty response from Gemini Vision');
+          }
+
+          if (kDebugMode) {
+            print('✅ Success with $modelName on attempt $attempt!');
+          }
+
+          return VegetableRecipeResponse(
+            vegetableName: vegetableName,
+            recipes: _parseRecipeResponse(response.text!),
+            rawResponse: response.text!,
+          );
+
+        } catch (e) {
+          lastError = e as Exception;
+
+          if (kDebugMode) {
+            print('❌ Model $modelName - Attempt $attempt failed: $e');
+          }
+
+          // Check if it's a 503 error (server overloaded)
+          final errorMessage = e.toString().toLowerCase();
+          final isServerOverloaded = errorMessage.contains('503') ||
+                                     errorMessage.contains('overloaded') ||
+                                     errorMessage.contains('unavailable');
+
+          // If server overloaded
+          if (isServerOverloaded) {
+            if (kDebugMode) {
+              print('⚠️  Server overloaded detected for model: $modelName');
+            }
+
+            // If this is the last model and last attempt, throw error
+            if (modelIndex >= modelNames.length - 1 && attempt >= maxRetries) {
+              if (kDebugMode) {
+                print('❌ All models exhausted. Giving up.');
+              }
+              break;
+            }
+
+            // If we have more attempts for this model, retry with backoff
+            if (attempt < maxRetries) {
+              final waitTime = Duration(seconds: attempt * 2);
+              if (kDebugMode) {
+                print('⏳ Waiting ${waitTime.inSeconds}s before retry with same model...');
+              }
+              await Future.delayed(waitTime);
+              continue; // Try again with same model
+            }
+
+            // If we exhausted retries for this model, try next model
+            if (modelIndex < modelNames.length - 1) {
+              if (kDebugMode) {
+                print('🔄 Switching to fallback model...');
+              }
+              break; // Break inner loop to try next model
+            }
+          } else {
+            // If it's not a 503 error, throw immediately
+            if (kDebugMode) {
+              print('❌ Non-503 error, not retrying: $e');
+            }
+            throw Exception('Error analisis foto dengan Gemini Vision: $e');
+          }
         }
-        lastError = Exception('$e');
-        continue; // Try next model
       }
     }
 
-    // All models failed
-    throw lastError ?? Exception('Semua model Gemini gagal. Silakan cek API key dan koneksi internet.');
+    // If we exhausted all models and retries
+    throw Exception(
+      'Gagal setelah mencoba semua model. Server Gemini sedang sangat sibuk. '
+      'Silakan coba lagi dalam beberapa menit. Error: $lastError'
+    );
+  }
+
+  /// Get recipe recommendations based on vegetable name (Text-only)
+  /// With automatic retry mechanism and model fallback for server overload (503)
+  Future<VegetableRecipeResponse> getRecipeRecommendations({
+    required String vegetableName,
+    int recipeCount = 3,
+    int maxRetries = 3,
+  }) async {
+    final apiKey = dotenv.env['GEMINI_API_KEY'];
+
+    if (apiKey == null || apiKey.isEmpty) {
+      throw Exception('Gemini API Key tidak ditemukan!');
+    }
+
+    // List of models to try (fallback mechanism)
+    final modelNames = [
+      'gemini-2.5-flash',       // Primary model
+      'gemini-2.5-flash-lite',  // Fallback model (lighter, less overloaded)
+    ];
+
+    Exception? lastError;
+
+    // Try each model with retry mechanism
+    for (int modelIndex = 0; modelIndex < modelNames.length; modelIndex++) {
+      final modelName = modelNames[modelIndex];
+
+      if (kDebugMode) {
+        if (modelIndex == 0) {
+          print('🎯 Using primary model: $modelName');
+        } else {
+          print('🔄 Fallback to alternative model: $modelName');
+        }
+      }
+
+      // Retry mechanism for each model
+      for (int attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          if (kDebugMode) {
+            print('🔍 Model: $modelName - Attempt $attempt/$maxRetries for $vegetableName');
+          }
+
+          // Create new model for each attempt
+          final model = GenerativeModel(
+            model: modelName,
+            apiKey: apiKey,
+          );
+
+          final prompt = _buildRecipePrompt(vegetableName, recipeCount);
+          final content = [Content.text(prompt)];
+
+          if (kDebugMode) {
+            print('📤 Sending request to Gemini ($modelName)...');
+          }
+
+          final response = await model.generateContent(content);
+
+          if (kDebugMode) {
+            print('📥 Response received from $modelName');
+          }
+
+          if (response.text == null || response.text!.isEmpty) {
+            throw Exception('Empty response from Gemini');
+          }
+
+          if (kDebugMode) {
+            print('✅ Success with model: $modelName on attempt $attempt');
+          }
+
+          // Success! Save this model for future use
+          _model = model;
+
+          return VegetableRecipeResponse(
+            vegetableName: vegetableName,
+            recipes: _parseRecipeResponse(response.text!),
+            rawResponse: response.text!,
+          );
+
+        } on GenerativeAIException catch (e) {
+          if (kDebugMode) {
+            print('❌ Model $modelName - Attempt $attempt failed: ${e.message}');
+          }
+
+          // Check if it's quota exceeded error
+          if (e.message.contains('quota exceeded') || e.message.contains('Quota exceeded')) {
+            if (kDebugMode) {
+              print('⚠️  Model $modelName has quota exceeded, trying next model...');
+            }
+            lastError = Exception('Quota exceeded: ${e.message}');
+            break; // Skip to next model (no retry for quota)
+          }
+
+          // Check if it's a 503 error (server overloaded)
+          final isServerOverloaded = e.message.contains('503') ||
+                                     e.message.toLowerCase().contains('overloaded') ||
+                                     e.message.toLowerCase().contains('unavailable');
+
+          if (isServerOverloaded) {
+            if (kDebugMode) {
+              print('⚠️  Server overloaded detected for model: $modelName');
+            }
+
+            // If this is the last model and last attempt, throw error
+            if (modelIndex >= modelNames.length - 1 && attempt >= maxRetries) {
+              if (kDebugMode) {
+                print('❌ All models exhausted. Giving up.');
+              }
+              lastError = Exception('Server overloaded: ${e.message}');
+              break;
+            }
+
+            // If we have more attempts for this model, retry with backoff
+            if (attempt < maxRetries) {
+              final waitTime = Duration(seconds: attempt * 2); // Exponential backoff
+
+              if (kDebugMode) {
+                print('⏳ Waiting ${waitTime.inSeconds}s before retry with same model...');
+              }
+
+              await Future.delayed(waitTime);
+              lastError = Exception('Server overloaded: ${e.message}');
+              continue; // Try again with same model
+            }
+
+            // If we exhausted retries for this model, try next model
+            if (modelIndex < modelNames.length - 1) {
+              if (kDebugMode) {
+                print('🔄 Switching to fallback model...');
+              }
+              lastError = Exception('Server overloaded: ${e.message}');
+              break; // Try next model
+            }
+          }
+
+          lastError = Exception('Gemini API Error: ${e.message}');
+
+          // If last attempt or not server error, try next model
+          if (attempt >= maxRetries || !isServerOverloaded) {
+            break; // Try next model
+          }
+
+        } catch (e) {
+          if (kDebugMode) {
+            print('❌ Model $modelName - Attempt $attempt error: $e');
+          }
+
+          // Check if it's a 503 error in general exception
+          final errorMessage = e.toString().toLowerCase();
+          final isServerOverloaded = errorMessage.contains('503') ||
+                                     errorMessage.contains('overloaded') ||
+                                     errorMessage.contains('unavailable');
+
+          if (isServerOverloaded) {
+            if (kDebugMode) {
+              print('⚠️  Server overloaded detected');
+            }
+
+            // If this is the last model and last attempt
+            if (modelIndex >= modelNames.length - 1 && attempt >= maxRetries) {
+              lastError = Exception('$e');
+              break;
+            }
+
+            // If we have more attempts for this model, retry
+            if (attempt < maxRetries) {
+              final waitTime = Duration(seconds: attempt * 2);
+
+              if (kDebugMode) {
+                print('⏳ Waiting ${waitTime.inSeconds}s before retry...');
+              }
+
+              await Future.delayed(waitTime);
+              lastError = Exception('$e');
+              continue; // Try again
+            }
+
+            // Try next model
+            if (modelIndex < modelNames.length - 1) {
+              if (kDebugMode) {
+                print('🔄 Switching to fallback model...');
+              }
+              lastError = Exception('$e');
+              break;
+            }
+          }
+
+          lastError = Exception('$e');
+
+          // If last attempt, try next model
+          if (attempt >= maxRetries) {
+            break;
+          }
+        }
+      }
+    }
+
+    // All models and retries failed
+    throw lastError ?? Exception('Semua model gagal. Server Gemini sedang sangat sibuk. Silakan coba lagi nanti.');
   }
 
   String _buildVisionRecipePrompt(String vegetableName, int recipeCount) {

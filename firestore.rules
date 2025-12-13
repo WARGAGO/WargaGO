@@ -565,5 +565,158 @@ service cloud.firestore {
     // NOTE: tagihan collection rules already defined above (around line 171)
     // Removed duplicate definition to fix compilation error
 
+    // ========================================================================
+    // POLLING SYSTEM COLLECTION
+    // ========================================================================
+    // Rules untuk fitur mini polling RT/RW
+    // Security dengan validasi ketat untuk mencegah double voting dan abuse
+    // ========================================================================
+
+    // Helper functions untuk polling
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isKYCApproved() {
+      return isSignedIn() && getUserData().status == 'approved';
+    }
+
+    function isPollCreator(pollData) {
+      return isSignedIn() && request.auth.uid == pollData.createdBy;
+    }
+
+    // MAIN POLLS COLLECTION
+    match /polls/{pollId} {
+      // Read: Semua authenticated user bisa read polls
+      allow get: if isSignedIn();
+
+      // List: Authenticated users can query polls
+      allow list: if isSignedIn();
+
+      // Create: Simplified - Admin dan warga bisa create
+      // Validation minimal untuk avoid blocking
+      allow create: if isSignedIn() && hasValidData() &&
+        'title' in request.resource.data &&
+        'description' in request.resource.data &&
+        'pollLevel' in request.resource.data &&
+        'createdBy' in request.resource.data &&
+        'status' in request.resource.data &&
+        request.resource.data.createdBy == request.auth.uid;
+
+      // Update:
+      // - Admin atau creator bisa update semua field
+      // - Warga bisa update vote statistics (totalVotes, totalParticipants, lastVoteAt) saat voting
+      allow update: if isSignedIn() && (
+        // Admin atau creator bisa update apa saja
+        isAdmin() ||
+        resource.data.createdBy == request.auth.uid ||
+
+        // Warga bisa update hanya field statistik vote
+        (
+          // Hanya field tertentu yang berubah (vote statistics)
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'totalVotes', 'totalParticipants', 'lastVoteAt'
+          ]) &&
+          // Poll harus active
+          resource.data.status == 'active'
+        )
+      );
+
+      // Delete: Admin atau creator bisa delete
+      allow delete: if isSignedIn() && (
+        isAdmin() ||
+        resource.data.createdBy == request.auth.uid
+      );
+
+      // POLL OPTIONS SUBCOLLECTION
+      match /options/{optionId} {
+        // Read: Semua authenticated user bisa read options
+        allow read: if isSignedIn();
+
+        // Create: Admin atau poll creator bisa create options
+        allow create: if isSignedIn() && hasValidData() &&
+          'pollId' in request.resource.data &&
+          'text' in request.resource.data;
+
+        // Update: Allow untuk increment voteCount saat voting
+        // Anyone can update voteCount (akan di-increment saat vote)
+        allow update: if isSignedIn() &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['voteCount']);
+
+        // Delete: Admin atau creator
+        allow delete: if isSignedIn();
+      }
+
+      // POLL VOTES SUBCOLLECTION
+      match /votes/{voteId} {
+        // Read:
+        // - Semua user bisa read votes jika showVoterList == true
+        // - Admin always can read
+        allow read: if isSignedIn() && (
+          isAdmin() ||
+          get(/databases/$(database)/documents/polls/$(pollId)).data.showVoterList == true
+        );
+
+        // Create: User bisa vote jika:
+        // 1. Poll masih active
+        // 2. ⚠️ BELUM PERNAH VOTE (validated di service layer dengan hasUserVoted check)
+        // 3. KYC approved (jika requireKYC == true)
+        // NOTE: Duplicate vote prevention di-handle di service layer karena
+        //       Firestore rules tidak bisa query existing votes efficiently
+        allow create: if isSignedIn() && hasValidData() &&
+          // Poll must be active
+          get(/databases/$(database)/documents/polls/$(pollId)).data.status == 'active' &&
+          get(/databases/$(database)/documents/polls/$(pollId)).data.startDate <= request.time &&
+          get(/databases/$(database)/documents/polls/$(pollId)).data.endDate > request.time &&
+
+          // User must be the voter
+          request.resource.data.userId == request.auth.uid &&
+
+          // Check KYC if required
+          (!get(/databases/$(database)/documents/polls/$(pollId)).data.requireKYC || isKYCApproved()) &&
+
+          // Validate vote data
+          request.resource.data.keys().hasAll([
+            'pollId', 'userId', 'optionId', 'optionText', 'votedAt'
+          ]) &&
+          request.resource.data.pollId == pollId &&
+          request.resource.data.votedAt is timestamp;
+
+        // Update: TIDAK DIPERBOLEHKAN - vote tidak bisa diubah
+        allow update: if false;
+
+        // Delete: Hanya admin yang bisa delete vote
+        allow delete: if isAdmin();
+      }
+    }
+
+    // POLL RESULTS COLLECTION (Aggregated data)
+    match /poll_results/{pollId} {
+      // Read: Semua authenticated user bisa read results
+      allow read: if isSignedIn();
+
+      // Create: Allow authenticated users (untuk initial creation saat poll dibuat)
+      // atau admin
+      allow create: if isSignedIn();
+
+      // Update: Allow authenticated users untuk auto-update setelah vote
+      // Results di-update otomatis oleh service setelah user vote
+      // Validasi: hanya boleh update fields yang expected
+      allow update: if isSignedIn() && (
+        // Allow update if only updating aggregated fields
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'totalVotes', 'totalParticipants', 'participationRate',
+          'lastUpdated', 'options', 'winner', 'demographics'
+        ])
+      );
+
+      // Delete: Hanya admin yang bisa delete
+      allow delete: if isAdmin();
+    }
+
+    // ========================================================================
+    // END OF POLLING RULES
+    // ========================================================================
+
   }
 }

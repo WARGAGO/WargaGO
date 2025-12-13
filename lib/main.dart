@@ -23,6 +23,7 @@ import 'core/providers/laporan_keuangan_detail_provider.dart';
 import 'core/providers/marketplace_provider.dart';
 import 'core/providers/cart_provider.dart';
 import 'core/providers/order_provider.dart';
+import 'core/providers/poll_provider.dart'; // 🗳️ Poll Provider
 import 'create_admin.dart'; // ✨ TEMPORARY - Untuk membuat admin2
 
 /// Request storage permissions for export features
@@ -183,6 +184,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => MarketplaceProvider()),
         ChangeNotifierProvider(create: (_) => CartProvider()), // 🛒 Cart Provider
         ChangeNotifierProvider(create: (_) => OrderProvider()), // 📦 Order Provider
+        ChangeNotifierProvider(create: (_) => PollProvider()), // 🗳️ Poll Provider
       ],
       child: const JawaraApp(),
     ),

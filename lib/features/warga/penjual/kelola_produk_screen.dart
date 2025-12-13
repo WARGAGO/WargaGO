@@ -11,6 +11,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:wargago/core/models/product_model.dart';
 import 'package:wargago/core/services/product_service.dart';
+import 'package:wargago/core/widgets/product_image_debug.dart';
 import 'package:wargago/features/warga/penjual/tambah_produk_screen.dart';
 import 'package:wargago/features/warga/penjual/edit_produk_screen.dart';
 
@@ -716,32 +717,34 @@ class _KelolaProdukScreenState extends State<KelolaProdukScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Product Image
-              ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  bottomLeft: Radius.circular(12),
-                ),
-                child: Container(
-                  width: 100,
-                  height: 100,
-                  color: const Color(0xFFF3F4F6),
-                  child: product.imageUrls.isNotEmpty
-                      ? Image.network(
-                          product.imageUrls.first,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const Icon(
+              Container(
+                width: 100,
+                height: 100,
+                child: product.imageUrls.isNotEmpty
+                    ? ProductImageDebug(
+                        imageUrl: product.imageUrls.first,
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.cover,
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(12),
+                          bottomLeft: Radius.circular(12),
+                        ),
+                      )
+                    : ClipRRect(
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(12),
+                          bottomLeft: Radius.circular(12),
+                        ),
+                        child: Container(
+                          color: const Color(0xFFF3F4F6),
+                          child: const Icon(
                             Icons.shopping_basket,
                             size: 40,
                             color: Color(0xFF9CA3AF),
                           ),
-                        )
-                      : const Icon(
-                          Icons.shopping_basket,
-                          size: 40,
-                          color: Color(0xFF9CA3AF),
                         ),
-                ),
+                      ),
               ),
 
               // Product Info

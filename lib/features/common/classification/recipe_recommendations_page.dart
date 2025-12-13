@@ -1,3 +1,12 @@
+// ============================================================================
+// ASISTEN SAYUR AI - AI-Powered Vegetable Assistant
+// ============================================================================
+// Fitur:
+// 1. ✅ Rekomendasi Resep (Current)
+// 2. 🔜 Nutrisi & Kesehatan
+// 3. 🔜 Chatbot Konsultasi
+// ============================================================================
+
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,21 +16,21 @@ import 'package:ming_cute_icons/ming_cute_icons.dart';
 import 'package:remixicon/remixicon.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class RecipeRecommendationsPage extends StatefulWidget {
+class VegetableAIAssistantPage extends StatefulWidget {
   final String vegetableName;
   final String? imagePath; // Tambahkan parameter foto (optional)
 
-  const RecipeRecommendationsPage({
+  const VegetableAIAssistantPage({
     super.key,
     required this.vegetableName,
     this.imagePath, // Optional - jika null pakai text-only
   });
 
   @override
-  State<RecipeRecommendationsPage> createState() => _RecipeRecommendationsPageState();
+  State<VegetableAIAssistantPage> createState() => _VegetableAIAssistantPageState();
 }
 
-class _RecipeRecommendationsPageState extends State<RecipeRecommendationsPage> {
+class _VegetableAIAssistantPageState extends State<VegetableAIAssistantPage> with SingleTickerProviderStateMixin {
   final GeminiService _geminiService = GeminiService();
   final RecipeWebService _webService = RecipeWebService();
   VegetableRecipeResponse? _response;
@@ -30,11 +39,20 @@ class _RecipeRecommendationsPageState extends State<RecipeRecommendationsPage> {
   bool _isLoadingExternal = true;
   String? _errorMessage;
 
+  late TabController _tabController;
+
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 3, vsync: this);
     _loadRecipes();
     _loadExternalRecipes();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadRecipes() async {
@@ -172,59 +190,130 @@ class _RecipeRecommendationsPageState extends State<RecipeRecommendationsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).primaryColor,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Row(
-          children: [
-            Icon(MingCuteIcons.mgc_ai_fill, color: Colors.white, size: 24),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Rekomendasi Resep',
-                style: GoogleFonts.poppins(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 18,
-                ),
+      backgroundColor: const Color(0xFFF8F9FA),
+      body: Column(
+        children: [
+          // Header Section
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Theme.of(context).primaryColor,
+                  Theme.of(context).primaryColor.withValues(alpha: 0.8),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
-      body: _isLoading
-          ? _buildLoadingState()
-          : _errorMessage != null
-              ? _buildErrorState()
-              : _buildRecipeList(),
-    );
-  }
-
-  Widget _buildLoadingState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const CircularProgressIndicator(),
-          const SizedBox(height: 24),
-          Text(
-            'Mencari resep untuk ${widget.vegetableName}...',
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              color: Colors.grey[700],
+            child: SafeArea(
+              bottom: false,
+              child: Column(
+                children: [
+                  // App Bar
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back, color: Colors.white),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                        const SizedBox(width: 8),
+                        Icon(
+                          MingCuteIcons.mgc_ai_fill,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Asisten Sayur AI',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                              Text(
+                                widget.vegetableName,
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Tab Bar
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        top: BorderSide(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          width: 1,
+                        ),
+                      ),
+                    ),
+                    child: TabBar(
+                      controller: _tabController,
+                      indicatorColor: Colors.white,
+                      indicatorWeight: 3,
+                      labelColor: Colors.white,
+                      unselectedLabelColor: Colors.white.withValues(alpha: 0.6),
+                      labelStyle: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      unselectedLabelStyle: GoogleFonts.poppins(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      tabs: const [
+                        Tab(
+                          icon: Icon(Remix.restaurant_line, size: 20),
+                          text: 'Resep',
+                        ),
+                        Tab(
+                          icon: Icon(Remix.heart_pulse_line, size: 20),
+                          text: 'Nutrisi',
+                        ),
+                        Tab(
+                          icon: Icon(Remix.chat_smile_3_line, size: 20),
+                          text: 'Konsultasi',
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            '✨ AI sedang bekerja ✨',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              color: Colors.grey[500],
+          // Tab Content
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                // Tab 1: Resep (Current Feature)
+                _buildRecipeTab(),
+                // Tab 2: Nutrisi (Coming Soon)
+                _buildComingSoonTab(
+                  icon: Remix.heart_pulse_line,
+                  title: 'Nutrisi & Kesehatan',
+                  description: 'Informasi nutrisi lengkap dan manfaat kesehatan dari sayuran',
+                ),
+                // Tab 3: Chatbot (Coming Soon)
+                _buildComingSoonTab(
+                  icon: Remix.chat_smile_3_line,
+                  title: 'Chatbot Konsultasi',
+                  description: 'Tanya jawab seputar sayuran, resep, dan tips memasak',
+                ),
+              ],
             ),
           ),
         ],
@@ -232,21 +321,119 @@ class _RecipeRecommendationsPageState extends State<RecipeRecommendationsPage> {
     );
   }
 
-  Widget _buildErrorState() {
+  Widget _buildRecipeTab() {
+    if (_isLoading) {
+      return _buildLoadingState();
+    }
+    if (_errorMessage != null) {
+      return _buildErrorState();
+    }
+    return _buildRecipeList();
+  }
+
+  Widget _buildComingSoonTab({
+    required IconData icon,
+    required String title,
+    required String description,
+  }) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Remix.emotion_sad_line,
-              size: 64,
-              color: Colors.grey[400],
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                size: 64,
+                color: Theme.of(context).primaryColor,
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             Text(
-              'Maaf, terjadi kesalahan',
+              title,
+              style: GoogleFonts.poppins(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[800],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              description,
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                color: Colors.grey[600],
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Remix.time_line, size: 16, color: Colors.orange),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Segera Hadir',
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.orange,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox(
+                  width: 80,
+                  height: 80,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Theme.of(context).primaryColor,
+                    ),
+                  ),
+                ),
+                Icon(
+                  MingCuteIcons.mgc_ai_fill,
+                  size: 36,
+                  color: Theme.of(context).primaryColor,
+                ),
+              ],
+            ),
+            const SizedBox(height: 32),
+            Text(
+              'AI sedang menganalisis...',
               style: GoogleFonts.poppins(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -255,25 +442,215 @@ class _RecipeRecommendationsPageState extends State<RecipeRecommendationsPage> {
             ),
             const SizedBox(height: 8),
             Text(
-              _errorMessage ?? 'Tidak dapat memuat resep',
+              'Mencari resep terbaik untuk ${widget.vegetableName}',
               style: GoogleFonts.poppins(
                 fontSize: 14,
                 color: Colors.grey[600],
               ),
               textAlign: TextAlign.center,
             ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Colors.blue.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Remix.information_line,
+                        size: 16,
+                        color: Colors.blue[700],
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Proses bisa memakan waktu',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.blue[700],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Sistem akan otomatis mencoba ulang jika server sibuk',
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      color: Colors.blue[600],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Remix.sparkling_line,
+                    size: 16,
+                    color: Theme.of(context).primaryColor,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Powered by Gemini AI',
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    // Check if it's a server overload error
+    final errorText = _errorMessage?.toLowerCase() ?? '';
+    final isServerBusy = errorText.contains('503') ||
+                        errorText.contains('overloaded') ||
+                        errorText.contains('unavailable') ||
+                        errorText.contains('sibuk');
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: isServerBusy
+                    ? Colors.orange.withValues(alpha: 0.1)
+                    : Colors.red.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                isServerBusy ? Remix.time_line : Remix.emotion_sad_line,
+                size: 64,
+                color: isServerBusy ? Colors.orange[400] : Colors.red[400],
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              isServerBusy
+                  ? 'Server Sedang Sibuk'
+                  : 'Oops! Terjadi Kesalahan',
+              style: GoogleFonts.poppins(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[800],
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (isServerBusy) ...[
+              Text(
+                'Server Gemini AI sedang mengalami beban tinggi.\nSistem sudah mencoba beberapa kali tetapi masih gagal.',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.blue.withValues(alpha: 0.2),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Remix.lightbulb_line,
+                          size: 16,
+                          color: Colors.blue[700],
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Saran:',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.blue[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '• Tunggu 30-60 detik\n• Coba lagi dengan tombol di bawah\n• Atau coba lagi nanti',
+                      style: GoogleFonts.poppins(
+                        fontSize: 11,
+                        color: Colors.blue[600],
+                        height: 1.5,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
+            ] else ...[
+              Text(
+                _errorMessage ?? 'Tidak dapat memuat resep',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+            const SizedBox(height: 32),
             ElevatedButton.icon(
               onPressed: _loadRecipes,
               icon: const Icon(Icons.refresh),
               label: Text(
                 'Coba Lagi',
-                style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).primaryColor,
+                backgroundColor: isServerBusy
+                    ? Colors.orange
+                    : Theme.of(context).primaryColor,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
               ),
             ),
           ],
@@ -286,16 +663,23 @@ class _RecipeRecommendationsPageState extends State<RecipeRecommendationsPage> {
     if (_response == null || !_response!.hasRecipes) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(32),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Remix.restaurant_line,
-                size: 64,
-                color: Colors.grey[400],
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.grey.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Remix.restaurant_line,
+                  size: 64,
+                  color: Colors.grey[400],
+                ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
               Text(
                 'Tidak ada resep ditemukan',
                 style: GoogleFonts.poppins(
@@ -318,84 +702,101 @@ class _RecipeRecommendationsPageState extends State<RecipeRecommendationsPage> {
       );
     }
 
-    return Column(
+    return ListView(
+      padding: const EdgeInsets.all(16),
       children: [
-        // Header info
+        // Info Card
         Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Theme.of(context).primaryColor,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            children: [
-              Text(
-                'Ditemukan ${_response!.recipes.length} resep untuk',
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: Colors.white.withValues(alpha: 0.9),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                widget.vegetableName,
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ),
-        // Recipe list
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              // Section 1: AI Generated Recipes
-              _buildSectionHeader(
-                icon: MingCuteIcons.mgc_ai_fill,
-                title: 'Rekomendasi AI',
-                subtitle: 'Disesuaikan dengan foto sayuran Anda',
-                color: Theme.of(context).primaryColor,
-              ),
-              const SizedBox(height: 12),
-              ..._response!.recipes.asMap().entries.map((entry) {
-                final index = entry.key;
-                final recipe = entry.value;
-                return _buildAIRecipeCard(recipe, index);
-              }),
-
-              // Section 2: Verified from Web
-              if (_externalRecipes.isNotEmpty || _isLoadingExternal) ...[
-                const SizedBox(height: 24),
-                _buildSectionHeader(
-                  icon: Remix.checkbox_circle_fill,
-                  title: 'Resep Verified',
-                  subtitle: 'Dari Cookpad & Yummy Indonesia',
-                  color: Colors.green,
-                ),
-                const SizedBox(height: 12),
-                if (_isLoadingExternal)
-                  _buildLoadingExternalCard()
-                else if (_externalRecipes.isEmpty)
-                  _buildNoExternalRecipesCard()
-                else
-                  ..._externalRecipes.map((recipe) => _buildExternalRecipeCard(recipe)),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                Theme.of(context).primaryColor.withValues(alpha: 0.05),
               ],
-
-              const SizedBox(height: 16),
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Theme.of(context).primaryColor.withValues(alpha: 0.2),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).primaryColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  MingCuteIcons.mgc_ai_fill,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Ditemukan ${_response!.recipes.length} resep',
+                      style: GoogleFonts.poppins(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[800],
+                      ),
+                    ),
+                    Text(
+                      'Rekomendasi khusus untuk ${widget.vegetableName}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
+        const SizedBox(height: 20),
+
+        // Section 1: AI Generated Recipes
+        _buildSectionHeader(
+          icon: MingCuteIcons.mgc_ai_fill,
+          title: 'Rekomendasi AI',
+          subtitle: 'Disesuaikan dengan foto sayuran Anda',
+          color: Theme.of(context).primaryColor,
+        ),
+        const SizedBox(height: 12),
+        ..._response!.recipes.asMap().entries.map((entry) {
+          final index = entry.key;
+          final recipe = entry.value;
+          return _buildAIRecipeCard(recipe, index);
+        }),
+
+        // Section 2: Verified from Web
+        if (_externalRecipes.isNotEmpty || _isLoadingExternal) ...[
+          const SizedBox(height: 24),
+          _buildSectionHeader(
+            icon: Remix.checkbox_circle_fill,
+            title: 'Resep Verified',
+            subtitle: 'Dari sumber terpercaya',
+            color: Colors.green,
+          ),
+          const SizedBox(height: 12),
+          if (_isLoadingExternal)
+            _buildLoadingExternalCard()
+          else if (_externalRecipes.isEmpty)
+            _buildNoExternalRecipesCard()
+          else
+            ..._externalRecipes.map((recipe) => _buildExternalRecipeCard(recipe)),
+        ],
+
+        const SizedBox(height: 80), // Extra space for bottom
       ],
     );
   }
@@ -754,146 +1155,6 @@ class _RecipeRecommendationsPageState extends State<RecipeRecommendationsPage> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRecipeCard(RecipeRecommendation recipe, int index) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: InkWell(
-        onTap: () => _showRecipeDetail(recipe),
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Number badge
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${index + 1}',
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  // Recipe name
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          recipe.name,
-                          style: GoogleFonts.poppins(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[800],
-                          ),
-                        ),
-                        if (recipe.description.isNotEmpty) ...[
-                          const SizedBox(height: 4),
-                          Text(
-                            recipe.description,
-                            style: GoogleFonts.poppins(
-                              fontSize: 13,
-                              color: Colors.grey[600],
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              // Info chips
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _buildInfoChip(
-                    icon: Remix.timer_line,
-                    label: recipe.cookingTime,
-                    color: Colors.blue,
-                  ),
-                  _buildInfoChip(
-                    icon: Remix.group_line,
-                    label: recipe.servings,
-                    color: Colors.green,
-                  ),
-                  _buildInfoChip(
-                    icon: Remix.star_line,
-                    label: recipe.difficulty,
-                    color: _getDifficultyColor(recipe.difficulty),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              // Preview info
-              Row(
-                children: [
-                  Icon(Remix.restaurant_line, size: 16, color: Colors.grey[600]),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${recipe.ingredients.length} bahan',
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Icon(Remix.list_check, size: 16, color: Colors.grey[600]),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${recipe.steps.length} langkah',
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              // View button
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton.icon(
-                  onPressed: () => _showRecipeDetail(recipe),
-                  icon: const Icon(Remix.arrow_right_s_line, size: 20),
-                  label: Text(
-                    'Lihat Detail',
-                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-                  ),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Theme.of(context).primaryColor,
-                  ),
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

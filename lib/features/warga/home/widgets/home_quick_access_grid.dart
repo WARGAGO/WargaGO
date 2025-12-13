@@ -5,8 +5,10 @@
 // ============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wargago/features/warga/laporan_keuangan/laporan_keuangan_list_page.dart';
+import 'package:wargago/features/warga/polling/pages/poll_list_page.dart';
 
 class HomeQuickAccessGrid extends StatelessWidget {
   const HomeQuickAccessGrid({super.key});
@@ -31,7 +33,29 @@ class HomeQuickAccessGrid extends StatelessWidget {
             colors: [Color(0xFF2F80ED), Color(0xFF1E6FD9)],
           ),
           badge: '2 Aktif',
-          onTap: () {},
+          onTap: () {
+            if (kDebugMode) {
+              print('🗳️ [QuickAccess] Mini Poling card tapped');
+            }
+            try {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const PollListPage(),
+                ),
+              );
+            } catch (e) {
+              if (kDebugMode) {
+                print('❌ Error navigating to PollListPage: $e');
+              }
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Error membuka halaman polling: $e'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          },
         ),
         _QuickAccessCard(
           icon: Icons.account_balance_wallet_rounded,

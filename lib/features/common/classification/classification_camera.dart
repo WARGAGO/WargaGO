@@ -696,7 +696,7 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => RecipeRecommendationsPage(
+                              builder: (context) => VegetableAIAssistantPage(
                                 vegetableName: _result!.predictedClass.displayName
                                     .replaceAll('_', ' '),
                                 imagePath: _picture!.path, // Kirim foto juga!
@@ -715,7 +715,7 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
                         size: 20,
                       ),
                       Text(
-                        'Cari Dengan AI',
+                        'Asisten AI',
                         style: GoogleFonts.poppins(
                           fontSize: 15,
                           fontWeight: FontWeight.w600,

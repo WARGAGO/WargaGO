@@ -11,11 +11,14 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/providers/auth_provider.dart';
+import '../../../../core/providers/poll_provider.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/services/kyc_service.dart';
 import '../../../../core/enums/kyc_enum.dart';
 import '../widgets/home_app_bar.dart';
 import '../widgets/home_kyc_alert.dart';
+import '../../polling/widgets/home_poll_alert.dart';
+import '../../polling/pages/poll_list_page.dart';
 import '../widgets/home_info_cards.dart';
 import '../widgets/home_quick_access_grid.dart';
 import '../widgets/home_feature_list.dart';
@@ -32,6 +35,17 @@ class WargaHomePage extends StatefulWidget {
 
 class _WargaHomePageState extends State<WargaHomePage> {
   final KYCService _kycService = KYCService();
+
+  @override
+  void initState() {
+    super.initState();
+    // Load polling data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final pollProvider = context.read<PollProvider>();
+      pollProvider.loadActiveOfficialPolls();
+      pollProvider.loadActiveCommunityPolls();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -179,6 +193,88 @@ class _WargaHomePageState extends State<WargaHomePage> {
                                 ),
 
                               if (!isKycComplete) const SizedBox(height: 16),
+
+                              // Polling Alert - Active polls
+                              Consumer<PollProvider>(
+                                builder: (context, pollProvider, child) {
+                                  return HomePollAlert(
+                                    activeOfficialPoll: pollProvider.activeOfficialPoll,
+                                    communityPollCount: pollProvider.activeCommunityPollCount,
+                                    hasUserVoted: false, // TODO: Implement check
+                                    onViewPollTap: () {
+                                      if (kDebugMode) {
+                                        print('🗳️ onViewPollTap clicked - Navigating to PollListPage');
+                                      }
+                                      try {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => const PollListPage(),
+                                          ),
+                                        );
+                                      } catch (e) {
+                                        if (kDebugMode) {
+                                          print('❌ Error navigating to PollListPage: $e');
+                                        }
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Error: $e'),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    onVoteTap: () {
+                                      if (kDebugMode) {
+                                        print('🗳️ onVoteTap clicked - Navigating to PollListPage');
+                                      }
+                                      try {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => const PollListPage(),
+                                          ),
+                                        );
+                                      } catch (e) {
+                                        if (kDebugMode) {
+                                          print('❌ Error navigating to PollListPage: $e');
+                                        }
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Error: $e'),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    onViewAllCommunityTap: () {
+                                      if (kDebugMode) {
+                                        print('🗳️ onViewAllCommunityTap clicked - Navigating to PollListPage');
+                                      }
+                                      try {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => const PollListPage(),
+                                          ),
+                                        );
+                                      } catch (e) {
+                                        if (kDebugMode) {
+                                          print('❌ Error navigating to PollListPage: $e');
+                                        }
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Error: $e'),
+                                            backgroundColor: Colors.red,
+                                          ),
+                                        );
+                                      }
+                                    },
+                                  );
+                                },
+                              ),
+
+                              const SizedBox(height: 16),
 
                               // News Carousel - Berita & Pengumuman
                               const HomeNewsCarousel(),

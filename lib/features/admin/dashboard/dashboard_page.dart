@@ -24,6 +24,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 
 import 'package:wargago/core/widgets/admin_app_bottom_navigation.dart';
 import 'package:wargago/features/admin/profile/admin_profile_page.dart';
+import 'package:wargago/features/admin/polling/pages/admin_poll_list_page.dart';
 import 'dashboard_detail_page.dart';
 import 'activity_detail_page.dart';
 import 'penanggung_jawab_detail_page.dart';
@@ -92,6 +93,8 @@ class _DashboardPageState extends State<DashboardPage> {
             sliver: SliverList(
               delegate: SliverChildListDelegate([
                 const _ActivitySection(),
+                const SizedBox(height: 20),
+                const _KelolaPollingCard(),
                 const SizedBox(height: 20),
                 const _TimelineCard(),
                 const SizedBox(height: 20),
@@ -1957,3 +1960,112 @@ class _PrimaryActionButton extends StatelessWidget {
     );
   }
 }
+
+// ============================================================================
+// KELOLA POLLING CARD WIDGET
+// ============================================================================
+// Card menu untuk kelola polling dengan navigasi ke AdminPollListPage
+// ============================================================================
+
+class _KelolaPollingCard extends StatelessWidget {
+  const _KelolaPollingCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF3B82F6), Color(0xFF8B5CF6)],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const AdminPollListPage(),
+              ),
+            );
+          },
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                // Icon Container
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.25),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(
+                    Icons.how_to_vote_rounded,
+                    size: 32,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 16),
+
+                // Text Content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Kelola Polling',
+                        style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Buat & kelola polling RT/RW',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white.withValues(alpha: 0.9),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Arrow Icon
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.arrow_forward_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
