@@ -92,9 +92,9 @@ class _DashboardPageState extends State<DashboardPage> {
             padding: DashboardStyles.contentPadding,
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                const _ActivitySection(),
-                const SizedBox(height: 20),
                 const _KelolaPollingCard(),
+                const SizedBox(height: 20),
+                const _ActivitySection(),
                 const SizedBox(height: 20),
                 const _TimelineCard(),
                 const SizedBox(height: 20),
