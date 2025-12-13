@@ -226,11 +226,13 @@ class _EditProdukScreenState extends State<EditProdukScreen> {
             final response = await azureService.uploadImage(
               file: _newImages[i],
               isPrivate: false,
-              prefixName: 'products',
+              prefixName: 'products/', // Add trailing slash
               customFileName: fileName,
             );
 
-            if (response != null && response.blobUrl.isNotEmpty) {
+            if (response != null) {
+              // TEMPORARY: Keep SAS token until container is set to public
+              // TODO: After setting container public, use removeSasToken()
               newImageUrls.add(response.blobUrl);
               print('✅ New image ${i + 1} uploaded: ${response.blobUrl}');
             }
