@@ -46,10 +46,7 @@ class BendaharaDashboardPage extends StatelessWidget {
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(false),
-                      child: Text(
-                        'Batal',
-                        style: GoogleFonts.poppins(),
-                      ),
+                      child: Text('Batal', style: GoogleFonts.poppins()),
                     ),
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(true),
@@ -176,7 +173,9 @@ class BendaharaDashboardPage extends StatelessWidget {
                             ),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: const Color(0xFF2F80ED).withValues(alpha: 0.2),
+                              color: const Color(
+                                0xFF2F80ED,
+                              ).withValues(alpha: 0.2),
                             ),
                           ),
                           child: Row(
@@ -184,7 +183,9 @@ class BendaharaDashboardPage extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF2F80ED).withValues(alpha: 0.1),
+                                  color: const Color(
+                                    0xFF2F80ED,
+                                  ).withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: const Icon(
@@ -286,11 +287,7 @@ class BendaharaDashboardPage extends StatelessWidget {
               color: const Color(0xFF2F80ED).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Icon(
-              icon,
-              color: const Color(0xFF2F80ED),
-              size: 20,
-            ),
+            child: Icon(icon, color: const Color(0xFF2F80ED), size: 20),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -321,4 +318,3 @@ class BendaharaDashboardPage extends StatelessWidget {
     );
   }
 }
-
