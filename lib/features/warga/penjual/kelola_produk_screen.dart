@@ -7,6 +7,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:wargago/core/models/product_model.dart';
@@ -44,12 +45,16 @@ class _KelolaProdukScreenState extends State<KelolaProdukScreen> {
   @override
   void initState() {
     super.initState();
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
     _setupRealtimeListener();
     _loadStatistics();
   }
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     _productsSubscription?.cancel();
     super.dispose();
   }
@@ -308,6 +313,25 @@ class _KelolaProdukScreenState extends State<KelolaProdukScreen> {
     );
   }
 
+  late final ScrollController _scrollController;
+  Color _statusBarColor = Colors.transparent;
+
+  void _onScroll() {
+    // final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.offset;
+    final threshold = 50;
+
+    final newColor = currentScroll > threshold
+        ? Color(0xFF2F80ED)
+        : Colors.transparent;
+
+    if (_statusBarColor != newColor) {
+      setState(() {
+        _statusBarColor = newColor;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -316,6 +340,7 @@ class _KelolaProdukScreenState extends State<KelolaProdukScreen> {
         onRefresh: _refreshProducts,
         color: const Color(0xFF2F80ED),
         child: CustomScrollView(
+          controller: _scrollController,
           slivers: [
             _buildAppBar(),
             SliverToBoxAdapter(
@@ -390,6 +415,15 @@ class _KelolaProdukScreenState extends State<KelolaProdukScreen> {
 
   Widget _buildAppBar() {
     return SliverAppBar(
+      systemOverlayStyle: SystemUiOverlayStyle(
+        statusBarColor: _statusBarColor,
+        statusBarIconBrightness: _statusBarColor == Colors.white
+            ? Brightness.dark
+            : Brightness.light,
+        systemNavigationBarColor: Colors.white,
+        systemNavigationBarIconBrightness: Brightness.dark,
+        systemNavigationBarDividerColor: Colors.white,
+      ),
       expandedHeight: 140,
       floating: false,
       pinned: true,

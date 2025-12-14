@@ -1,4 +1,3 @@
-// lib/pages/profile/edit_profil_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -28,6 +27,8 @@ class _EditProfilScreenState extends State<EditProfilScreen>
   @override
   void initState() {
     super.initState();
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
     final user = Provider.of<AuthProvider>(context, listen: false).userModel;
 
     _namaController = TextEditingController(text: user?.nama ?? '');
@@ -51,6 +52,8 @@ class _EditProfilScreenState extends State<EditProfilScreen>
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     _namaController.dispose();
     _nikController.dispose();
     _noTeleponController.dispose();
@@ -58,6 +61,25 @@ class _EditProfilScreenState extends State<EditProfilScreen>
     _keluargaIdController.dispose(); // ⭐ ADDED
     _animationController.dispose();
     super.dispose();
+  }
+
+  late final ScrollController _scrollController;
+  Color _statusBarColor = Colors.transparent;
+
+  void _onScroll() {
+    // final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.offset;
+    final threshold = 150;
+
+    final newColor = currentScroll > threshold
+        ? Color(0xFF2F80ED)
+        : Colors.transparent;
+
+    if (_statusBarColor != newColor) {
+      setState(() {
+        _statusBarColor = newColor;
+      });
+    }
   }
 
   @override
@@ -76,277 +98,330 @@ class _EditProfilScreenState extends State<EditProfilScreen>
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FD),
-      body: CustomScrollView(
-        slivers: [
-          // Modern App Bar
-          SliverAppBar(
-            systemOverlayStyle: SystemUiOverlayStyle(
-              statusBarColor: Colors.transparent,
-              statusBarIconBrightness: Brightness.light,
-              systemNavigationBarColor: Colors.white,
-              systemNavigationBarIconBrightness: Brightness.dark,
-              systemNavigationBarDividerColor: Colors.white,
-            ),
-            expandedHeight: 220,
-            floating: false,
-            pinned: true,
-            backgroundColor: Colors.white,
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
-            ),
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [Color(0xFF2F80ED), Color(0xFF1E5BB8)],
-                  ),
+      body: Stack(
+        children: [
+          CustomScrollView(
+            controller: _scrollController,
+            slivers: [
+              // Modern App Bar
+              SliverAppBar(
+                systemOverlayStyle: SystemUiOverlayStyle(
+                  statusBarColor: _statusBarColor,
+                  statusBarIconBrightness: _statusBarColor == Colors.white
+                      ? Brightness.dark
+                      : Brightness.light,
+                  systemNavigationBarColor: Colors.white,
+                  systemNavigationBarIconBrightness: Brightness.dark,
+                  systemNavigationBarDividerColor: Colors.white,
                 ),
-                child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const SizedBox(height: 20),
-                        // Avatar with camera button
-                        Stack(
+                collapsedHeight: 0,
+                toolbarHeight: 0,
+                automaticallyImplyLeading: false,
+                expandedHeight: 220,
+                floating: false,
+                pinned: true,
+                backgroundColor: Colors.white,
+                elevation: 0,
+                leading: IconButton(
+                  icon: const Icon(
+                    Icons.arrow_back_rounded,
+                    color: Colors.white,
+                  ),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Color(0xFF2F80ED), Color(0xFF1E5BB8)],
+                      ),
+                    ),
+                    child: SafeArea(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.white.withValues(alpha: 0.3),
-                                    blurRadius: 20,
-                                    spreadRadius: 5,
-                                  ),
-                                ],
-                              ),
-                              child: CircleAvatar(
-                                radius: 50,
-                                backgroundColor: Colors.white,
-                                child: CircleAvatar(
-                                  radius: 47,
-                                  backgroundColor: const Color(
-                                    0xFF2F80ED,
-                                  ).withValues(alpha: 0.2),
-                                  child: Text(
-                                    user.nama.isNotEmpty
-                                        ? user.nama[0].toUpperCase()
-                                        : 'U',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 38,
-                                      fontWeight: FontWeight.bold,
-                                      color: const Color(0xFF2F80ED),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            Positioned(
-                              bottom: 0,
-                              right: 0,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      Color(0xFF10B981),
-                                      Color(0xFF059669),
+                            const SizedBox(height: 20),
+                            // Avatar with camera button
+                            Stack(
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.white.withValues(
+                                          alpha: 0.3,
+                                        ),
+                                        blurRadius: 20,
+                                        spreadRadius: 5,
+                                      ),
                                     ],
                                   ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: const Color(
-                                        0xFF10B981,
-                                      ).withValues(alpha: 0.4),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: IconButton(
-                                  icon: const Icon(
-                                    Icons.camera_alt_rounded,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                  onPressed: () {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          'Fitur upload foto akan segera hadir',
-                                          style: GoogleFonts.poppins(),
-                                        ),
-                                        backgroundColor: const Color(
-                                          0xFF2F80ED,
-                                        ),
-                                        behavior: SnackBarBehavior.floating,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
+                                  child: CircleAvatar(
+                                    radius: 50,
+                                    backgroundColor: Colors.white,
+                                    child: CircleAvatar(
+                                      radius: 47,
+                                      backgroundColor: const Color(
+                                        0xFF2F80ED,
+                                      ).withValues(alpha: 0.2),
+                                      child: Text(
+                                        user.nama.isNotEmpty
+                                            ? user.nama[0].toUpperCase()
+                                            : 'U',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 38,
+                                          fontWeight: FontWeight.bold,
+                                          color: const Color(0xFF2F80ED),
                                         ),
                                       ),
-                                    );
-                                  },
+                                    ),
+                                  ),
                                 ),
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: const LinearGradient(
+                                        colors: [
+                                          Color(0xFF10B981),
+                                          Color(0xFF059669),
+                                        ],
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(
+                                            0xFF10B981,
+                                          ).withValues(alpha: 0.4),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
+                                    ),
+                                    child: IconButton(
+                                      icon: const Icon(
+                                        Icons.camera_alt_rounded,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
+                                      onPressed: () {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Fitur upload foto akan segera hadir',
+                                              style: GoogleFonts.poppins(),
+                                            ),
+                                            backgroundColor: const Color(
+                                              0xFF2F80ED,
+                                            ),
+                                            behavior: SnackBarBehavior.floating,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Edit Profil',
+                              style: GoogleFonts.poppins(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
                               ),
                             ),
+                            const SizedBox(height: 20),
                           ],
                         ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Edit Profil',
-                          style: GoogleFonts.poppins(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                      ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ),
 
-          // Form Content
-          SliverToBoxAdapter(
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildModernTextField(
-                        controller: _namaController,
-                        label: 'Nama Lengkap',
-                        hint: 'Masukkan nama lengkap',
-                        icon: Icons.person_outline_rounded,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Nama tidak boleh kosong';
-                          }
-                          return null;
-                        },
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      _buildModernTextField(
-                        controller: _nikController,
-                        label: 'NIK',
-                        hint: 'Masukkan NIK (16 digit)',
-                        icon: Icons.badge_outlined,
-                        keyboardType: TextInputType.number,
-                        validator: (value) {
-                          if (value != null &&
-                              value.isNotEmpty &&
-                              value.length != 16) {
-                            return 'NIK harus 16 digit';
-                          }
-                          return null;
-                        },
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      _buildModernTextField(
-                        controller: _noTeleponController,
-                        label: 'No. Telepon',
-                        hint: 'Masukkan nomor telepon',
-                        icon: Icons.phone_outlined,
-                        keyboardType: TextInputType.phone,
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      _buildModernTextField(
-                        controller: _alamatController,
-                        label: 'Alamat',
-                        hint: 'Masukkan alamat lengkap',
-                        icon: Icons.location_on_outlined,
-                        maxLines: 3,
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // ⭐ ADDED: Keluarga ID Field
-                      _buildModernTextField(
-                        controller: _keluargaIdController,
-                        label: 'ID Keluarga',
-                        hint: 'Contoh: keluarga_001',
-                        icon: Icons.family_restroom_rounded,
-                        keyboardType: TextInputType.text,
-                        helperText:
-                            'ID keluarga diperlukan untuk melihat tagihan iuran.\nHubungi admin jika tidak tahu ID keluarga Anda.',
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'ID Keluarga tidak boleh kosong';
-                          }
-                          // Check format (alphanumeric + underscore)
-                          if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value)) {
-                            return 'Format tidak valid (hanya huruf, angka, dan underscore)';
-                          }
-                          return null;
-                        },
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // Info Box
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF2F80ED).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: const Color(
-                              0xFF2F80ED,
-                            ).withValues(alpha: 0.3),
-                            width: 1,
+              // Form Content
+              SliverToBoxAdapter(
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildModernTextField(
+                            controller: _namaController,
+                            label: 'Nama Lengkap',
+                            hint: 'Masukkan nama lengkap',
+                            icon: Icons.person_outline_rounded,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Nama tidak boleh kosong';
+                              }
+                              return null;
+                            },
                           ),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.info_outline_rounded,
-                              color: const Color(0xFF2F80ED),
-                              size: 22,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                'Pastikan data yang Anda masukkan benar dan sesuai dengan identitas resmi.',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  color: const Color(0xFF1F2937),
-                                  height: 1.5,
-                                ),
+
+                          const SizedBox(height: 16),
+
+                          _buildModernTextField(
+                            controller: _nikController,
+                            label: 'NIK',
+                            hint: 'Masukkan NIK (16 digit)',
+                            icon: Icons.badge_outlined,
+                            keyboardType: TextInputType.number,
+                            validator: (value) {
+                              if (value != null &&
+                                  value.isNotEmpty &&
+                                  value.length != 16) {
+                                return 'NIK harus 16 digit';
+                              }
+                              return null;
+                            },
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          _buildModernTextField(
+                            controller: _noTeleponController,
+                            label: 'No. Telepon',
+                            hint: 'Masukkan nomor telepon',
+                            icon: Icons.phone_outlined,
+                            keyboardType: TextInputType.phone,
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          _buildModernTextField(
+                            controller: _alamatController,
+                            label: 'Alamat',
+                            hint: 'Masukkan alamat lengkap',
+                            icon: Icons.location_on_outlined,
+                            maxLines: 3,
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // ⭐ ADDED: Keluarga ID Field
+                          _buildModernTextField(
+                            controller: _keluargaIdController,
+                            label: 'ID Keluarga',
+                            hint: 'Contoh: keluarga_001',
+                            icon: Icons.family_restroom_rounded,
+                            keyboardType: TextInputType.text,
+                            helperText:
+                                'ID keluarga diperlukan untuk melihat tagihan iuran.\nHubungi admin jika tidak tahu ID keluarga Anda.',
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'ID Keluarga tidak boleh kosong';
+                              }
+                              // Check format (alphanumeric + underscore)
+                              if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value)) {
+                                return 'Format tidak valid (hanya huruf, angka, dan underscore)';
+                              }
+                              return null;
+                            },
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // Info Box
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: const Color(
+                                0xFF2F80ED,
+                              ).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: const Color(
+                                  0xFF2F80ED,
+                                ).withValues(alpha: 0.3),
+                                width: 1,
                               ),
                             ),
-                          ],
-                        ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline_rounded,
+                                  color: const Color(0xFF2F80ED),
+                                  size: 22,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    'Pastikan data yang Anda masukkan benar dan sesuai dengan identitas resmi.',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: 12,
+                                      color: const Color(0xFF1F2937),
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 32),
+
+                          // Save Button
+                          _buildSaveButton(),
+
+                          const SizedBox(height: 20),
+                        ],
                       ),
-
-                      const SizedBox(height: 32),
-
-                      // Save Button
-                      _buildSaveButton(),
-
-                      const SizedBox(height: 20),
-                    ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SafeArea(
+            child: Container(
+              margin: EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.25),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.4),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () => Navigator.pop(context),
+                  borderRadius: BorderRadius.circular(14),
+                  child: const Padding(
+                    padding: EdgeInsets.all(10),
+                    child: Icon(
+                      Icons.arrow_back_rounded,
+                      color: Colors.white,
+                      size: 24,
+                    ),
                   ),
                 ),
               ),

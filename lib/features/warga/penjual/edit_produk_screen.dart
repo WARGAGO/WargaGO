@@ -360,6 +360,13 @@ class _EditProdukScreenState extends State<EditProdukScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FD),
       appBar: AppBar(
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: const Color(0xFF2F80ED),
+          statusBarIconBrightness: Brightness.light,
+          systemNavigationBarColor: Colors.white,
+          systemNavigationBarIconBrightness: Brightness.dark,
+          systemNavigationBarDividerColor: Colors.white,
+        ),
         title: Text(
           'Edit Produk',
           style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
