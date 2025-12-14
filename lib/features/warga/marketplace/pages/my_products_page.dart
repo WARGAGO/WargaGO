@@ -7,6 +7,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:wargago/core/utils/azure_blob_url_helper.dart';
 import '../../../../core/providers/marketplace_provider.dart';
 import '../../../../core/models/marketplace_product_model.dart';
 import 'add_edit_product_page.dart';
@@ -235,7 +236,7 @@ class _MyProductsPageState extends State<MyProductsPage> {
             ClipRRect(
               borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
               child: Image.network(
-                product.imageUrls.first,
+                product.imageUrls.first, // ✅ Keep SAS token
                 height: 150,
                 width: double.infinity,
                 fit: BoxFit.cover,

@@ -7,6 +7,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:wargago/core/utils/azure_blob_url_helper.dart';
 
 class MarketplaceTopStores extends StatelessWidget {
   const MarketplaceTopStores({super.key});
@@ -89,7 +90,7 @@ class MarketplaceTopStores extends StatelessWidget {
                           ),
                           child: imageUrl != null && imageUrl.isNotEmpty
                               ? Image.network(
-                                  imageUrl,
+                                  imageUrl, // ✅ Keep SAS token for PRIVATE storage
                                   width: 100,
                                   height: double.infinity,
                                   fit: BoxFit.cover,

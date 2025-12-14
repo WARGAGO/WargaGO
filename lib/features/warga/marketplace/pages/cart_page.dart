@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:wargago/core/utils/azure_blob_url_helper.dart';
 import '../../../../core/providers/cart_provider.dart';
 import '../../../../core/models/cart_item_model.dart';
 import 'checkout_page.dart';
@@ -468,7 +469,7 @@ class _CartPageState extends State<CartPage> {
                                         BlendMode.saturation,
                                       ),
                                 child: Image.network(
-                                  item.productImage,
+                                  item.productImage, // ✅ Keep SAS token
                                   width: 70,
                                   height: 70,
                                   fit: BoxFit.cover,

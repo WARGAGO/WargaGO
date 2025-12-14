@@ -119,6 +119,7 @@ class _PollOptionCardState extends State<PollOptionCard>
       onTap: widget.isVotingMode && !widget.hasVoted ? widget.onTap : null,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -181,10 +182,8 @@ class _PollOptionCardState extends State<PollOptionCard>
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                  // Radio/Checkbox (voting mode only)
-                  if (widget.isVotingMode) ...[
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
+                    // Checkbox/Radio
+                    Container(
                       width: 24,
                       height: 24,
                       decoration: BoxDecoration(
@@ -208,7 +207,6 @@ class _PollOptionCardState extends State<PollOptionCard>
                           : null,
                     ),
                     const SizedBox(width: 12),
-                  ],
 
                   // Image (if exists)
                   if (widget.option.hasImage) ...[
@@ -219,15 +217,64 @@ class _PollOptionCardState extends State<PollOptionCard>
                         width: 48,
                         height: 48,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
                           return Container(
                             width: 48,
                             height: 48,
                             color: Colors.grey.shade200,
-                            child: Icon(
-                              Icons.person,
-                              size: 24,
-                              color: Colors.grey.shade400,
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                    : null,
+                                strokeWidth: 2,
+                                color: const Color(0xFF3B82F6),
+                              ),
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) {
+                          // Handle expired SAS token or network errors gracefully
+                          return Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Icon(
+                                  Icons.person,
+                                  size: 24,
+                                  color: Colors.grey.shade400,
+                                ),
+                                // Small warning indicator for expired/error images
+                                Positioned(
+                                  bottom: 2,
+                                  right: 2,
+                                  child: Container(
+                                    width: 12,
+                                    height: 12,
+                                    decoration: BoxDecoration(
+                                      color: Colors.orange.shade400,
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: Colors.white,
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: const Icon(
+                                      Icons.warning_rounded,
+                                      size: 8,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           );
                         },
@@ -342,13 +389,39 @@ class _PollOptionCardState extends State<PollOptionCard>
                       ],
                     ),
                   ],
-                  ],
-                ),
+                ],
               ),
+            ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  /// Helper method untuk stat item
+  Widget _buildStatItem({
+    required IconData icon,
+    required String label,
+  }) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          size: 14,
+          color: Colors.white.withValues(alpha: 0.9),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: GoogleFonts.poppins(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: Colors.white.withValues(alpha: 0.9),
+          ),
+        ),
+      ],
     );
   }
 }

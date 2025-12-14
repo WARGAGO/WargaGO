@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/models/order_model.dart';
 import '../../../../core/providers/order_provider.dart';
+import '../../../../core/utils/azure_blob_url_helper.dart';
 
 class OrderDetailPage extends StatelessWidget {
   final OrderModel order;
@@ -293,7 +294,7 @@ class OrderDetailPage extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: Image.network(
-              item.productImage,
+              item.productImage, // ✅ Keep SAS token
               width: 60,
               height: 60,
               fit: BoxFit.cover,

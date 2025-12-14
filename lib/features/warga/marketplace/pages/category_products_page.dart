@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:wargago/core/utils/azure_blob_url_helper.dart';
 import '../../../../core/providers/marketplace_provider.dart';
 import '../../../../core/models/marketplace_product_model.dart';
 import 'product_detail_page.dart';
@@ -233,7 +234,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage>
               ),
               child: product.imageUrls.isNotEmpty
                   ? Image.network(
-                      product.imageUrls.first,
+                      product.imageUrls.first, // ✅ Keep SAS token
                       width: double.infinity,
                       height: 140,
                       fit: BoxFit.cover,

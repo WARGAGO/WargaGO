@@ -225,14 +225,13 @@ class _EditProdukScreenState extends State<EditProdukScreen> {
             final fileName = 'product_${currentUser.uid}_${timestamp}_${_existingImageUrls.length + i}.jpg';
             final response = await azureService.uploadImage(
               file: _newImages[i],
-              isPrivate: false,
+              isPrivate: true, // ✅ CHANGED: Use PRIVATE storage with SAS tokens (like KYC)
               prefixName: 'products/', // Add trailing slash
               customFileName: fileName,
             );
 
             if (response != null) {
-              // TEMPORARY: Keep SAS token until container is set to public
-              // TODO: After setting container public, use removeSasToken()
+              // ✅ Keep SAS token - URL will be valid with authentication
               newImageUrls.add(response.blobUrl);
               print('✅ New image ${i + 1} uploaded: ${response.blobUrl}');
             }

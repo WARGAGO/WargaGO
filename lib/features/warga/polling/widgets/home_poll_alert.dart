@@ -3,20 +3,22 @@
 // ============================================================================
 // Alert banner untuk menampilkan polling aktif di home page
 // Mendukung polling resmi (official) dan komunitas (community)
+// ⭐ FITUR BARU: Auto-dismiss setelah user buka halaman polling
 // ============================================================================
 
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:wargago/core/models/poll_model.dart';
 
-class HomePollAlert extends StatelessWidget {
+class HomePollAlert extends StatefulWidget {
   final Poll? activeOfficialPoll;
   final int communityPollCount;
   final bool hasUserVoted;
   final VoidCallback onViewPollTap;
-  final VoidCallback onVoteTap;  // Changed to required (no ?)
-  final VoidCallback onViewAllCommunityTap;  // Changed to required (no ?)
+  final VoidCallback onVoteTap;
+  final VoidCallback onViewAllCommunityTap;
 
   const HomePollAlert({
     super.key,
@@ -24,47 +26,155 @@ class HomePollAlert extends StatelessWidget {
     this.communityPollCount = 0,
     this.hasUserVoted = false,
     required this.onViewPollTap,
-    required this.onVoteTap,  // Now required
-    required this.onViewAllCommunityTap,  // Now required
+    required this.onVoteTap,
+    required this.onViewAllCommunityTap,
   });
+
+  @override
+  State<HomePollAlert> createState() => _HomePollAlertState();
+}
+
+class _HomePollAlertState extends State<HomePollAlert> {
+  bool _isOfficialDismissed = false;
+  bool _isCommunityDismissed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDismissedState();
+  }
+
+  /// Load dismissed state dari SharedPreferences
+  Future<void> _loadDismissedState() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      // Check official poll dismissed state
+      if (widget.activeOfficialPoll != null) {
+        final key = 'poll_dismissed_${widget.activeOfficialPoll!.pollId}';
+        final isDismissed = prefs.getBool(key) ?? false;
+
+        if (mounted) {
+          setState(() {
+            _isOfficialDismissed = isDismissed;
+          });
+        }
+      }
+
+      // Check community polls dismissed state
+      final communityKey = 'community_polls_dismissed';
+      final lastDismissed = prefs.getInt(communityKey) ?? 0;
+      final now = DateTime.now().millisecondsSinceEpoch;
+
+      // Auto show lagi setelah 1 jam
+      if (now - lastDismissed < 3600000) {
+        if (mounted) {
+          setState(() {
+            _isCommunityDismissed = true;
+          });
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error loading dismissed state: $e');
+      }
+    }
+  }
+
+  /// Mark official poll sebagai dismissed (sementara)
+  Future<void> _dismissOfficialPoll() async {
+    if (widget.activeOfficialPoll == null) return;
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'poll_dismissed_${widget.activeOfficialPoll!.pollId}';
+      await prefs.setBool(key, true);
+
+      if (mounted) {
+        setState(() {
+          _isOfficialDismissed = true;
+        });
+      }
+
+      if (kDebugMode) {
+        print('✅ Official poll dismissed');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error dismissing official poll: $e');
+      }
+    }
+  }
+
+  /// Mark community polls sebagai dismissed (sementara - 1 jam)
+  Future<void> _dismissCommunityPolls() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final key = 'community_polls_dismissed';
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await prefs.setInt(key, now);
+
+      if (mounted) {
+        setState(() {
+          _isCommunityDismissed = true;
+        });
+      }
+
+      if (kDebugMode) {
+        print('✅ Community polls dismissed for 1 hour');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error dismissing community polls: $e');
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     // Jika tidak ada polling aktif sama sekali
-    if (activeOfficialPoll == null && communityPollCount == 0) {
+    final hasOfficialPoll = widget.activeOfficialPoll != null && !_isOfficialDismissed;
+    final hasCommunityPolls = widget.communityPollCount > 0 && !_isCommunityDismissed;
+
+    if (!hasOfficialPoll && !hasCommunityPolls) {
       return const SizedBox.shrink();
     }
 
     return Column(
       children: [
         // Official Poll Alert
-        if (activeOfficialPoll != null) ...[
+        if (hasOfficialPoll) ...[
           _buildOfficialPollAlert(context),
-          if (communityPollCount > 0) const SizedBox(height: 12),
+          if (hasCommunityPolls) const SizedBox(height: 12),
         ],
 
         // Community Polls Alert
-        if (communityPollCount > 0) _buildCommunityPollsAlert(context),
+        if (hasCommunityPolls) _buildCommunityPollsAlert(context),
       ],
     );
   }
 
   /// Build official poll alert (prioritas tinggi)
   Widget _buildOfficialPollAlert(BuildContext context) {
-    final poll = activeOfficialPoll!;
+    final poll = widget.activeOfficialPoll!;
     final timeRemaining = poll.endDate.difference(DateTime.now());
     final daysLeft = timeRemaining.inDays;
     final hoursLeft = timeRemaining.inHours % 24;
 
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
         if (kDebugMode) {
           print('🗳️ [HomePollAlert] Official poll card tapped');
         }
-        if (hasUserVoted) {
-          onViewPollTap();
+
+        // ⭐ Dismiss alert setelah diklik
+        await _dismissOfficialPoll();
+
+        // Navigate ke halaman poll
+        if (widget.hasUserVoted) {
+          widget.onViewPollTap();
         } else {
-          onVoteTap();
+          widget.onVoteTap();
         }
       },
       child: Container(
@@ -190,16 +300,21 @@ class HomePollAlert extends StatelessWidget {
               width: double.infinity,
               height: 44,
               child: ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   if (kDebugMode) {
                     print('🗳️ [HomePollAlert] Official poll button tapped');
-                    print('   hasUserVoted: $hasUserVoted');
-                    print('   Calling: ${hasUserVoted ? "onViewPollTap" : "onVoteTap"}');
+                    print('   hasUserVoted: ${widget.hasUserVoted}');
+                    print('   Calling: ${widget.hasUserVoted ? "onViewPollTap" : "onVoteTap"}');
                   }
-                  if (hasUserVoted) {
-                    onViewPollTap();
+
+                  // ⭐ Dismiss alert setelah diklik
+                  await _dismissOfficialPoll();
+
+                  // Navigate ke halaman poll
+                  if (widget.hasUserVoted) {
+                    widget.onViewPollTap();
                   } else {
-                    onVoteTap();
+                    widget.onVoteTap();
                   }
                 },
                 style: ElevatedButton.styleFrom(
@@ -214,14 +329,14 @@ class HomePollAlert extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
-                      hasUserVoted
+                      widget.hasUserVoted
                           ? Icons.poll_rounded
                           : Icons.how_to_vote_rounded,
                       size: 20,
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      hasUserVoted ? 'Lihat Hasil' : 'Vote Sekarang',
+                      widget.hasUserVoted ? 'Lihat Hasil' : 'Vote Sekarang',
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -246,11 +361,16 @@ class HomePollAlert extends StatelessWidget {
   /// Build community polls alert
   Widget _buildCommunityPollsAlert(BuildContext context) {
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
         if (kDebugMode) {
           print('🗳️ [HomePollAlert] Community polls card tapped');
         }
-        onViewAllCommunityTap();
+
+        // ⭐ Dismiss alert setelah diklik (1 jam)
+        await _dismissCommunityPolls();
+
+        // Navigate ke halaman community polls
+        widget.onViewAllCommunityTap();
       },
       child: Container(
         width: double.infinity,
@@ -308,7 +428,7 @@ class HomePollAlert extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          '$communityPollCount',
+                          '${widget.communityPollCount}',
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
@@ -356,10 +476,10 @@ class HomePollAlert extends StatelessWidget {
                 onPressed: () {
                   if (kDebugMode) {
                     print('🗳️ [HomePollAlert] Community polls button tapped');
-                    print('   communityPollCount: $communityPollCount');
+                    print('   communityPollCount: ${widget.communityPollCount}');
                     print('   Calling: onViewAllCommunityTap');
                   }
-                  onViewAllCommunityTap();
+                  widget.onViewAllCommunityTap();
                 },
                 icon: const Icon(
                   Icons.arrow_forward_rounded,

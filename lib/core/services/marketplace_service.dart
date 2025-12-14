@@ -571,10 +571,10 @@ class MarketplaceService {
         final timestamp = DateTime.now().millisecondsSinceEpoch;
         final fileName = 'product_${sellerId}_${timestamp}_$i.jpg';
 
-        // Upload to Azure Blob Storage (PRIVATE storage untuk keamanan)
+        // Upload to Azure Blob Storage (PRIVATE storage dengan SAS token seperti KYC)
         final response = await _azureStorage!.uploadImage(
           file: images[i],
-          isPrivate: true,  // Private storage untuk security
+          isPrivate: true,  // ✅ CHANGED: Use PRIVATE like KYC system
           prefixName: _azureStoragePrefix,
           customFileName: fileName,
         );

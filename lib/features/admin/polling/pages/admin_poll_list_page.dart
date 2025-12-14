@@ -520,7 +520,7 @@ class _AdminPollListPageState extends State<AdminPollListPage>
                 onTap: () => _navigateToAnalytics(poll.pollId),
                 onViewAnalytics: () => _navigateToAnalytics(poll.pollId),
                 onPin: () => _togglePin(poll.pollId, !poll.isPinned),
-                onClose: poll.isActive ? () => _closePoll(poll.pollId) : null,
+                onClose: poll.status == 'active' ? () => _closePoll(poll.pollId) : null,
                 onDelete: () => _deletePoll(poll.pollId),
               );
             },
@@ -564,7 +564,7 @@ class _AdminPollListPageState extends State<AdminPollListPage>
                 onTap: () => _navigateToAnalytics(poll.pollId),
                 onViewAnalytics: () => _navigateToAnalytics(poll.pollId),
                 onPin: () => _togglePin(poll.pollId, !poll.isPinned),
-                onClose: poll.isActive ? () => _closePoll(poll.pollId) : null,
+                onClose: poll.status == 'active' ? () => _closePoll(poll.pollId) : null,
                 onDelete: () => _deletePoll(poll.pollId),
               );
             },
