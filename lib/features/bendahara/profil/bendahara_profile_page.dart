@@ -66,14 +66,19 @@ class _BendaharaProfilePageState extends State<BendaharaProfilePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Profile Header Card (inline karena lebih mudah dikustomisasi)
+                        // Profile Header Card
                         Container(
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF2F80ED).withOpacity(0.1),
+                            color: const Color(
+                              0xFF2F80ED,
+                            ).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: const Color(0xFF2F80ED).withOpacity(0.3),
+                              color: const Color(
+                                0xFF2F80ED,
+                              ).withValues(alpha: 0.3),
+                              width: 1,
                             ),
                           ),
                           child: Row(
@@ -101,21 +106,47 @@ class _BendaharaProfilePageState extends State<BendaharaProfilePage> {
                                       ),
                                     ),
                                     const SizedBox(height: 4),
-                                    Text(
-                                      'Bendahara',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 14,
-                                        color: const Color(0xFF2F80ED),
-                                        fontWeight: FontWeight.w600,
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: const Color(
+                                          0xFF2F80ED,
+                                        ).withValues(alpha: 0.2),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        'Bendahara',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: const Color(0xFF2F80ED),
+                                        ),
                                       ),
                                     ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      user?.email ?? 'bendahara@wargago.com',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 13,
-                                        color: Colors.grey.shade600,
-                                      ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.email_outlined,
+                                          size: 16,
+                                          color: Color(0xFF718096),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Expanded(
+                                          child: Text(
+                                            user?.email ??
+                                                'bendahara@wargago.com',
+                                            style: GoogleFonts.poppins(
+                                              fontSize: 13,
+                                              color: Colors.grey.shade600,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
@@ -123,18 +154,18 @@ class _BendaharaProfilePageState extends State<BendaharaProfilePage> {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 32),
 
-                        // Info Section
+                        // Informasi Akun
                         Text(
                           'Informasi Akun',
                           style: GoogleFonts.poppins(
-                            fontSize: 16,
+                            fontSize: 18,
                             fontWeight: FontWeight.w600,
                             color: const Color(0xFF2D3748),
                           ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
                         Container(
                           padding: const EdgeInsets.all(20),
                           decoration: BoxDecoration(
@@ -142,13 +173,15 @@ class _BendaharaProfilePageState extends State<BendaharaProfilePage> {
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                               colors: [
-                                const Color(0xFF2F80ED).withAlpha(13),
-                                const Color(0xFF2F80ED).withAlpha(5),
+                                const Color(0xFF2F80ED).withValues(alpha: 0.05),
+                                const Color(0xFF2F80ED).withValues(alpha: 0.02),
                               ],
                             ),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: const Color(0xFF2F80ED).withAlpha(51),
+                              color: const Color(
+                                0xFF2F80ED,
+                              ).withValues(alpha: 0.2),
                               width: 1,
                             ),
                           ),
@@ -157,21 +190,23 @@ class _BendaharaProfilePageState extends State<BendaharaProfilePage> {
                               _buildInfoRow(
                                 icon: Icons.badge_outlined,
                                 label: 'NIK',
-                                value: user?.nik ?? '3201234567890123',
+                                value:
+                                    '3201234567890123', // Sementara hardcode karena UserModel belum punya field nik
                               ),
-                              const Divider(height: 24),
+                              const Divider(height: 32, thickness: 1),
                               _buildInfoRow(
                                 icon: Icons.phone_outlined,
                                 label: 'Nomor Telepon',
-                                value: user?.noTelp ?? '+62 812-3456-7890',
+                                value:
+                                    '+62 812-3456-7890', // Sementara hardcode karena UserModel belum punya field noTelp
                               ),
-                              const Divider(height: 24),
+                              const Divider(height: 32, thickness: 1),
                               _buildInfoRow(
                                 icon: Icons.location_on_outlined,
                                 label: 'Alamat',
                                 value: 'Jl. Merdeka No. 123, RT 02/RW 05',
                               ),
-                              const Divider(height: 24),
+                              const Divider(height: 32, thickness: 1),
                               _buildInfoRow(
                                 icon: Icons.work_outline,
                                 label: 'Masa Jabatan',
@@ -180,33 +215,33 @@ class _BendaharaProfilePageState extends State<BendaharaProfilePage> {
                             ],
                           ),
                         ),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 40),
 
                         // Logout Button
                         SizedBox(
                           width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              _showLogoutConfirmation(context);
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFE74C3C),
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            child: Text(
-                              'Keluar',
+                          child: ElevatedButton.icon(
+                            onPressed: () => _showLogoutConfirmation(context),
+                            icon: const Icon(Icons.logout, size: 20),
+                            label: Text(
+                              'Keluar dari Akun',
                               style: GoogleFonts.poppins(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.white,
                               ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFE74C3C),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 18),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              elevation: 0,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 32),
                       ],
                     ),
                   ),
@@ -228,13 +263,13 @@ class _BendaharaProfilePageState extends State<BendaharaProfilePage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: 40,
-          height: 40,
+          width: 44,
+          height: 44,
           decoration: BoxDecoration(
-            color: const Color(0xFF2F80ED).withAlpha(25),
-            borderRadius: BorderRadius.circular(10),
+            color: const Color(0xFF2F80ED).withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: const Color(0xFF2F80ED), size: 20),
+          child: Icon(icon, color: const Color(0xFF2F80ED), size: 24),
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -244,15 +279,16 @@ class _BendaharaProfilePageState extends State<BendaharaProfilePage> {
               Text(
                 label,
                 style: GoogleFonts.poppins(
-                  fontSize: 12,
+                  fontSize: 13,
                   color: const Color(0xFF718096),
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 6),
               Text(
                 value,
                 style: GoogleFonts.poppins(
-                  fontSize: 14,
+                  fontSize: 15,
                   fontWeight: FontWeight.w600,
                   color: const Color(0xFF2D3748),
                 ),
@@ -265,6 +301,8 @@ class _BendaharaProfilePageState extends State<BendaharaProfilePage> {
   }
 
   void _showLogoutConfirmation(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -274,22 +312,22 @@ class _BendaharaProfilePageState extends State<BendaharaProfilePage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFFE74C3C).withAlpha(25),
+                color: const Color(0xFFE74C3C).withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.logout,
-                size: 48,
+                size: 56,
                 color: Color(0xFFE74C3C),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             Text(
               'Keluar dari Akun?',
               style: GoogleFonts.poppins(
-                fontSize: 20,
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
                 color: const Color(0xFF2D3748),
               ),
@@ -299,20 +337,23 @@ class _BendaharaProfilePageState extends State<BendaharaProfilePage> {
               'Anda akan keluar dari akun dan harus login kembali untuk mengakses aplikasi.',
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
-                fontSize: 14,
+                fontSize: 15,
                 color: const Color(0xFF718096),
-                height: 1.5,
+                height: 1.6,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => Navigator.pop(context),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      side: const BorderSide(color: Color(0xFFE2E8F0)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      side: const BorderSide(
+                        color: Color(0xFFE2E8F0),
+                        width: 1.5,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -320,14 +361,14 @@ class _BendaharaProfilePageState extends State<BendaharaProfilePage> {
                     child: Text(
                       'Batal',
                       style: GoogleFonts.poppins(
-                        fontSize: 14,
+                        fontSize: 15,
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFF4A5568),
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 16),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () async {
@@ -339,15 +380,16 @@ class _BendaharaProfilePageState extends State<BendaharaProfilePage> {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFE74C3C),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      elevation: 0,
                     ),
                     child: Text(
                       'Keluar',
                       style: GoogleFonts.poppins(
-                        fontSize: 14,
+                        fontSize: 15,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
                       ),
