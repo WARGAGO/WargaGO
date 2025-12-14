@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider; // Hide Firebase's AuthProvider to avoid conflict
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
@@ -10,7 +11,7 @@ import 'package:wargago/core/providers/instance_provider.dart';
 import 'package:wargago/core/services/gemini_service.dart';
 import 'firebase_options.dart';
 import 'app/app.dart';
-import 'core/providers/auth_provider.dart';
+import 'core/providers/auth_provider.dart'; // Our custom AuthProvider
 import 'core/providers/warga_provider.dart';
 import 'core/providers/rumah_provider.dart';
 import 'core/providers/keluarga_provider.dart';
@@ -54,6 +55,25 @@ void main() async {
 
   // Initialize Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // ============================================================================
+  // 🔐 FIREBASE AUTH PERSISTENCE - AUTO LOGIN FEATURE
+  // ============================================================================
+  // Enable session persistence so users don't need to login every time
+  // This keeps the user logged in even after closing the app
+  try {
+    await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
+    if (kDebugMode) {
+      print('✅ Firebase Auth persistence enabled (LOCAL)');
+      print('   Users will stay logged in after closing app');
+    }
+  } catch (e) {
+    if (kDebugMode) {
+      print('⚠️  Could not set Firebase Auth persistence: $e');
+      print('   (This is normal on web platform)');
+    }
+  }
+  // ============================================================================
 
   // Configure Firestore for real-time updates
   final firestore = FirebaseFirestore.instance;

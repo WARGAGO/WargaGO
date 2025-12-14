@@ -6,6 +6,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wargago/core/utils/azure_blob_url_helper.dart';
 
 class CheckoutProductItem extends StatelessWidget {
   final String storeName;
@@ -93,7 +94,7 @@ class CheckoutProductItem extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: Image.network(
-                    imageUrl,
+                    imageUrl, // ✅ Keep SAS token
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       // Fallback icon ketika image gagal load

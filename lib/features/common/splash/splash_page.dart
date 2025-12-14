@@ -3,7 +3,9 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 import 'package:wargago/core/constants/app_routes.dart';
+import 'package:wargago/core/providers/auth_provider.dart';
 
 const _wordmarkText = 'WargaGO';
 const _accentColor = Color(0xFF2F80ED);
@@ -278,11 +280,57 @@ class _SplashPageState extends State<SplashPage>
 
     c.addStatusListener((s) {
       if (s == AnimationStatus.completed && mounted) {
-        context.go(AppRoutes.onboarding);
+        _navigateBasedOnAuthState();
       }
     });
 
     c.forward();
+  }
+
+  /// 🔐 Check auth state and navigate accordingly
+  /// Implements Session Persistence - user stays logged in after closing app
+  void _navigateBasedOnAuthState() async {
+    final authProvider = context.read<AuthProvider>();
+
+    // Wait a bit to ensure auth state is loaded
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    if (!mounted) return;
+
+    if (authProvider.isAuthenticated && authProvider.userModel != null) {
+      // User is logged in - navigate based on role and status
+      final user = authProvider.userModel!;
+
+      print('✅ User already logged in: ${user.email}');
+      print('   Role: ${user.role}');
+      print('   Status: ${user.status}');
+
+      // Navigate based on role and status
+      if (user.status == 'rejected') {
+        context.go(AppRoutes.rejected, extra: {'reason': 'Akun Anda ditolak'});
+      } else if (user.status == 'pending' || user.status == 'unverified') {
+        context.go(AppRoutes.pending);
+      } else if (user.status == 'approved') {
+        // Navigate to appropriate dashboard based on role
+        if (user.role == 'admin') {
+          context.go(AppRoutes.adminDashboard);
+        } else if (user.role == 'bendahara') {
+          context.go(AppRoutes.bendaharaDashboard);
+        } else if (user.role == 'sekretaris') {
+          context.go(AppRoutes.sekretarisDashboard);
+        } else {
+          // Default to warga dashboard
+          context.go(AppRoutes.wargaDashboard);
+        }
+      } else {
+        // Unknown status, go to pending
+        context.go(AppRoutes.pending);
+      }
+    } else {
+      // User not logged in - go to onboarding
+      print('ℹ️  No active session - navigating to onboarding');
+      context.go(AppRoutes.onboarding);
+    }
   }
 
   @override

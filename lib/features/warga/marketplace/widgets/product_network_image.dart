@@ -3,10 +3,12 @@
 // ============================================================================
 // Reusable widget untuk menampilkan gambar produk dari network dengan
 // proper error handling untuk Azure Blob Storage expired SAS token
+// ✅ AUTO FALLBACK: Coba dengan token, kalau expired coba tanpa token
 // ============================================================================
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:wargago/core/widgets/smart_network_image.dart';
 
 class ProductNetworkImage extends StatelessWidget {
   final String imageUrl;
@@ -26,69 +28,55 @@ class ProductNetworkImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ SmartNetworkImage: Auto-handles expired SAS tokens
+    // 1. Try original URL (with token)
+    // 2. If 403 and token expired → Try without token
+    // 3. If still fails → Show error placeholder
+
     return ClipRRect(
       borderRadius: borderRadius ?? BorderRadius.zero,
-      child: Image.network(
-        imageUrl,
+      child: SmartNetworkImage(
+        imageUrl: imageUrl,
         width: width,
         height: height,
         fit: fit,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return Container(
-            width: width,
-            height: height,
-            color: const Color(0xFFF8F9FD),
-            child: Center(
-              child: SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: const AlwaysStoppedAnimation<Color>(
-                    Color(0xFF2F80ED),
-                  ),
-                  value: loadingProgress.expectedTotalBytes != null
-                      ? loadingProgress.cumulativeBytesLoaded /
-                          loadingProgress.expectedTotalBytes!
-                      : null,
+        // SmartNetworkImage already has built-in loading and error handling
+        errorWidget: _buildErrorWidget(),
+      ),
+    );
+  }
+
+  Widget _buildErrorWidget() {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: const Color(0xFF2F80ED).withValues(alpha: 0.1),
+        borderRadius: borderRadius ?? BorderRadius.zero,
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.shopping_bag_outlined,
+            color: const Color(0xFF2F80ED).withValues(alpha: 0.5),
+            size: (height ?? 100) * 0.3,
+          ),
+          if (height != null && height! > 80) ...[
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Text(
+                'Gambar tidak tersedia',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 10,
+                  color: const Color(0xFF6B7280),
                 ),
               ),
             ),
-          );
-        },
-        errorBuilder: (context, error, stackTrace) {
-          // Handle error - show fallback icon
-          return Container(
-            width: width,
-            height: height,
-            color: const Color(0xFF2F80ED).withValues(alpha: 0.1),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.shopping_bag_outlined,
-                  color: const Color(0xFF2F80ED).withValues(alpha: 0.5),
-                  size: (height ?? 100) * 0.3,
-                ),
-                if (height != null && height! > 80) ...[
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Text(
-                      'Gambar tidak tersedia',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.poppins(
-                        fontSize: 10,
-                        color: const Color(0xFF6B7280),
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          );
-        },
+          ],
+        ],
       ),
     );
   }
@@ -107,41 +95,22 @@ class ProductAvatarImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ✅ SmartNetworkImage: Auto-handles expired SAS tokens
+
     return CircleAvatar(
       radius: radius,
       backgroundColor: const Color(0xFF2F80ED).withValues(alpha: 0.1),
       child: ClipOval(
-        child: Image.network(
-          imageUrl,
+        child: SmartNetworkImage(
+          imageUrl: imageUrl,
           width: radius * 2,
           height: radius * 2,
           fit: BoxFit.cover,
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) return child;
-            return SizedBox(
-              width: radius * 2,
-              height: radius * 2,
-              child: Center(
-                child: SizedBox(
-                  width: radius * 0.6,
-                  height: radius * 0.6,
-                  child: const CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Color(0xFF2F80ED),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-          errorBuilder: (context, error, stackTrace) {
-            return Icon(
-              Icons.shopping_bag_outlined,
-              color: const Color(0xFF2F80ED),
-              size: radius,
-            );
-          },
+          errorWidget: Icon(
+            Icons.shopping_bag_outlined,
+            color: const Color(0xFF2F80ED),
+            size: radius,
+          ),
         ),
       ),
     );

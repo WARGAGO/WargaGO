@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:wargago/core/utils/azure_blob_url_helper.dart';
 import '../../../../core/providers/cart_provider.dart';
 import '../../../../core/models/cart_item_model.dart';
 import 'payment_page.dart';
@@ -472,7 +473,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     ],
                   ),
                   child: Image.network(
-                    item.productImage,
+                    item.productImage, // ✅ Keep SAS token
                     width: 70,
                     height: 70,
                     fit: BoxFit.cover,

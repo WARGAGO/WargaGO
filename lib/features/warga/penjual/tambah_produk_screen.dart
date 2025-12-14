@@ -207,14 +207,13 @@ class _TambahProdukScreenState extends State<TambahProdukScreen> {
           final fileName = 'product_${currentUser.uid}_${timestamp}_$i.jpg';
           final response = await azureService.uploadImage(
             file: _productImages[i],
-            isPrivate: false, // Public untuk produk
+            isPrivate: true, // ✅ CHANGED: Use PRIVATE storage with SAS tokens (like KYC)
             prefixName: 'products/', // Add trailing slash
             customFileName: fileName,
           );
 
           if (response != null) {
-            // TEMPORARY: Keep SAS token until container is set to public
-            // TODO: After setting container public, use removeSasToken()
+            // ✅ Keep SAS token - URL will be valid with authentication
             uploadedImageUrls.add(response.blobUrl);
             print('✅ Image ${i + 1} uploaded: ${response.blobUrl}');
           }

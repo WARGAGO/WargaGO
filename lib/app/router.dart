@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show SystemUiOverlayStyle, SystemChrome;
 import 'package:go_router/go_router.dart';
+import 'package:wargago/core/utils/page_transitions.dart';
 import 'package:wargago/core/widgets/admin_app_bottom_navigation.dart';
 import 'package:wargago/core/widgets/warga_app_bottom_navigation.dart';
 import 'package:wargago/features/admin/dashboard/dashboard_detail_page.dart';
@@ -52,12 +53,15 @@ class AppRouterConfig {
       GoRoute(
         path: AppRoutes.splash,
         name: 'splash',
-        builder: (context, state) => const SplashPage(),
+        pageBuilder: (context, state) => PageTransitions.fadeTransition(
+          key: state.pageKey,
+          child: const SplashPage(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.onboarding,
         name: 'onboarding',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           SystemChrome.setSystemUIOverlayStyle(
             const SystemUiOverlayStyle(
               statusBarColor: Colors.transparent,
@@ -67,98 +71,134 @@ class AppRouterConfig {
               systemNavigationBarDividerColor: Colors.transparent,
             ),
           );
-          return const OnboardingPage();
+          return PageTransitions.fadeTransition(
+            key: state.pageKey,
+            child: const OnboardingPage(),
+            duration: const Duration(milliseconds: 500),
+          );
         },
       ),
       GoRoute(
         path: AppRoutes.preAuth,
         name: 'preAuth',
-        builder: (context, state) => const PreAuthPage(),
+        pageBuilder: (context, state) => PageTransitions.scaleTransition(
+          key: state.pageKey,
+          child: const PreAuthPage(),
+          duration: const Duration(milliseconds: 400),
+        ),
       ),
 
       // ========== AUTH ROUTES ==========
       GoRoute(
         path: AppRoutes.login,
         name: 'login',
-        builder: (context, state) => const UnifiedLoginPage(),
+        pageBuilder: (context, state) => PageTransitions.slideAndFade(
+          key: state.pageKey,
+          child: const UnifiedLoginPage(),
+          duration: const Duration(milliseconds: 400),
+        ),
       ),
 
       GoRoute(
         path: AppRoutes.forgotPassword,
         name: 'forgotPassword',
-        builder: (context, state) => const LupaPage(),
+        pageBuilder: (context, state) => PageTransitions.slideFromBottom(
+          key: state.pageKey,
+          child: const LupaPage(),
+        ),
       ),
 
       // ========== BENDAHARA ROUTES ==========
       GoRoute(
         path: AppRoutes.bendaharaDashboard,
         name: 'bendaharaDashboard',
-        builder: (context, state) => const BendaharaDashboardPage(),
+        pageBuilder: (context, state) => PageTransitions.sharedAxis(
+          key: state.pageKey,
+          child: const BendaharaDashboardPage(),
+        ),
       ),
 
       // ========== SEKRETARIS ROUTES ==========
       GoRoute(
         path: AppRoutes.sekretarisDashboard,
         name: 'sekretarisDashboard',
-        builder: (context, state) => const SekretarisMainPage(),
+        pageBuilder: (context, state) => PageTransitions.sharedAxis(
+          key: state.pageKey,
+          child: const SekretarisMainPage(),
+        ),
       ),
 
       // ========== WARGA ROUTES ==========
       GoRoute(
         path: AppRoutes.wargaRegister,
         name: 'wargaRegister',
-        builder: (context, state) => const WargaRegisterPage(),
+        pageBuilder: (context, state) => PageTransitions.slideAndFade(
+          key: state.pageKey,
+          child: const WargaRegisterPage(),
+          duration: const Duration(milliseconds: 400),
+        ),
       ),
       GoRoute(
         path: AppRoutes.wargaKYC,
         name: 'wargaKYC',
-        builder: (context, state) => const KYCUploadPage(),
+        pageBuilder: (context, state) => PageTransitions.slideAndFade(
+          key: state.pageKey,
+          child: const KYCUploadPage(),
+          duration: const Duration(milliseconds: 400),
+        ),
       ),
       // 🆕 NEW: Alamat Rumah & Data Keluarga Flow
       GoRoute(
         path: AppRoutes.wargaAlamatRumah,
         name: 'wargaAlamatRumah',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final kycData = state.extra as Map<String, dynamic>;
-          return AlamatRumahPage(kycData: kycData);
+          return PageTransitions.slideAndFade(
+            key: state.pageKey,
+            child: AlamatRumahPage(kycData: kycData),
+            duration: const Duration(milliseconds: 400),
+          );
         },
       ),
       GoRoute(
         path: AppRoutes.wargaDataKeluarga,
         name: 'wargaDataKeluarga',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final completeData = state.extra as Map<String, dynamic>;
-          return DataKeluargaPage(completeData: completeData);
+          return PageTransitions.slideAndFade(
+            key: state.pageKey,
+            child: DataKeluargaPage(completeData: completeData),
+            duration: const Duration(milliseconds: 400),
+          );
         },
       ),
 
       GoRoute(
         path: AppRoutes.wargaClassificationCamera,
         name: 'wargaClassificationCamera',
-        pageBuilder: (context, state) => CustomTransitionPage(
+        pageBuilder: (context, state) => PageTransitions.noTransition(
           key: state.pageKey,
-          child: WargaAppBottomNavigation(child: ClassificationCameraPage()),
-          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-            return FadeTransition(
-              opacity: Tween<double>(begin: 1.0, end: 1.0).animate(animation),
-              child: child,
-            );
-          },
-          transitionDuration: const Duration(milliseconds: 1),
+          child: ClassificationCameraPage(),
         ),
       ),
       // ========== STATUS ROUTES ==========
       GoRoute(
         path: AppRoutes.pending,
         name: 'pending',
-        builder: (context, state) => const PendingApprovalPage(),
+        pageBuilder: (context, state) => PageTransitions.scaleTransition(
+          key: state.pageKey,
+          child: const PendingApprovalPage(),
+        ),
       ),
       GoRoute(
         path: AppRoutes.rejected,
         name: 'rejected',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final extra = state.extra as Map<String, dynamic>?;
-          return RejectedPage(reason: extra?['reason'] as String?);
+          return PageTransitions.scaleTransition(
+            key: state.pageKey,
+            child: RejectedPage(reason: extra?['reason'] as String?),
+          );
         },
       ),
 
@@ -181,17 +221,29 @@ class AppRouterConfig {
               GoRoute(
                 path: AppRoutes.adminDashboard,
                 name: 'adminDashboard',
-                builder: (context, state) => const DashboardPage(),
+                pageBuilder: (context, state) => PageTransitions.fadeTransition(
+                  key: state.pageKey,
+                  child: const DashboardPage(),
+                  duration: const Duration(milliseconds: 250),
+                ),
               ),
               GoRoute(
                 path: AppRoutes.adminDashboardSelengkapnya,
                 name: 'adminDashboardSelengkapnya',
-                builder: (context, state) => const DashboardDetailPage(),
+                pageBuilder: (context, state) => PageTransitions.slideFromRight(
+                  key: state.pageKey,
+                  child: const DashboardDetailPage(),
+                  duration: const Duration(milliseconds: 350),
+                ),
               ),
               GoRoute(
                 path: AppRoutes.adminKelolaPolling,
                 name: 'adminKelolaPolling',
-                builder: (context, state) => const AdminPollListPage(),
+                pageBuilder: (context, state) => PageTransitions.slideFromRight(
+                  key: state.pageKey,
+                  child: const AdminPollListPage(),
+                  duration: const Duration(milliseconds: 350),
+                ),
               ),
             ],
           ),
@@ -201,7 +253,11 @@ class AppRouterConfig {
               GoRoute(
                 path: '/admin/data-warga',
                 name: 'adminDataWarga',
-                builder: (context, state) => const DataWargaMainPage(),
+                pageBuilder: (context, state) => PageTransitions.fadeTransition(
+                  key: state.pageKey,
+                  child: const DataWargaMainPage(),
+                  duration: const Duration(milliseconds: 250),
+                ),
               ),
             ],
           ),
@@ -211,7 +267,11 @@ class AppRouterConfig {
               GoRoute(
                 path: '/admin/keuangan',
                 name: 'adminKeuangan',
-                builder: (context, state) => const KeuanganPage(),
+                pageBuilder: (context, state) => PageTransitions.fadeTransition(
+                  key: state.pageKey,
+                  child: const KeuanganPage(),
+                  duration: const Duration(milliseconds: 250),
+                ),
               ),
             ],
           ),
@@ -221,7 +281,11 @@ class AppRouterConfig {
               GoRoute(
                 path: '/admin/profile',
                 name: 'adminProfile',
-                builder: (context, state) => const KelolaLapakPage(),
+                pageBuilder: (context, state) => PageTransitions.fadeTransition(
+                  key: state.pageKey,
+                  child: const KelolaLapakPage(),
+                  duration: const Duration(milliseconds: 250),
+                ),
               ),
             ],
           ),
@@ -241,7 +305,11 @@ class AppRouterConfig {
               GoRoute(
                 path: AppRoutes.wargaDashboard,
                 name: 'wargaDashboard',
-                builder: (context, state) => const WargaHomePage(),
+                pageBuilder: (context, state) => PageTransitions.fadeTransition(
+                  key: state.pageKey,
+                  child: const WargaHomePage(),
+                  duration: const Duration(milliseconds: 250),
+                ),
               ),
             ],
           ),
@@ -250,25 +318,41 @@ class AppRouterConfig {
               GoRoute(
                 path: AppRoutes.wargaMarketplace,
                 name: 'wargaMarketplace',
-                builder: (context, state) => const WargaMarketplacePage(),
+                pageBuilder: (context, state) => PageTransitions.fadeTransition(
+                  key: state.pageKey,
+                  child: const WargaMarketplacePage(),
+                  duration: const Duration(milliseconds: 250),
+                ),
               ),
               GoRoute(
                 path: AppRoutes.wargaPesananSaya,
                 name: 'wargaPesananSaya',
-                builder: (context, state) => const MyOrdersPage(),
+                pageBuilder: (context, state) => PageTransitions.slideAndFade(
+                  key: state.pageKey,
+                  child: const MyOrdersPage(),
+                  duration: const Duration(milliseconds: 350),
+                ),
               ),
               GoRoute(
                 path: AppRoutes.wargaKeranjangSaya,
                 name: 'wargaKeranjangSaya',
-                builder: (context, state) => const CartPage(),
+                pageBuilder: (context, state) => PageTransitions.slideFromBottom(
+                  key: state.pageKey,
+                  child: const CartPage(),
+                  duration: const Duration(milliseconds: 400),
+                ),
               ),
               GoRoute(
                 path: AppRoutes.wargaItemDetail,
                 name: 'wargaItemDetail',
-                builder: (context, state) {
+                pageBuilder: (context, state) {
                   final extras = Map<String, dynamic>.from(state.extra as Map);
-                  return ProductDetailPage(
-                    productId: extras['productId'] as String,
+                  return PageTransitions.slideAndFade(
+                    key: state.pageKey,
+                    child: ProductDetailPage(
+                      productId: extras['productId'] as String,
+                    ),
+                    duration: const Duration(milliseconds: 350),
                   );
                 },
               ),
@@ -279,7 +363,11 @@ class AppRouterConfig {
               GoRoute(
                 path: AppRoutes.wargaIuran,
                 name: 'wargaIuran',
-                builder: (context, state) => const IuranWargaPage(),
+                pageBuilder: (context, state) => PageTransitions.fadeTransition(
+                  key: state.pageKey,
+                  child: const IuranWargaPage(),
+                  duration: const Duration(milliseconds: 250),
+                ),
               ),
             ],
           ),
@@ -288,17 +376,29 @@ class AppRouterConfig {
               GoRoute(
                 path: AppRoutes.wargaAkun,
                 name: 'wargaAkun',
-                builder: (context, state) => AkunScreen(),
+                pageBuilder: (context, state) => PageTransitions.fadeTransition(
+                  key: state.pageKey,
+                  child: AkunScreen(),
+                  duration: const Duration(milliseconds: 250),
+                ),
               ),
               GoRoute(
                 path: AppRoutes.wargaEditProfile,
                 name: 'wargaEditProfile',
-                builder: (context, state) => EditProfilScreen(),
+                pageBuilder: (context, state) => PageTransitions.slideAndFade(
+                  key: state.pageKey,
+                  child: EditProfilScreen(),
+                  duration: const Duration(milliseconds: 350),
+                ),
               ),
               GoRoute(
                 path: AppRoutes.wargaTokoSaya,
                 name: 'wargaTokoSaya',
-                builder: (context, state) => TokoSayaScreen(),
+                pageBuilder: (context, state) => PageTransitions.slideAndFade(
+                  key: state.pageKey,
+                  child: TokoSayaScreen(),
+                  duration: const Duration(milliseconds: 350),
+                ),
               ),
             ],
           ),

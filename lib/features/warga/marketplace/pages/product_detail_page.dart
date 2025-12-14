@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/providers/marketplace_provider.dart';
 import '../../../../core/providers/cart_provider.dart';
 import '../../../../core/models/marketplace_product_model.dart';
+import '../../../../core/utils/azure_blob_url_helper.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final String productId;
@@ -181,7 +182,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             flexibleSpace: FlexibleSpaceBar(
               background: _product!.imageUrls.isNotEmpty
                   ? Image.network(
-                      _product!.imageUrls.first,
+                      _product!.imageUrls.first, // ✅ Keep SAS token
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
