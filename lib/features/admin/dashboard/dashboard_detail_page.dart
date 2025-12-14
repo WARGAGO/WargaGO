@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class DashboardDetailPage extends StatelessWidget {
@@ -15,7 +16,7 @@ class DashboardDetailPage extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF1F1F1F)),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(context),
         ),
         title: Text(
           'Dashboard Selengkapnya',

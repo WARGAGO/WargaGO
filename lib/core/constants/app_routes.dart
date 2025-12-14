@@ -13,7 +13,10 @@ class AppRoutes {
   static const String login = '/login';
   static const String forgotPassword = '/login/forgot';
   static const String adminDashboard = '/admin/dashboard';
+  static const String adminDashboardSelengkapnya =
+      '/admin/dashboard-selengkapnya';
   static const String adminVerifyWarga = '/admin/verify-warga';
+  static const String adminKelolaPolling = '/admin/kelola-polling';
 
   // ========== BENDAHARA ROUTES ==========
   static const String bendaharaDashboard = '/bendahara/dashboard';
@@ -25,7 +28,8 @@ class AppRoutes {
   static const String wargaRegister = '/warga/register';
   static const String wargaKYC = '/warga/kyc';
   static const String wargaAlamatRumah = '/warga/alamat-rumah'; // 🆕 After KYC
-  static const String wargaDataKeluarga = '/warga/data-keluarga'; // 🆕 After Alamat
+  static const String wargaDataKeluarga =
+      '/warga/data-keluarga'; // 🆕 After Alamat
   static const String wargaDashboard = '/warga/dashboard';
 
   static const String wargaMarketplace = '/warga/marketplace';

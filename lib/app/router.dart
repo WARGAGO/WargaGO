@@ -3,9 +3,11 @@ import 'package:flutter/services.dart' show SystemUiOverlayStyle, SystemChrome;
 import 'package:go_router/go_router.dart';
 import 'package:wargago/core/widgets/admin_app_bottom_navigation.dart';
 import 'package:wargago/core/widgets/warga_app_bottom_navigation.dart';
+import 'package:wargago/features/admin/dashboard/dashboard_detail_page.dart';
 import 'package:wargago/features/admin/data_warga/data_warga_main_page.dart';
 import 'package:wargago/features/admin/kelola_lapak/kelola_lapak_page.dart';
 import 'package:wargago/features/admin/keuangan/keuangan_page.dart';
+import 'package:wargago/features/admin/polling/pages/admin_poll_list_page.dart';
 import 'package:wargago/features/common/auth/presentation/pages/warga/lupa_page.dart';
 import 'package:wargago/features/common/splash/splash_page.dart';
 import 'package:wargago/features/common/onboarding/onboarding_page.dart';
@@ -180,6 +182,16 @@ class AppRouterConfig {
                 path: AppRoutes.adminDashboard,
                 name: 'adminDashboard',
                 builder: (context, state) => const DashboardPage(),
+              ),
+              GoRoute(
+                path: AppRoutes.adminDashboardSelengkapnya,
+                name: 'adminDashboardSelengkapnya',
+                builder: (context, state) => const DashboardDetailPage(),
+              ),
+              GoRoute(
+                path: AppRoutes.adminKelolaPolling,
+                name: 'adminKelolaPolling',
+                builder: (context, state) => const AdminPollListPage(),
               ),
             ],
           ),

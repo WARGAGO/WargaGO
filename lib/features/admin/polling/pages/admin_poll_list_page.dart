@@ -56,7 +56,10 @@ class _AdminPollListPageState extends State<AdminPollListPage>
           return [
             // Modern App Bar with Gradient
             SliverAppBar(
+              automaticallyImplyLeading: false,
               expandedHeight: 200,
+              collapsedHeight: 24,
+              toolbarHeight: 24,
               floating: false,
               pinned: true,
               elevation: 0,
@@ -67,10 +70,7 @@ class _AdminPollListPageState extends State<AdminPollListPage>
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [
-                        Color(0xFF3B82F6),
-                        Color(0xFF2563EB),
-                      ],
+                      colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
                     ),
                   ),
                   child: SafeArea(
@@ -117,7 +117,9 @@ class _AdminPollListPageState extends State<AdminPollListPage>
                                       'Manajemen & Monitoring',
                                       style: GoogleFonts.poppins(
                                         fontSize: 14,
-                                        color: Colors.white.withValues(alpha: 0.9),
+                                        color: Colors.white.withValues(
+                                          alpha: 0.9,
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -154,9 +156,7 @@ class _AdminPollListPageState extends State<AdminPollListPage>
           ];
         },
         body: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-          ),
+          decoration: const BoxDecoration(color: Colors.white),
           child: TabBarView(
             controller: _tabController,
             children: [
@@ -223,10 +223,7 @@ class _AdminPollListPageState extends State<AdminPollListPage>
                           decoration: BoxDecoration(
                             color: Colors.red,
                             shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white,
-                              width: 2,
-                            ),
+                            border: Border.all(color: Colors.white, width: 2),
                           ),
                           constraints: const BoxConstraints(
                             minWidth: 20,
@@ -343,10 +340,7 @@ class _AdminPollListPageState extends State<AdminPollListPage>
       indicator: BoxDecoration(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
         border: Border(
-          bottom: BorderSide(
-            color: const Color(0xFF3B82F6),
-            width: 3,
-          ),
+          bottom: BorderSide(color: const Color(0xFF3B82F6), width: 3),
         ),
       ),
       indicatorSize: TabBarIndicatorSize.tab,
@@ -380,10 +374,7 @@ class _AdminPollListPageState extends State<AdminPollListPage>
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         gradient: const LinearGradient(
-          colors: [
-            Color(0xFF3B82F6),
-            Color(0xFF2563EB),
-          ],
+          colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
         ),
         boxShadow: [
           BoxShadow(
@@ -641,11 +632,7 @@ class _AdminPollListPageState extends State<AdminPollListPage>
                 ),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
-                icon,
-                size: 80,
-                color: color.withValues(alpha: 0.4),
-              ),
+              child: Icon(icon, size: 80, color: color.withValues(alpha: 0.4)),
             ),
             const SizedBox(height: 24),
             Text(
@@ -703,9 +690,7 @@ class _AdminPollListPageState extends State<AdminPollListPage>
           style: GoogleFonts.poppins(),
         ),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -714,9 +699,7 @@ class _AdminPollListPageState extends State<AdminPollListPage>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           'Tutup Polling?',
           style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
@@ -758,9 +741,7 @@ class _AdminPollListPageState extends State<AdminPollListPage>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           'Hapus Polling?',
           style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
@@ -798,4 +779,3 @@ class _AdminPollListPageState extends State<AdminPollListPage>
     );
   }
 }
-

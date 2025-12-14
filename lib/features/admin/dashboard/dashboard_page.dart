@@ -20,8 +20,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:wargago/core/constants/app_routes.dart';
 
 import 'package:wargago/core/widgets/admin_app_bottom_navigation.dart';
 import 'package:wargago/features/admin/profile/admin_profile_page.dart';
@@ -1966,14 +1968,7 @@ class _PrimaryActionButton extends StatelessWidget {
           ),
           padding: EdgeInsets.zero,
         ),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const DashboardDetailPage(),
-            ),
-          );
-        },
+        onPressed: () => context.push(AppRoutes.adminDashboardSelengkapnya),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -2026,14 +2021,7 @@ class _KelolaPollingCard extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const AdminPollListPage(),
-              ),
-            );
-          },
+          onTap: () => context.push(AppRoutes.adminKelolaPolling),
           borderRadius: BorderRadius.circular(20),
           child: Padding(
             padding: const EdgeInsets.all(20),

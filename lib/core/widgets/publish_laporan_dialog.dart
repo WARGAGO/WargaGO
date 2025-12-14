@@ -201,9 +201,7 @@ class _PublishLaporanDialogState extends State<PublishLaporanDialog> {
         ),
         backgroundColor: Colors.red,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
@@ -279,7 +277,10 @@ class _PublishLaporanDialogState extends State<PublishLaporanDialog> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF2988EA), width: 2),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF2988EA),
+                        width: 2,
+                      ),
                     ),
                   ),
                   validator: (value) {
@@ -306,24 +307,31 @@ class _PublishLaporanDialogState extends State<PublishLaporanDialog> {
                     Expanded(
                       child: DropdownButtonFormField<int>(
                         value: _selectedBulan,
+                        isExpanded: true,
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: const Color(0xFFF8F9FC),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Color(0xFFE8EAF2)),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFE8EAF2),
+                            ),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Color(0xFFE8EAF2)),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFE8EAF2),
+                            ),
                           ),
                         ),
                         items: List.generate(12, (index) {
                           final bulan = index + 1;
-                          final label = DateFormat.MMMM('id_ID').format(DateTime(2025, bulan));
+                          final label = DateFormat.MMMM(
+                            'id_ID',
+                          ).format(DateTime(2025, bulan));
                           return DropdownMenuItem(
                             value: bulan,
-                            child: Text(label),
+                            child: Text(label, overflow: TextOverflow.ellipsis),
                           );
                         }),
                         onChanged: (value) {
@@ -337,23 +345,31 @@ class _PublishLaporanDialogState extends State<PublishLaporanDialog> {
                     Expanded(
                       child: DropdownButtonFormField<int>(
                         value: _selectedTahun,
+                        isExpanded: true,
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: const Color(0xFFF8F9FC),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Color(0xFFE8EAF2)),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFE8EAF2),
+                            ),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: const BorderSide(color: Color(0xFFE8EAF2)),
+                            borderSide: const BorderSide(
+                              color: Color(0xFFE8EAF2),
+                            ),
                           ),
                         ),
                         items: List.generate(5, (index) {
                           final tahun = DateTime.now().year - 2 + index;
                           return DropdownMenuItem(
                             value: tahun,
-                            child: Text('$tahun'),
+                            child: Text(
+                              '$tahun',
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           );
                         }),
                         onChanged: (value) {
@@ -380,7 +396,11 @@ class _PublishLaporanDialogState extends State<PublishLaporanDialog> {
                 Column(
                   children: [
                     RadioListTile<String>(
-                      title: Text('Pemasukan Saja', style: GoogleFonts.poppins(fontSize: 14)),
+                      title: Text(
+                        'Pemasukan Saja',
+                        style: GoogleFonts.poppins(fontSize: 14),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       value: 'pemasukan',
                       groupValue: _selectedJenis,
                       onChanged: (value) {
@@ -392,7 +412,11 @@ class _PublishLaporanDialogState extends State<PublishLaporanDialog> {
                       contentPadding: EdgeInsets.zero,
                     ),
                     RadioListTile<String>(
-                      title: Text('Pengeluaran Saja', style: GoogleFonts.poppins(fontSize: 14)),
+                      title: Text(
+                        'Pengeluaran Saja',
+                        style: GoogleFonts.poppins(fontSize: 14),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       value: 'pengeluaran',
                       groupValue: _selectedJenis,
                       onChanged: (value) {
@@ -404,7 +428,11 @@ class _PublishLaporanDialogState extends State<PublishLaporanDialog> {
                       contentPadding: EdgeInsets.zero,
                     ),
                     RadioListTile<String>(
-                      title: Text('Gabungan (Pemasukan + Pengeluaran)', style: GoogleFonts.poppins(fontSize: 14)),
+                      title: Text(
+                        'Gabungan (Pemasukan + Pengeluaran)',
+                        style: GoogleFonts.poppins(fontSize: 14),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                       value: 'gabungan',
                       groupValue: _selectedJenis,
                       onChanged: (value) {
@@ -446,7 +474,10 @@ class _PublishLaporanDialogState extends State<PublishLaporanDialog> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF2988EA), width: 2),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF2988EA),
+                        width: 2,
+                      ),
                     ),
                   ),
                 ),
@@ -458,14 +489,20 @@ class _PublishLaporanDialogState extends State<PublishLaporanDialog> {
                   decoration: BoxDecoration(
                     color: const Color(0xFFF0F9FF),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: const Color(0xFF2988EA).withValues(alpha: 0.3)),
+                    border: Border.all(
+                      color: const Color(0xFF2988EA).withValues(alpha: 0.3),
+                    ),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.preview_rounded, color: Color(0xFF2988EA), size: 20),
+                          const Icon(
+                            Icons.preview_rounded,
+                            color: Color(0xFF2988EA),
+                            size: 20,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             'Preview Ringkasan',
@@ -478,8 +515,14 @@ class _PublishLaporanDialogState extends State<PublishLaporanDialog> {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      _buildPreviewItem('Total Transaksi', '${_calculateJumlahTransaksi()}'),
-                      _buildPreviewItem('Total Nominal', currencyFormat.format(_calculateTotal())),
+                      _buildPreviewItem(
+                        'Total Transaksi',
+                        '${_calculateJumlahTransaksi()}',
+                      ),
+                      _buildPreviewItem(
+                        'Total Nominal',
+                        currencyFormat.format(_calculateTotal()),
+                      ),
                     ],
                   ),
                 ),
@@ -540,19 +583,27 @@ class _PublishLaporanDialogState extends State<PublishLaporanDialog> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: GoogleFonts.poppins(
-              fontSize: 13,
-              color: const Color(0xFF6B7280),
+          Flexible(
+            child: Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                color: const Color(0xFF6B7280),
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-          Text(
-            value,
-            style: GoogleFonts.poppins(
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: const Color(0xFF1F2937),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              value,
+              style: GoogleFonts.poppins(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF1F2937),
+              ),
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.end,
             ),
           ),
         ],
@@ -560,4 +611,3 @@ class _PublishLaporanDialogState extends State<PublishLaporanDialog> {
     );
   }
 }
-
