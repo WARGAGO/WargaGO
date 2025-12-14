@@ -5,6 +5,7 @@
 // ============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/providers/marketplace_provider.dart';
 import '../../../../core/providers/cart_provider.dart';
@@ -13,10 +14,7 @@ import '../../../../core/models/marketplace_product_model.dart';
 class ProductDetailPage extends StatefulWidget {
   final String productId;
 
-  const ProductDetailPage({
-    super.key,
-    required this.productId,
-  });
+  const ProductDetailPage({super.key, required this.productId});
 
   @override
   State<ProductDetailPage> createState() => _ProductDetailPageState();
@@ -119,7 +117,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('✅ ${_product!.productName} ditambahkan ke keranjang'),
+            content: Text(
+              '✅ ${_product!.productName} ditambahkan ke keranjang',
+            ),
             backgroundColor: Colors.green,
             action: SnackBarAction(
               label: 'Lihat',
@@ -139,7 +139,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(cartProvider.error ?? '❌ Gagal menambahkan ke keranjang'),
+            content: Text(
+              cartProvider.error ?? '❌ Gagal menambahkan ke keranjang',
+            ),
             backgroundColor: Colors.red,
           ),
         );
@@ -150,17 +152,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     if (_product == null) {
       return Scaffold(
         appBar: AppBar(title: const Text('Produk')),
-        body: const Center(
-          child: Text('Produk tidak ditemukan'),
-        ),
+        body: const Center(child: Text('Produk tidak ditemukan')),
       );
     }
 
@@ -170,6 +168,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         slivers: [
           // App Bar with Image
           SliverAppBar(
+            systemOverlayStyle: SystemUiOverlayStyle(
+              statusBarColor: Colors.transparent,
+              statusBarIconBrightness: Brightness.dark,
+              systemNavigationBarColor: Colors.white,
+              systemNavigationBarIconBrightness: Brightness.dark,
+              systemNavigationBarDividerColor: Colors.white,
+            ),
             expandedHeight: 300,
             pinned: true,
             backgroundColor: const Color(0xFF2F80ED),
@@ -239,9 +244,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     ],
                   ),
                 ),
-                
+
                 const Divider(height: 1),
-                
+
                 // Description
                 Padding(
                   padding: const EdgeInsets.all(16),
@@ -258,17 +263,14 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       const SizedBox(height: 8),
                       Text(
                         _product!.description,
-                        style: TextStyle(
-                          color: Colors.grey[700],
-                          height: 1.5,
-                        ),
+                        style: TextStyle(color: Colors.grey[700], height: 1.5),
                       ),
                     ],
                   ),
                 ),
 
                 const Divider(height: 1),
-                
+
                 // Seller Info
                 Padding(
                   padding: const EdgeInsets.all(16),
@@ -285,9 +287,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          const CircleAvatar(
-                            child: Icon(Icons.person),
-                          ),
+                          const CircleAvatar(child: Icon(Icons.person)),
                           const SizedBox(width: 12),
                           Text(
                             _product!.sellerName,

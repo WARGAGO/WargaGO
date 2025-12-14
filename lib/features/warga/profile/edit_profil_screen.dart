@@ -1,5 +1,6 @@
 // lib/pages/profile/edit_profil_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../core/providers/auth_provider.dart';
@@ -11,7 +12,8 @@ class EditProfilScreen extends StatefulWidget {
   State<EditProfilScreen> createState() => _EditProfilScreenState();
 }
 
-class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerProviderStateMixin {
+class _EditProfilScreenState extends State<EditProfilScreen>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _namaController;
   late TextEditingController _nikController;
@@ -32,7 +34,9 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
     _nikController = TextEditingController(text: user?.nik ?? '');
     _noTeleponController = TextEditingController(text: user?.noTelepon ?? '');
     _alamatController = TextEditingController(text: user?.alamat ?? '');
-    _keluargaIdController = TextEditingController(text: user?.keluargaId ?? ''); // ⭐ ADDED
+    _keluargaIdController = TextEditingController(
+      text: user?.keluargaId ?? '',
+    ); // ⭐ ADDED
 
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 800),
@@ -63,7 +67,9 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
 
     if (user == null) {
       return Scaffold(
-        appBar: AppBar(title: Text('Edit Profil', style: GoogleFonts.poppins())),
+        appBar: AppBar(
+          title: Text('Edit Profil', style: GoogleFonts.poppins()),
+        ),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
@@ -74,6 +80,13 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
         slivers: [
           // Modern App Bar
           SliverAppBar(
+            systemOverlayStyle: SystemUiOverlayStyle(
+              statusBarColor: Colors.transparent,
+              statusBarIconBrightness: Brightness.light,
+              systemNavigationBarColor: Colors.white,
+              systemNavigationBarIconBrightness: Brightness.dark,
+              systemNavigationBarDividerColor: Colors.white,
+            ),
             expandedHeight: 220,
             floating: false,
             pinned: true,
@@ -119,9 +132,13 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
                                 backgroundColor: Colors.white,
                                 child: CircleAvatar(
                                   radius: 47,
-                                  backgroundColor: const Color(0xFF2F80ED).withValues(alpha: 0.2),
+                                  backgroundColor: const Color(
+                                    0xFF2F80ED,
+                                  ).withValues(alpha: 0.2),
                                   child: Text(
-                                    user.nama.isNotEmpty ? user.nama[0].toUpperCase() : 'U',
+                                    user.nama.isNotEmpty
+                                        ? user.nama[0].toUpperCase()
+                                        : 'U',
                                     style: GoogleFonts.poppins(
                                       fontSize: 38,
                                       fontWeight: FontWeight.bold,
@@ -138,25 +155,43 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   gradient: const LinearGradient(
-                                    colors: [Color(0xFF10B981), Color(0xFF059669)],
+                                    colors: [
+                                      Color(0xFF10B981),
+                                      Color(0xFF059669),
+                                    ],
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(0xFF10B981).withValues(alpha: 0.4),
+                                      color: const Color(
+                                        0xFF10B981,
+                                      ).withValues(alpha: 0.4),
                                       blurRadius: 8,
                                       offset: const Offset(0, 4),
                                     ),
                                   ],
                                 ),
                                 child: IconButton(
-                                  icon: const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 20),
+                                  icon: const Icon(
+                                    Icons.camera_alt_rounded,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
                                   onPressed: () {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text('Fitur upload foto akan segera hadir', style: GoogleFonts.poppins()),
-                                        backgroundColor: const Color(0xFF2F80ED),
+                                        content: Text(
+                                          'Fitur upload foto akan segera hadir',
+                                          style: GoogleFonts.poppins(),
+                                        ),
+                                        backgroundColor: const Color(
+                                          0xFF2F80ED,
+                                        ),
                                         behavior: SnackBarBehavior.floating,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
                                       ),
                                     );
                                   },
@@ -216,7 +251,9 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
                         icon: Icons.badge_outlined,
                         keyboardType: TextInputType.number,
                         validator: (value) {
-                          if (value != null && value.isNotEmpty && value.length != 16) {
+                          if (value != null &&
+                              value.isNotEmpty &&
+                              value.length != 16) {
                             return 'NIK harus 16 digit';
                           }
                           return null;
@@ -252,7 +289,8 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
                         hint: 'Contoh: keluarga_001',
                         icon: Icons.family_restroom_rounded,
                         keyboardType: TextInputType.text,
-                        helperText: 'ID keluarga diperlukan untuk melihat tagihan iuran.\nHubungi admin jika tidak tahu ID keluarga Anda.',
+                        helperText:
+                            'ID keluarga diperlukan untuk melihat tagihan iuran.\nHubungi admin jika tidak tahu ID keluarga Anda.',
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'ID Keluarga tidak boleh kosong';
@@ -274,7 +312,9 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
                           color: const Color(0xFF2F80ED).withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: const Color(0xFF2F80ED).withValues(alpha: 0.3),
+                            color: const Color(
+                              0xFF2F80ED,
+                            ).withValues(alpha: 0.3),
                             width: 1,
                           ),
                         ),
@@ -366,11 +406,7 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
                 color: const Color(0xFF9CA3AF),
                 fontSize: 15,
               ),
-              prefixIcon: Icon(
-                icon,
-                color: const Color(0xFF2F80ED),
-                size: 22,
-              ),
+              prefixIcon: Icon(icon, color: const Color(0xFF2F80ED), size: 22),
               filled: true,
               fillColor: Colors.white,
               border: OutlineInputBorder(
@@ -411,7 +447,8 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
               ),
               helperText: helperText, // ⭐ ADDED
               helperMaxLines: 3, // ⭐ ADDED
-              helperStyle: GoogleFonts.poppins( // ⭐ ADDED
+              helperStyle: GoogleFonts.poppins(
+                // ⭐ ADDED
                 fontSize: 11,
                 color: const Color(0xFF6B7280),
                 height: 1.4,
@@ -500,10 +537,18 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
       // Update user profile via Firestore
       final updatedUser = user.copyWith(
         nama: _namaController.text.trim(),
-        nik: _nikController.text.trim().isEmpty ? null : _nikController.text.trim(),
-        noTelepon: _noTeleponController.text.trim().isEmpty ? null : _noTeleponController.text.trim(),
-        alamat: _alamatController.text.trim().isEmpty ? null : _alamatController.text.trim(),
-        keluargaId: _keluargaIdController.text.trim().isEmpty ? null : _keluargaIdController.text.trim(), // ⭐ ADDED
+        nik: _nikController.text.trim().isEmpty
+            ? null
+            : _nikController.text.trim(),
+        noTelepon: _noTeleponController.text.trim().isEmpty
+            ? null
+            : _noTeleponController.text.trim(),
+        alamat: _alamatController.text.trim().isEmpty
+            ? null
+            : _alamatController.text.trim(),
+        keluargaId: _keluargaIdController.text.trim().isEmpty
+            ? null
+            : _keluargaIdController.text.trim(), // ⭐ ADDED
       );
 
       // Update to Firestore
@@ -518,7 +563,9 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
             ),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
         Navigator.pop(context);
@@ -533,7 +580,9 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
             ),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
@@ -546,4 +595,3 @@ class _EditProfilScreenState extends State<EditProfilScreen> with SingleTickerPr
     }
   }
 }
-

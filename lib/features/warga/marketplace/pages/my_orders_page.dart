@@ -5,6 +5,7 @@
 // ============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/providers/order_provider.dart';
@@ -17,7 +18,8 @@ class MyOrdersPage extends StatefulWidget {
   State<MyOrdersPage> createState() => _MyOrdersPageState();
 }
 
-class _MyOrdersPageState extends State<MyOrdersPage> with SingleTickerProviderStateMixin {
+class _MyOrdersPageState extends State<MyOrdersPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -43,6 +45,10 @@ class _MyOrdersPageState extends State<MyOrdersPage> with SingleTickerProviderSt
     return Scaffold(
       backgroundColor: const Color(0xFFF9FAFB),
       appBar: AppBar(
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: const Color(0xFF2F80ED),
+          statusBarIconBrightness: Brightness.light,
+        ),
         backgroundColor: const Color(0xFF2F80ED),
         elevation: 0,
         title: Row(
@@ -93,7 +99,10 @@ class _MyOrdersPageState extends State<MyOrdersPage> with SingleTickerProviderSt
             controller: _tabController,
             children: [
               _buildOrderList(provider.pendingOrders, OrderStatus.pending),
-              _buildOrderList(provider.processingOrders, OrderStatus.processing),
+              _buildOrderList(
+                provider.processingOrders,
+                OrderStatus.processing,
+              ),
               _buildOrderList(provider.shippedOrders, OrderStatus.shipped),
               _buildOrderList(provider.completedOrders, OrderStatus.completed),
             ],
@@ -146,7 +155,9 @@ class _MyOrdersPageState extends State<MyOrdersPage> with SingleTickerProviderSt
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Color(order.statusColorValue).withValues(alpha: 0.1),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -196,7 +207,10 @@ class _MyOrdersPageState extends State<MyOrdersPage> with SingleTickerProviderSt
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: Color(order.statusColorValue),
                     borderRadius: BorderRadius.circular(20),
@@ -264,59 +278,65 @@ class _MyOrdersPageState extends State<MyOrdersPage> with SingleTickerProviderSt
                 const Divider(height: 24),
 
                 // Items
-                ...order.items.map((item) => Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: Row(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          item.productImage,
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Container(
+                ...order.items.map(
+                  (item) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Row(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            item.productImage,
                             width: 50,
                             height: 50,
-                            color: Colors.grey[200],
-                            child: const Icon(Icons.image_rounded, color: Colors.grey),
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Container(
+                                  width: 50,
+                                  height: 50,
+                                  color: Colors.grey[200],
+                                  child: const Icon(
+                                    Icons.image_rounded,
+                                    color: Colors.grey,
+                                  ),
+                                ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item.productName,
-                              style: GoogleFonts.poppins(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: const Color(0xFF1F2937),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item.productName,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF1F2937),
+                                ),
                               ),
-                            ),
-                            Text(
-                              '${item.quantity} ${item.unit}',
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                color: const Color(0xFF6B7280),
+                              Text(
+                                '${item.quantity} ${item.unit}',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  color: const Color(0xFF6B7280),
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                      Text(
-                        'Rp ${item.subtotal.toStringAsFixed(0)}',
-                        style: GoogleFonts.poppins(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: const Color(0xFF10B981),
+                        Text(
+                          'Rp ${item.subtotal.toStringAsFixed(0)}',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF10B981),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                )),
+                ),
 
                 const Divider(height: 24),
 
@@ -466,11 +486,7 @@ class _MyOrdersPageState extends State<MyOrdersPage> with SingleTickerProviderSt
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            size: 80,
-            color: Colors.grey[300],
-          ),
+          Icon(icon, size: 80, color: Colors.grey[300]),
           const SizedBox(height: 16),
           Text(
             message,
@@ -501,7 +517,20 @@ class _MyOrdersPageState extends State<MyOrdersPage> with SingleTickerProviderSt
   }
 
   String _formatDate(DateTime date) {
-    final months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agt',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
+    ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
@@ -657,4 +686,3 @@ class _MyOrdersPageState extends State<MyOrdersPage> with SingleTickerProviderSt
     );
   }
 }
-

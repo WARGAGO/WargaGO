@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:camera/camera.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image/image.dart' as img;
 import 'package:image_picker/image_picker.dart';
@@ -482,76 +483,85 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          _picture != null
-              ? Image.file(
-                  _picture!,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  height: double.infinity,
-                )
-              : _cameraPreview(),
-          _controls(context),
-          if (_showSettingsPanel)
-            CameraSettingsPanel(
-              isSwitchingCamera: _isSwitchingCamera,
-              currentCameraIndex: _currentCameraIndex,
-              currentResolution: _resolutionPreset,
-              currentFps: _targetFps,
-              hasMultipleCameras: _cameras.length > 1,
-              // Model settings
-              useSegmentation: _useSegmentation,
-              segMethod: _segMethod,
-              applyBrightnessContrast: _applyBrightnessContrast,
-              returnProcessedImage: _returnProcessedImage,
-              showModelSimpleSettings: !(_useEfficient ?? true),
-              // HSV settings
-              hsvHueMin: _hsvHueMin,
-              hsvHueMax: _hsvHueMax,
-              hsvSatMin: _hsvSatMin,
-              hsvSatMax: _hsvSatMax,
-              hsvValMin: _hsvValMin,
-              hsvValMax: _hsvValMax,
-              // Callbacks
-              onSwitchCamera: null, // Not used anymore
-              onResolutionChange: (preset) {
-                _changeResolution(preset);
-                setState(() => _showSettingsPanel = false);
-              },
-              onFpsChange: (fps) {
-                _changeFps(fps);
-                setState(() => _showSettingsPanel = false);
-              },
-              onSegmentationChange: (value) {
-                setState(() => _useSegmentation = value);
-              },
-              onSegMethodChange: (method) {
-                setState(() => _segMethod = method);
-              },
-              onBrightnessContrastChange: (value) {
-                setState(() => _applyBrightnessContrast = value);
-              },
-              onReturnProcessedImageChange: (value) {
-                setState(() => _returnProcessedImage = value);
-              },
-              onHsvChange: (hueMin, hueMax, satMin, satMax, valMin, valMax) {
-                setState(() {
-                  _hsvHueMin = hueMin;
-                  _hsvHueMax = hueMax;
-                  _hsvSatMin = satMin;
-                  _hsvSatMax = satMax;
-                  _hsvValMin = valMin;
-                  _hsvValMax = valMax;
-                });
-              },
-              onClose: () {
-                setState(() => _showSettingsPanel = false);
-                _restartStreaming();
-              },
-            ),
-        ],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        systemNavigationBarColor: Colors.white,
+        systemNavigationBarIconBrightness: Brightness.dark,
+        systemNavigationBarDividerColor: Colors.white,
+      ),
+      child: Scaffold(
+        body: Stack(
+          children: [
+            _picture != null
+                ? Image.file(
+                    _picture!,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                  )
+                : _cameraPreview(),
+            _controls(context),
+            if (_showSettingsPanel)
+              CameraSettingsPanel(
+                isSwitchingCamera: _isSwitchingCamera,
+                currentCameraIndex: _currentCameraIndex,
+                currentResolution: _resolutionPreset,
+                currentFps: _targetFps,
+                hasMultipleCameras: _cameras.length > 1,
+                // Model settings
+                useSegmentation: _useSegmentation,
+                segMethod: _segMethod,
+                applyBrightnessContrast: _applyBrightnessContrast,
+                returnProcessedImage: _returnProcessedImage,
+                showModelSimpleSettings: !(_useEfficient ?? true),
+                // HSV settings
+                hsvHueMin: _hsvHueMin,
+                hsvHueMax: _hsvHueMax,
+                hsvSatMin: _hsvSatMin,
+                hsvSatMax: _hsvSatMax,
+                hsvValMin: _hsvValMin,
+                hsvValMax: _hsvValMax,
+                // Callbacks
+                onSwitchCamera: null, // Not used anymore
+                onResolutionChange: (preset) {
+                  _changeResolution(preset);
+                  setState(() => _showSettingsPanel = false);
+                },
+                onFpsChange: (fps) {
+                  _changeFps(fps);
+                  setState(() => _showSettingsPanel = false);
+                },
+                onSegmentationChange: (value) {
+                  setState(() => _useSegmentation = value);
+                },
+                onSegMethodChange: (method) {
+                  setState(() => _segMethod = method);
+                },
+                onBrightnessContrastChange: (value) {
+                  setState(() => _applyBrightnessContrast = value);
+                },
+                onReturnProcessedImageChange: (value) {
+                  setState(() => _returnProcessedImage = value);
+                },
+                onHsvChange: (hueMin, hueMax, satMin, satMax, valMin, valMax) {
+                  setState(() {
+                    _hsvHueMin = hueMin;
+                    _hsvHueMax = hueMax;
+                    _hsvSatMin = satMin;
+                    _hsvSatMax = satMax;
+                    _hsvValMin = valMin;
+                    _hsvValMax = valMax;
+                  });
+                },
+                onClose: () {
+                  setState(() => _showSettingsPanel = false);
+                  _restartStreaming();
+                },
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -697,7 +707,9 @@ class _ClassificationCameraPageState extends State<ClassificationCameraPage> {
                             context,
                             MaterialPageRoute(
                               builder: (context) => VegetableAIAssistantPage(
-                                vegetableName: _result!.predictedClass.displayName
+                                vegetableName: _result!
+                                    .predictedClass
+                                    .displayName
                                     .replaceAll('_', ' '),
                                 imagePath: _picture!.path, // Kirim foto juga!
                               ),

@@ -1,5 +1,6 @@
 // lib/pages/profile/akun_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -70,6 +71,13 @@ class _AkunScreenState extends State<AkunScreen>
               slivers: [
                 // Modern App Bar with Gradient
                 SliverAppBar(
+                  systemOverlayStyle: SystemUiOverlayStyle(
+                    statusBarColor: Colors.transparent,
+                    statusBarIconBrightness: Brightness.light,
+                    systemNavigationBarColor: Colors.white,
+                    systemNavigationBarIconBrightness: Brightness.dark,
+                    systemNavigationBarDividerColor: Colors.white,
+                  ),
                   expandedHeight: 170,
                   floating: false,
                   pinned: true,

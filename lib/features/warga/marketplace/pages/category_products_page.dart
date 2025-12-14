@@ -5,6 +5,7 @@
 // ============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/providers/marketplace_provider.dart';
@@ -25,7 +26,8 @@ class CategoryProductsPage extends StatefulWidget {
   State<CategoryProductsPage> createState() => _CategoryProductsPageState();
 }
 
-class _CategoryProductsPageState extends State<CategoryProductsPage> with WidgetsBindingObserver {
+class _CategoryProductsPageState extends State<CategoryProductsPage>
+    with WidgetsBindingObserver {
   MarketplaceProvider? _provider; // ⭐ Save provider reference
 
   @override
@@ -63,6 +65,10 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> with Widget
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FD),
       appBar: AppBar(
+        systemOverlayStyle: SystemUiOverlayStyle(
+          statusBarColor: const Color(0xFF2F80ED),
+          statusBarIconBrightness: Brightness.light,
+        ),
         backgroundColor: const Color(0xFF2F80ED),
         foregroundColor: Colors.white,
         elevation: 0,
@@ -70,16 +76,16 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> with Widget
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
             // Reset category ke Semua saat kembali
-            Provider.of<MarketplaceProvider>(context, listen: false).setCategory('Semua');
+            Provider.of<MarketplaceProvider>(
+              context,
+              listen: false,
+            ).setCategory('Semua');
             Navigator.pop(context);
           },
         ),
         title: Row(
           children: [
-            Text(
-              widget.categoryIcon,
-              style: const TextStyle(fontSize: 24),
-            ),
+            Text(widget.categoryIcon, style: const TextStyle(fontSize: 24)),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -173,12 +179,13 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> with Widget
                   onRefresh: () => provider.loadProducts(refresh: true),
                   child: GridView.builder(
                     padding: const EdgeInsets.all(16),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      childAspectRatio: 0.65,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.65,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                        ),
                     itemCount: products.length,
                     itemBuilder: (context, index) {
                       final product = products[index];
@@ -221,7 +228,9 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> with Widget
           children: [
             // Product Image
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+              ),
               child: product.imageUrls.isNotEmpty
                   ? Image.network(
                       product.imageUrls.first,
@@ -284,7 +293,9 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> with Widget
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          product.stock > 0 ? 'Stok: ${product.stock}' : 'Habis',
+                          product.stock > 0
+                              ? 'Stok: ${product.stock}'
+                              : 'Habis',
                           style: GoogleFonts.poppins(
                             fontSize: 11,
                             color: product.stock > 0
@@ -316,11 +327,7 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> with Widget
           ],
         ),
       ),
-      child: const Icon(
-        Icons.image,
-        size: 40,
-        color: Color(0xFF2F80ED),
-      ),
+      child: const Icon(Icons.image, size: 40, color: Color(0xFF2F80ED)),
     );
   }
 
@@ -404,4 +411,3 @@ class _CategoryProductsPageState extends State<CategoryProductsPage> with Widget
     );
   }
 }
-
