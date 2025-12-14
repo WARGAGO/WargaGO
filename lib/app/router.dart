@@ -31,8 +31,8 @@ import 'package:wargago/features/warga/profile/akun_screen.dart';
 import 'package:wargago/features/warga/profile/edit_profil_screen.dart';
 import 'package:wargago/features/warga/profile/toko_saya_screen.dart';
 import 'package:wargago/features/warga/iuran/pages/iuran_warga_page.dart';
-import 'package:wargago/features/bendahara/dashboard/bendahara_dashboard_page.dart';
 import 'package:wargago/features/sekertaris/sekretaris_main_page.dart';
+import 'package:wargago/features/bendahara/bendahara_main_page.dart';
 
 import '../features/common/classification/classification_camera.dart';
 
@@ -108,13 +108,13 @@ class AppRouterConfig {
         ),
       ),
 
-      // ========== BENDAHARA ROUTES ==========
+      // ========== BENDAHARA ROUTES ==========//
       GoRoute(
         path: AppRoutes.bendaharaDashboard,
         name: 'bendaharaDashboard',
         pageBuilder: (context, state) => PageTransitions.sharedAxis(
           key: state.pageKey,
-          child: const BendaharaDashboardPage(),
+          child: const BendaharaMainPage(),
         ),
       ),
 
