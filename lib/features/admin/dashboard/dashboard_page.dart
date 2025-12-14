@@ -18,6 +18,7 @@ import 'dart:math' as math;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -25,10 +26,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:wargago/core/constants/app_routes.dart';
 
-import 'package:wargago/core/widgets/admin_app_bottom_navigation.dart';
 import 'package:wargago/features/admin/profile/admin_profile_page.dart';
-import 'package:wargago/features/admin/polling/pages/admin_poll_list_page.dart';
-import 'dashboard_detail_page.dart';
 import 'activity_detail_page.dart';
 import 'penanggung_jawab_detail_page.dart';
 import 'notification_popup.dart';
@@ -104,7 +102,9 @@ class _DashboardPageState extends State<DashboardPage> {
         }
       }
     } catch (e) {
-      print('Error loading user data: $e');
+      if (kDebugMode) {
+        print('Error loading user data: $e');
+      }
     }
   }
 

@@ -6,6 +6,7 @@
 
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
@@ -51,7 +52,7 @@ class _ProdukSayaScreenState extends State<ProdukSayaScreen>
   };
 
   // Chart data untuk 7 hari terakhir (akan di-populate dari real orders)
-  List<Map<String, dynamic>> _salesData = [
+  final List<Map<String, dynamic>> _salesData = [
     {'day': 'Sen', 'sales': 0},
     {'day': 'Sel', 'sales': 0},
     {'day': 'Rab', 'sales': 0},
@@ -64,6 +65,8 @@ class _ProdukSayaScreenState extends State<ProdukSayaScreen>
   @override
   void initState() {
     super.initState();
+    _scrollController = ScrollController();
+    _scrollController.addListener(_onScroll);
     _tabController = TabController(length: 3, vsync: this);
     _setupRealtimeListener();
     _loadStatistics();
@@ -71,6 +74,8 @@ class _ProdukSayaScreenState extends State<ProdukSayaScreen>
 
   @override
   void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
     _tabController.dispose();
     _productsSubscription?.cancel();
     super.dispose();
@@ -160,6 +165,25 @@ class _ProdukSayaScreenState extends State<ProdukSayaScreen>
     }
   }
 
+  late final ScrollController _scrollController;
+  Color _statusBarColor = Colors.transparent;
+
+  void _onScroll() {
+    // final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.offset;
+    final threshold = 50;
+
+    final newColor = currentScroll > threshold
+        ? Color(0xFF2F80ED)
+        : Colors.transparent;
+
+    if (_statusBarColor != newColor) {
+      setState(() {
+        _statusBarColor = newColor;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -168,6 +192,7 @@ class _ProdukSayaScreenState extends State<ProdukSayaScreen>
         onRefresh: _refreshData,
         color: const Color(0xFF2F80ED),
         child: CustomScrollView(
+          controller: _scrollController,
           slivers: [
             // App Bar dengan gradient
             _buildAppBar(),
@@ -238,6 +263,16 @@ class _ProdukSayaScreenState extends State<ProdukSayaScreen>
   // App Bar dengan gradient + LIVE Indicator
   Widget _buildAppBar() {
     return SliverAppBar(
+      systemOverlayStyle: SystemUiOverlayStyle(
+        statusBarColor: _statusBarColor,
+        statusBarIconBrightness: _statusBarColor == Colors.white
+            ? Brightness.dark
+            : Brightness.light,
+        systemNavigationBarColor: Colors.white,
+        systemNavigationBarIconBrightness: Brightness.dark,
+        systemNavigationBarDividerColor: Colors.white,
+      ),
+      automaticallyImplyLeading: true,
       expandedHeight: 140,
       floating: false,
       pinned: true,
@@ -261,7 +296,6 @@ class _ProdukSayaScreenState extends State<ProdukSayaScreen>
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const SizedBox(height: 16),
                   Row(
                     children: [
                       Container(

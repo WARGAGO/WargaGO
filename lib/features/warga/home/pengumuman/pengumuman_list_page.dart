@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -14,17 +15,25 @@ class _PengumumanListPageState extends State<PengumumanListPage> {
   String _searchQuery = '';
   String _selectedCategory = 'Semua';
 
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: Column(
-        children: [
-          _buildHeader(),
-          _buildCategoryFilter(),
-          Expanded(child: _buildPengumumanList()),
-        ],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.white,
+        systemNavigationBarIconBrightness: Brightness.dark,
+        systemNavigationBarDividerColor: Colors.white,
+      ),
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        body: Column(
+          children: [
+            _buildHeader(),
+            _buildCategoryFilter(),
+            Expanded(child: _buildPengumumanList()),
+          ],
+        ),
       ),
     );
   }
@@ -35,11 +44,7 @@ class _PengumumanListPageState extends State<PengumumanListPage> {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF10B981),
-            Color(0xFF059669),
-            Color(0xFF047857),
-          ],
+          colors: [Color(0xFF10B981), Color(0xFF059669), Color(0xFF047857)],
           stops: [0.0, 0.6, 1.0],
         ),
         boxShadow: [
@@ -51,37 +56,36 @@ class _PengumumanListPageState extends State<PengumumanListPage> {
           ),
         ],
       ),
-      child: SafeArea(
-        bottom: false,
-        child: Stack(
-          children: [
-            // Decorative circles
-            Positioned(
-              top: -50,
-              right: -30,
-              child: Container(
-                width: 150,
-                height: 150,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.1),
-                ),
+      child: Stack(
+        children: [
+          // Decorative circles
+          Positioned(
+            top: -50,
+            right: -30,
+            child: Container(
+              width: 150,
+              height: 150,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.1),
               ),
             ),
-            Positioned(
-              bottom: -30,
-              left: -40,
-              child: Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.08),
-                ),
+          ),
+          Positioned(
+            bottom: -30,
+            left: -40,
+            child: Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.08),
               ),
             ),
-            // Content
-            Padding(
+          ),
+          // Content
+          SafeArea(
+            child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -111,7 +115,11 @@ class _PengumumanListPageState extends State<PengumumanListPage> {
                             borderRadius: BorderRadius.circular(14),
                             child: const Padding(
                               padding: EdgeInsets.all(10),
-                              child: Icon(Icons.arrow_back_rounded, color: Colors.white, size: 24),
+                              child: Icon(
+                                Icons.arrow_back_rounded,
+                                color: Colors.white,
+                                size: 24,
+                              ),
                             ),
                           ),
                         ),
@@ -161,7 +169,10 @@ class _PengumumanListPageState extends State<PengumumanListPage> {
                             ),
                             const SizedBox(height: 4),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.white.withValues(alpha: 0.25),
                                 borderRadius: BorderRadius.circular(6),
@@ -180,7 +191,9 @@ class _PengumumanListPageState extends State<PengumumanListPage> {
                                     style: GoogleFonts.poppins(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
-                                      color: Colors.white.withValues(alpha: 0.95),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.95,
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -206,16 +219,28 @@ class _PengumumanListPageState extends State<PengumumanListPage> {
                       ],
                     ),
                     child: TextField(
-                      onChanged: (value) => setState(() => _searchQuery = value),
-                      style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w500),
+                      onChanged: (value) =>
+                          setState(() => _searchQuery = value),
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
+                      ),
                       decoration: InputDecoration(
                         hintText: 'Cari pengumuman...',
-                        hintStyle: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[400]),
-                        prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF10B981), size: 22),
+                        hintStyle: GoogleFonts.poppins(
+                          fontSize: 14,
+                          color: Colors.grey[400],
+                        ),
+                        prefixIcon: const Icon(
+                          Icons.search_rounded,
+                          color: Color(0xFF10B981),
+                          size: 22,
+                        ),
                         suffixIcon: _searchQuery.isNotEmpty
                             ? IconButton(
                                 icon: const Icon(Icons.clear_rounded, size: 20),
-                                onPressed: () => setState(() => _searchQuery = ''),
+                                onPressed: () =>
+                                    setState(() => _searchQuery = ''),
                               )
                             : null,
                         filled: true,
@@ -224,21 +249,31 @@ class _PengumumanListPageState extends State<PengumumanListPage> {
                           borderRadius: BorderRadius.circular(16),
                           borderSide: BorderSide.none,
                         ),
-                        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 16,
+                          horizontal: 20,
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildCategoryFilter() {
-    final categories = ['Semua', 'Kegiatan', 'Keuangan', 'Kesehatan', 'Rapat', 'Keamanan'];
+    final categories = [
+      'Semua',
+      'Kegiatan',
+      'Keuangan',
+      'Kesehatan',
+      'Rapat',
+      'Keamanan',
+    ];
     return Container(
       height: 60,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -253,7 +288,8 @@ class _PengumumanListPageState extends State<PengumumanListPage> {
             child: FilterChip(
               label: Text(category),
               selected: isSelected,
-              onSelected: (selected) => setState(() => _selectedCategory = category),
+              onSelected: (selected) =>
+                  setState(() => _selectedCategory = category),
               backgroundColor: Colors.white,
               selectedColor: const Color(0xFF10B981).withValues(alpha: 0.2),
               labelStyle: GoogleFonts.poppins(
@@ -294,7 +330,11 @@ class _PengumumanListPageState extends State<PengumumanListPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline_rounded, size: 80, color: Colors.red[300]),
+                Icon(
+                  Icons.error_outline_rounded,
+                  size: 80,
+                  color: Colors.red[300],
+                ),
                 const SizedBox(height: 16),
                 Text(
                   'Gagal memuat pengumuman',
@@ -380,7 +420,11 @@ class _PengumumanListPageState extends State<PengumumanListPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.search_off_rounded, size: 80, color: Colors.grey[300]),
+                Icon(
+                  Icons.search_off_rounded,
+                  size: 80,
+                  color: Colors.grey[300],
+                ),
                 const SizedBox(height: 16),
                 Text(
                   'Tidak ada hasil',
@@ -415,7 +459,8 @@ class _PengumumanListPageState extends State<PengumumanListPage> {
               id: doc.id,
               judul: data['judul'] ?? 'Tanpa Judul',
               konten: data['konten'] ?? '',
-              tanggal: (data['tanggal'] as Timestamp?)?.toDate() ?? DateTime.now(),
+              tanggal:
+                  (data['tanggal'] as Timestamp?)?.toDate() ?? DateTime.now(),
               prioritas: data['prioritas'] ?? 'rendah',
               kategori: data['kategori'] ?? 'Umum',
             );
@@ -479,10 +524,7 @@ class _PengumumanListPageState extends State<PengumumanListPage> {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  Colors.white,
-                  cardColor.withValues(alpha: 0.03),
-                ],
+                colors: [Colors.white, cardColor.withValues(alpha: 0.03)],
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
@@ -506,7 +548,10 @@ class _PengumumanListPageState extends State<PengumumanListPage> {
                     top: 0,
                     right: 0,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
@@ -519,7 +564,11 @@ class _PengumumanListPageState extends State<PengumumanListPage> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.priority_high_rounded, size: 14, color: Colors.white),
+                          const Icon(
+                            Icons.priority_high_rounded,
+                            size: 14,
+                            color: Colors.white,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             'Penting',
@@ -543,7 +592,10 @@ class _PengumumanListPageState extends State<PengumumanListPage> {
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: [cardColor, cardColor.withValues(alpha: 0.8)],
+                            colors: [
+                              cardColor,
+                              cardColor.withValues(alpha: 0.8),
+                            ],
                           ),
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
@@ -588,7 +640,10 @@ class _PengumumanListPageState extends State<PengumumanListPage> {
                             Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: cardColor.withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(6),
@@ -603,10 +658,17 @@ class _PengumumanListPageState extends State<PengumumanListPage> {
                                   ),
                                 ),
                                 const SizedBox(width: 10),
-                                Icon(Icons.access_time_rounded, size: 14, color: Colors.grey[500]),
+                                Icon(
+                                  Icons.access_time_rounded,
+                                  size: 14,
+                                  color: Colors.grey[500],
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  DateFormat('d MMM yyyy', 'id_ID').format(tanggal),
+                                  DateFormat(
+                                    'd MMM yyyy',
+                                    'id_ID',
+                                  ).format(tanggal),
                                   style: GoogleFonts.poppins(
                                     fontSize: 11,
                                     color: Colors.grey[600],
@@ -624,7 +686,11 @@ class _PengumumanListPageState extends State<PengumumanListPage> {
                           color: cardColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Icon(Icons.arrow_forward_rounded, color: cardColor, size: 20),
+                        child: Icon(
+                          Icons.arrow_forward_rounded,
+                          color: cardColor,
+                          size: 20,
+                        ),
                       ),
                     ],
                   ),
@@ -663,7 +729,9 @@ class _PengumumanListPageState extends State<PengumumanListPage> {
                   gradient: LinearGradient(
                     colors: [color, color.withValues(alpha: 0.8)],
                   ),
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(24),
+                  ),
                 ),
                 child: Row(
                   children: [
@@ -682,7 +750,10 @@ class _PengumumanListPageState extends State<PengumumanListPage> {
                         children: [
                           if (prioritas.toLowerCase() == 'tinggi')
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 3,
+                              ),
                               margin: const EdgeInsets.only(bottom: 6),
                               decoration: BoxDecoration(
                                 color: Colors.white.withValues(alpha: 0.3),
@@ -691,7 +762,11 @@ class _PengumumanListPageState extends State<PengumumanListPage> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(Icons.priority_high_rounded, size: 12, color: Colors.white),
+                                  const Icon(
+                                    Icons.priority_high_rounded,
+                                    size: 12,
+                                    color: Colors.white,
+                                  ),
                                   const SizedBox(width: 4),
                                   Text(
                                     'Penting',
@@ -717,7 +792,10 @@ class _PengumumanListPageState extends State<PengumumanListPage> {
                     ),
                     IconButton(
                       onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close_rounded, color: Colors.white),
+                      icon: const Icon(
+                        Icons.close_rounded,
+                        color: Colors.white,
+                      ),
                     ),
                   ],
                 ),
@@ -731,7 +809,10 @@ class _PengumumanListPageState extends State<PengumumanListPage> {
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: color.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(8),
@@ -753,11 +834,18 @@ class _PengumumanListPageState extends State<PengumumanListPage> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        Icon(Icons.calendar_today_rounded, size: 14, color: Colors.grey[600]),
+                        Icon(
+                          Icons.calendar_today_rounded,
+                          size: 14,
+                          color: Colors.grey[600],
+                        ),
                         const SizedBox(width: 6),
                         Flexible(
                           child: Text(
-                            DateFormat('EEEE, d MMMM yyyy', 'id_ID').format(tanggal),
+                            DateFormat(
+                              'EEEE, d MMMM yyyy',
+                              'id_ID',
+                            ).format(tanggal),
                             style: GoogleFonts.poppins(
                               fontSize: 12,
                               color: Colors.grey[600],
@@ -786,4 +874,3 @@ class _PengumumanListPageState extends State<PengumumanListPage> {
     );
   }
 }
-
