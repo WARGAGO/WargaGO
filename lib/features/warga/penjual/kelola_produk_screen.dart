@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
 import 'package:wargago/core/models/product_model.dart';
+import 'package:wargago/core/services/azure_blob_storage_service.dart';
 import 'package:wargago/core/services/product_service.dart';
 import 'package:wargago/core/widgets/product_image_debug.dart';
 import 'package:wargago/features/warga/penjual/tambah_produk_screen.dart';
@@ -61,23 +62,36 @@ class _KelolaProdukScreenState extends State<KelolaProdukScreen> {
     _productsSubscription = _productService
         .streamProductsBySeller(currentUser.uid)
         .listen(
-      (products) {
-        if (mounted) {
-          setState(() {
-            _products = products;
-            _isLoading = false;
-          });
-          // Auto-reload statistics saat produk berubah
-          _loadStatistics();
-        }
-      },
-      onError: (error) {
-        if (mounted) {
-          setState(() => _isLoading = false);
-          _showErrorSnackbar('Error loading products: $error');
-        }
-      },
-    );
+          (products) async {
+            if (mounted) {
+              AzureBlobStorageService azureBlobStorageService =
+                  AzureBlobStorageService(firebaseToken: 'xxx');
+              final azureImages = await azureBlobStorageService.getImages(
+                uid: currentUser.uid,
+                filenamePrefix: 'products/',
+                isPrivate: false,
+              );
+              if (azureImages != null) {
+                for (var product in products) {
+                  product.updateUrls(azureImages);
+                }
+              }
+
+              setState(() {
+                _products = products;
+                _isLoading = false;
+              });
+              // Auto-reload statistics saat produk berubah
+              _loadStatistics();
+            }
+          },
+          onError: (error) {
+            if (mounted) {
+              setState(() => _isLoading = false);
+              _showErrorSnackbar('Error loading products: $error');
+            }
+          },
+        );
   }
 
   /// Load statistics dari backend API
@@ -144,9 +158,7 @@ class _KelolaProdukScreenState extends State<KelolaProdukScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
             Container(
@@ -226,10 +238,7 @@ class _KelolaProdukScreenState extends State<KelolaProdukScreen> {
               children: [
                 const CircularProgressIndicator(),
                 const SizedBox(height: 16),
-                Text(
-                  'Menghapus produk...',
-                  style: GoogleFonts.poppins(),
-                ),
+                Text('Menghapus produk...', style: GoogleFonts.poppins()),
               ],
             ),
           ),
@@ -246,7 +255,9 @@ class _KelolaProdukScreenState extends State<KelolaProdukScreen> {
         }
 
         if (mounted && success) {
-          _showSuccessSnackbar('Produk berhasil dihapus dari database dan keranjang');
+          _showSuccessSnackbar(
+            'Produk berhasil dihapus dari database dan keranjang',
+          );
           // Auto-reload statistics after delete
           _loadStatistics();
           // Stream will auto-update products list
@@ -275,9 +286,7 @@ class _KelolaProdukScreenState extends State<KelolaProdukScreen> {
         ),
         backgroundColor: const Color(0xFF10B981),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
@@ -294,9 +303,7 @@ class _KelolaProdukScreenState extends State<KelolaProdukScreen> {
         ),
         backgroundColor: const Color(0xFFF59E0B),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
@@ -345,24 +352,17 @@ class _KelolaProdukScreenState extends State<KelolaProdukScreen> {
                     ),
                   )
                 : _filteredProducts.isEmpty
-                    ? SliverFillRemaining(
-                        child: _buildEmptyState(),
-                      )
-                    : SliverPadding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        sliver: SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) {
-                              final product = _filteredProducts[index];
-                              return _buildProductCard(product);
-                            },
-                            childCount: _filteredProducts.length,
-                          ),
-                        ),
-                      ),
-            const SliverToBoxAdapter(
-              child: SizedBox(height: 100),
-            ),
+                ? SliverFillRemaining(child: _buildEmptyState())
+                : SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate((context, index) {
+                        final product = _filteredProducts[index];
+                        return _buildProductCard(product);
+                      }, childCount: _filteredProducts.length),
+                    ),
+                  ),
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
         ),
       ),
@@ -370,9 +370,7 @@ class _KelolaProdukScreenState extends State<KelolaProdukScreen> {
         onPressed: () async {
           final result = await Navigator.push(
             context,
-            MaterialPageRoute(
-              builder: (context) => const TambahProdukScreen(),
-            ),
+            MaterialPageRoute(builder: (context) => const TambahProdukScreen()),
           );
           if (result == true) {
             // Auto-reload statistics after adding product
@@ -403,10 +401,7 @@ class _KelolaProdukScreenState extends State<KelolaProdukScreen> {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF2F80ED),
-                Color(0xFF1E6FD9),
-              ],
+              colors: [Color(0xFF2F80ED), Color(0xFF1E6FD9)],
             ),
           ),
           child: SafeArea(
@@ -453,7 +448,9 @@ class _KelolaProdukScreenState extends State<KelolaProdukScreen> {
                                     vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF10B981).withValues(alpha: 0.2),
+                                    color: const Color(
+                                      0xFF10B981,
+                                    ).withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
                                       color: const Color(0xFF10B981),
@@ -658,7 +655,12 @@ class _KelolaProdukScreenState extends State<KelolaProdukScreen> {
     );
   }
 
-  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -717,7 +719,7 @@ class _KelolaProdukScreenState extends State<KelolaProdukScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Product Image
-              Container(
+              SizedBox(
                 width: 100,
                 height: 100,
                 child: product.imageUrls.isNotEmpty
@@ -775,8 +777,12 @@ class _KelolaProdukScreenState extends State<KelolaProdukScreen> {
                             ),
                             decoration: BoxDecoration(
                               color: product.isActive
-                                  ? const Color(0xFF10B981).withValues(alpha: 0.1)
-                                  : const Color(0xFFEF4444).withValues(alpha: 0.1),
+                                  ? const Color(
+                                      0xFF10B981,
+                                    ).withValues(alpha: 0.1)
+                                  : const Color(
+                                      0xFFEF4444,
+                                    ).withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
@@ -859,7 +865,8 @@ class _KelolaProdukScreenState extends State<KelolaProdukScreen> {
                       final result = await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => EditProdukScreen(product: product),
+                          builder: (context) =>
+                              EditProdukScreen(product: product),
                         ),
                       );
                       if (result == true) {
@@ -874,7 +881,9 @@ class _KelolaProdukScreenState extends State<KelolaProdukScreen> {
                 Expanded(
                   child: _buildActionButton(
                     label: product.isActive ? 'Nonaktifkan' : 'Aktifkan',
-                    icon: product.isActive ? Icons.visibility_off : Icons.visibility,
+                    icon: product.isActive
+                        ? Icons.visibility_off
+                        : Icons.visibility,
                     color: product.isActive
                         ? const Color(0xFFF59E0B)
                         : const Color(0xFF10B981),
@@ -989,10 +998,7 @@ class _KelolaProdukScreenState extends State<KelolaProdukScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF2F80ED),
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 12,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -1003,4 +1009,3 @@ class _KelolaProdukScreenState extends State<KelolaProdukScreen> {
     );
   }
 }
-

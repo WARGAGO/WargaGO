@@ -5,6 +5,7 @@
 // ============================================================================
 
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -55,7 +56,9 @@ class _EditProdukScreenState extends State<EditProdukScreen> {
     _hargaController.text = widget.product.harga.toStringAsFixed(0);
     _stokController.text = widget.product.stok.toString();
     _deskripsiController.text = widget.product.deskripsi;
-    _beratController.text = (widget.product.berat * 1000).toStringAsFixed(0); // kg to gram
+    _beratController.text = (widget.product.berat * 1000).toStringAsFixed(
+      0,
+    ); // kg to gram
     _selectedCategory = widget.product.kategori;
     _existingImageUrls = List.from(widget.product.imageUrls);
   }
@@ -132,10 +135,7 @@ class _EditProdukScreenState extends State<EditProdukScreen> {
                   color: const Color(0xFF2F80ED).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
-                  Icons.camera_alt,
-                  color: Color(0xFF2F80ED),
-                ),
+                child: const Icon(Icons.camera_alt, color: Color(0xFF2F80ED)),
               ),
               title: Text(
                 'Kamera',
@@ -215,34 +215,64 @@ class _EditProdukScreenState extends State<EditProdukScreen> {
       }
 
       // Upload new images to Azure Storage
-      final List<String> newImageUrls = [];
+      final List<String> newImageBlobsName = [];
+      final azureService = AzureBlobStorageService(
+        firebaseToken: firebaseToken,
+      );
       if (_newImages.isNotEmpty) {
-        final azureService = AzureBlobStorageService(firebaseToken: firebaseToken);
         final timestamp = DateTime.now().millisecondsSinceEpoch;
 
         for (int i = 0; i < _newImages.length; i++) {
           try {
-            final fileName = 'product_${currentUser.uid}_${timestamp}_${_existingImageUrls.length + i}.jpg';
+            final fileName =
+                '${_namaController.text.trim().replaceAll(' ', '')}_${currentUser.uid}_${timestamp}_${_existingImageUrls.length + i}.jpg';
             final response = await azureService.uploadImage(
               file: _newImages[i],
-              isPrivate: true, // ✅ CHANGED: Use PRIVATE storage with SAS tokens (like KYC)
+              isPrivate: false,
               prefixName: 'products/', // Add trailing slash
               customFileName: fileName,
             );
 
             if (response != null) {
-              // ✅ Keep SAS token - URL will be valid with authentication
-              newImageUrls.add(response.blobUrl);
-              print('✅ New image ${i + 1} uploaded: ${response.blobUrl}');
+              newImageBlobsName.add(response.blobName);
+              if (kDebugMode) {
+                print('✅ New image ${i + 1} uploaded: ${response.blobName}');
+              }
             }
           } catch (e) {
-            print('❌ Error uploading new image ${i + 1}: $e');
+            if (kDebugMode) {
+              print('❌ Error uploading new image ${i + 1}: $e');
+            }
           }
         }
       }
 
-      // Combine existing and new image URLs
-      final allImageUrls = [..._existingImageUrls, ...newImageUrls];
+      String getBlobNameFromUrl(String url) =>
+          url.split('public/').last.split('?').first;
+
+      final existingBlobName = _existingImageUrls
+          .map((url) => getBlobNameFromUrl(url))
+          .toList();
+      final allImageUrls = [...existingBlobName, ...newImageBlobsName];
+
+      final imagesToDelete = widget.product.imageUrls
+          .where((url) => !allImageUrls.contains(getBlobNameFromUrl(url)))
+          .toList();
+
+      if (imagesToDelete.isNotEmpty) {
+        for (final url in imagesToDelete) {
+          try {
+            await azureService.deleteFile(
+              blobName: getBlobNameFromUrl(url),
+              isPrivate: false,
+            );
+          } catch (e) {
+            if (kDebugMode) {
+              print('Failed to delete $url: $e');
+            }
+          }
+        }
+      }
 
       if (allImageUrls.isEmpty) {
         throw Exception('Gagal mengupload gambar. Silakan coba lagi.');
@@ -285,7 +315,9 @@ class _EditProdukScreenState extends State<EditProdukScreen> {
       if (mounted) {
         _showErrorSnackbar('Gagal mengupdate produk: ${e.toString()}');
       }
-      print('❌ Error in _submitForm: $e');
+      if (kDebugMode) {
+        print('❌ Error in _submitForm: $e');
+      }
     }
   }
 
@@ -301,9 +333,7 @@ class _EditProdukScreenState extends State<EditProdukScreen> {
         ),
         backgroundColor: const Color(0xFF10B981),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
@@ -320,9 +350,7 @@ class _EditProdukScreenState extends State<EditProdukScreen> {
         ),
         backgroundColor: const Color(0xFFF59E0B),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
@@ -389,9 +417,7 @@ class _EditProdukScreenState extends State<EditProdukScreen> {
                     hint: '0',
                     icon: Icons.attach_money,
                     keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                    ],
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     prefix: Text(
                       'Rp ',
                       style: GoogleFonts.poppins(
@@ -418,9 +444,7 @@ class _EditProdukScreenState extends State<EditProdukScreen> {
                     hint: '0',
                     icon: Icons.inventory_2,
                     keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,
-                    ],
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     suffix: Text(
                       'pcs',
                       style: GoogleFonts.poppins(
@@ -538,7 +562,11 @@ class _EditProdukScreenState extends State<EditProdukScreen> {
                       image: DecorationImage(
                         image: isExisting
                             ? NetworkImage(_existingImageUrls[index])
-                            : FileImage(_newImages[index - _existingImageUrls.length]) as ImageProvider,
+                            : FileImage(
+                                    _newImages[index -
+                                        _existingImageUrls.length],
+                                  )
+                                  as ImageProvider,
                         fit: BoxFit.cover,
                       ),
                     ),
@@ -687,10 +715,7 @@ class _EditProdukScreenState extends State<EditProdukScreen> {
       maxLines: maxLines,
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
-      style: GoogleFonts.poppins(
-        fontSize: 14,
-        color: const Color(0xFF1F2937),
-      ),
+      style: GoogleFonts.poppins(fontSize: 14, color: const Color(0xFF1F2937)),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
@@ -717,10 +742,7 @@ class _EditProdukScreenState extends State<EditProdukScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color(0xFF2F80ED),
-            width: 2,
-          ),
+          borderSide: const BorderSide(color: Color(0xFF2F80ED), width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -728,10 +750,7 @@ class _EditProdukScreenState extends State<EditProdukScreen> {
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color(0xFFEF4444),
-            width: 2,
-          ),
+          borderSide: const BorderSide(color: Color(0xFFEF4444), width: 2),
         ),
       ),
       validator: validator,
@@ -756,19 +775,13 @@ class _EditProdukScreenState extends State<EditProdukScreen> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(
-            color: Color(0xFF2F80ED),
-            width: 2,
-          ),
+          borderSide: const BorderSide(color: Color(0xFF2F80ED), width: 2),
         ),
       ),
       items: _categories.map((category) {
         return DropdownMenuItem(
           value: category,
-          child: Text(
-            category,
-            style: GoogleFonts.poppins(fontSize: 14),
-          ),
+          child: Text(category, style: GoogleFonts.poppins(fontSize: 14)),
         );
       }).toList(),
       onChanged: (value) {
@@ -817,4 +830,3 @@ class _EditProdukScreenState extends State<EditProdukScreen> {
     );
   }
 }
-

@@ -172,15 +172,22 @@ class AppRouterConfig {
           );
         },
       ),
-
       GoRoute(
         path: AppRoutes.wargaClassificationCamera,
         name: 'wargaClassificationCamera',
-        pageBuilder: (context, state) => PageTransitions.noTransition(
+        pageBuilder: (context, state) => CustomTransitionPage(
           key: state.pageKey,
-          child: ClassificationCameraPage(),
+          child: WargaAppBottomNavigation(child: ClassificationCameraPage()),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return FadeTransition(
+              opacity: Tween<double>(begin: 1.0, end: 1.0).animate(animation),
+              child: child,
+            );
+          },
+          transitionDuration: const Duration(milliseconds: 1),
         ),
       ),
+
       // ========== STATUS ROUTES ==========
       GoRoute(
         path: AppRoutes.pending,
@@ -201,12 +208,6 @@ class AppRouterConfig {
           );
         },
       ),
-
-      // GoRoute(
-      //   path: AppRoutes.wargaDashboard,
-      //   name: 'wargaDashboard',
-      //   builder: (context, state) => const WargaMainPage(),
-      // ),
 
       // ========== ADMIN SHELL WITH BOTTOM NAVIGATION ==========
       StatefulShellRoute.indexedStack(
@@ -336,11 +337,12 @@ class AppRouterConfig {
               GoRoute(
                 path: AppRoutes.wargaKeranjangSaya,
                 name: 'wargaKeranjangSaya',
-                pageBuilder: (context, state) => PageTransitions.slideFromBottom(
-                  key: state.pageKey,
-                  child: const CartPage(),
-                  duration: const Duration(milliseconds: 400),
-                ),
+                pageBuilder: (context, state) =>
+                    PageTransitions.slideFromBottom(
+                      key: state.pageKey,
+                      child: const CartPage(),
+                      duration: const Duration(milliseconds: 400),
+                    ),
               ),
               GoRoute(
                 path: AppRoutes.wargaItemDetail,

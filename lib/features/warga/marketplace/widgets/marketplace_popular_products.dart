@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:wargago/core/services/azure_blob_storage_service.dart';
 import '../../../../core/models/marketplace_product_model.dart';
 import '../pages/product_detail_page.dart';
 import 'product_network_image.dart';
@@ -47,98 +48,176 @@ class MarketplacePopularProducts extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('products')
-              .where('isActive', isEqualTo: true)
-              .orderBy('terjual', descending: true)
-              .limit(10)
-              .snapshots(includeMetadataChanges: true), // Force real-time updates
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              if (kDebugMode) {
-                print('❌ Error loading products: ${snapshot.error}');
-              }
-              return const SizedBox.shrink();
-            }
-
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const SizedBox(
-                height: 200,
-                child: Center(child: CircularProgressIndicator()),
-              );
-            }
-
-            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              if (kDebugMode) {
-                print('📦 No products available in Popular Products');
-              }
-              return Padding(
-                padding: const EdgeInsets.all(20),
-                child: Center(
-                  child: Text(
-                    'Belum ada produk tersedia',
-                    style: GoogleFonts.poppins(
-                      fontSize: 14,
-                      color: const Color(0xFF6B7280),
-                    ),
-                  ),
-                ),
-              );
-            }
-
-            final products = snapshot.data!.docs;
-
-            // Check if data is from cache or server
-            final isFromCache = snapshot.data!.metadata.isFromCache;
-
-            if (kDebugMode) {
-              final source = isFromCache ? 'CACHE' : 'SERVER';
-              print('🔄 Popular Products updated: ${products.length} products (Source: $source)');
-              print('   Product IDs: ${products.map((p) => p.id).take(3).toList()}');
-            }
-
-            return SizedBox(
-              height: 240,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: products.length,
-                itemBuilder: (context, index) {
-                  final doc = products[index];
-
-                  // Convert new products collection to old model format
-                  final productData = doc.data() as Map<String, dynamic>;
-                  final product = MarketplaceProductModel(
-                    id: doc.id,
-                    productName: productData['nama'] ?? '',
-                    description: productData['deskripsi'] ?? '',
-                    price: (productData['harga'] ?? 0).toDouble(),
-                    stock: productData['stok'] ?? 0,
-                    category: productData['kategori'] ?? '',
-                    imageUrls: List<String>.from(productData['imageUrls'] ?? []),
-                    sellerId: productData['sellerId'] ?? '',
-                    sellerName: productData['sellerName'] ?? '',
-                    unit: 'kg', // Default unit
-                    isActive: productData['isActive'] ?? true,
-                    soldCount: productData['terjual'] ?? 0,
-                    rating: 5.0, // Default rating
-                    reviewCount: 0,
-                    createdAt: (productData['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-                    updatedAt: (productData['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
-                  );
-
-                  return _buildPopularProductCard(context, product);
-                },
-              ),
-            );
-          },
-        ),
+        const _PopularProductsStreamBuilder(),
       ],
     );
   }
+}
 
-  Widget _buildPopularProductCard(BuildContext context, MarketplaceProductModel product) {
+class _PopularProductsStreamBuilder extends StatelessWidget {
+  const _PopularProductsStreamBuilder();
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('products')
+          .where('isActive', isEqualTo: true)
+          .orderBy('terjual', descending: true)
+          .limit(10)
+          .snapshots(includeMetadataChanges: true), // Force real-time updates
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          if (kDebugMode) {
+            print('❌ Error loading products: ${snapshot.error}');
+          }
+          return const SizedBox.shrink();
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const SizedBox(
+            height: 200,
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          if (kDebugMode) {
+            print('📦 No products available in Popular Products');
+          }
+          return Padding(
+            padding: const EdgeInsets.all(20),
+            child: Center(
+              child: Text(
+                'Belum ada produk tersedia',
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: const Color(0xFF6B7280),
+                ),
+              ),
+            ),
+          );
+        }
+
+        final products = snapshot.data!.docs;
+
+        // Check if data is from cache or server
+        final isFromCache = snapshot.data!.metadata.isFromCache;
+
+        if (kDebugMode) {
+          final source = isFromCache ? 'CACHE' : 'SERVER';
+          print(
+            '🔄 Popular Products updated: ${products.length} products (Source: $source)',
+          );
+          print(
+            '   Product IDs: ${products.map((p) => p.id).take(3).toList()}',
+          );
+        }
+
+        return SizedBox(
+          height: 240,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: products.length,
+            itemBuilder: (context, index) {
+              final doc = products[index];
+              final productData = doc.data() as Map<String, dynamic>;
+
+              return _PopularProductItem(doc: doc, productData: productData);
+            },
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _PopularProductItem extends StatefulWidget {
+  final QueryDocumentSnapshot doc;
+  final Map<String, dynamic> productData;
+
+  const _PopularProductItem({required this.doc, required this.productData});
+
+  @override
+  State<_PopularProductItem> createState() => _PopularProductItemState();
+}
+
+class _PopularProductItemState extends State<_PopularProductItem> {
+  late MarketplaceProductModel product;
+  bool _isLoadingImages = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeProduct();
+    _loadAzureImages();
+  }
+
+  void _initializeProduct() {
+    // Convert new products collection to old model format
+    product = MarketplaceProductModel(
+      id: widget.doc.id,
+      productName: widget.productData['nama'] ?? '',
+      description: widget.productData['deskripsi'] ?? '',
+      price: (widget.productData['harga'] ?? 0).toDouble(),
+      stock: widget.productData['stok'] ?? 0,
+      category: widget.productData['kategori'] ?? '',
+      imageUrls: List<String>.from(widget.productData['imageUrls'] ?? []),
+      sellerId: widget.productData['sellerId'] ?? '',
+      sellerName: widget.productData['sellerName'] ?? '',
+      unit: 'kg', // Default unit
+      isActive: widget.productData['isActive'] ?? true,
+      soldCount: widget.productData['terjual'] ?? 0,
+      rating: 5.0, // Default rating
+      reviewCount: 0,
+      createdAt:
+          (widget.productData['createdAt'] as Timestamp?)?.toDate() ??
+          DateTime.now(),
+      updatedAt:
+          (widget.productData['updatedAt'] as Timestamp?)?.toDate() ??
+          DateTime.now(),
+    );
+  }
+
+  Future<void> _loadAzureImages() async {
+    if (product.imageUrls.isEmpty) return;
+
+    setState(() {
+      _isLoadingImages = true;
+    });
+
+    try {
+      final azureBlobStorageService = AzureBlobStorageService(
+        firebaseToken: 'xxx',
+      );
+
+      final uid = product.imageUrls.first.split('/').first;
+      final azureImages = await azureBlobStorageService.getImages(
+        uid: uid,
+        isPrivate: false,
+      );
+
+      if (azureImages != null) {
+        product.updateUrls(azureImages);
+        setState(() {
+          _isLoadingImages = false;
+        });
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('❌ Error loading Azure images: $e');
+      }
+      if (mounted) {
+        setState(() {
+          _isLoadingImages = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -168,7 +247,7 @@ class MarketplacePopularProducts extends StatelessWidget {
             // Product Image
             Stack(
               children: [
-                product.imageUrls.isNotEmpty
+                product.imageUrls.isNotEmpty && !_isLoadingImages
                     ? ProductNetworkImage(
                         imageUrl: product.imageUrls.first,
                         width: double.infinity,
@@ -179,6 +258,30 @@ class MarketplacePopularProducts extends StatelessWidget {
                         ),
                       )
                     : _buildPlaceholderImage(),
+                // Loading indicator for Azure images
+                if (_isLoadingImages)
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(16),
+                        ),
+                      ),
+                      child: const Center(
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 // Best Seller Badge
                 if (product.soldCount > 50)
                   Positioned(
@@ -283,13 +386,9 @@ class MarketplacePopularProducts extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      child: const Icon(
-        Icons.image,
-        size: 40,
-        color: Color(0xFF2F80ED),
-      ),
+      child: const Icon(Icons.image, size: 40, color: Color(0xFF2F80ED)),
     );
   }
 }
-

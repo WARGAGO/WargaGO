@@ -6,6 +6,7 @@
 // ============================================================================
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:wargago/core/models/BlobStorage/user_images_response.dart';
 import 'package:wargago/core/utils/azure_blob_url_helper.dart'; // ⭐ ADDED
 
 class MarketplaceProductModel {
@@ -17,8 +18,10 @@ class MarketplaceProductModel {
   final double price;
   final int stock;
   final String category; // sayuran, buah, sembako, dll
-  final String? subcategory; // Subcategory (e.g., "Sayur Daun", "Sayur Akar", dll)
-  final List<String> imageUrls; // Multiple images URLs from storage
+  final String?
+  subcategory; // Subcategory (e.g., "Sayur Daun", "Sayur Akar", dll)
+  List<String> _imageUrls;
+  List<String> get imageUrls => _imageUrls; // Multiple images URLs from storage
   final String unit; // kg, pcs, ikat, dll
   final bool isActive; // Produk aktif/non-aktif
   final DateTime createdAt;
@@ -37,7 +40,7 @@ class MarketplaceProductModel {
     required this.stock,
     required this.category,
     this.subcategory,
-    required this.imageUrls,
+    required List<String> imageUrls,
     required this.unit,
     this.isActive = true,
     required this.createdAt,
@@ -45,7 +48,7 @@ class MarketplaceProductModel {
     this.soldCount = 0,
     this.rating = 0.0,
     this.reviewCount = 0,
-  });
+  }) : _imageUrls = imageUrls;
 
   // Convert to Map for Firestore
   Map<String, dynamic> toMap() {
@@ -59,7 +62,9 @@ class MarketplaceProductModel {
       'stock': stock,
       'category': category,
       'subcategory': subcategory,
-      'imageUrls': AzureBlobUrlHelper.cleanUrlList(imageUrls), // ⭐ Clean SAS tokens
+      'imageUrls': AzureBlobUrlHelper.cleanUrlList(
+        imageUrls,
+      ), // ⭐ Clean SAS tokens
       'unit': unit,
       'isActive': isActive,
       'createdAt': Timestamp.fromDate(createdAt),
@@ -186,5 +191,20 @@ class MarketplaceProductModel {
   String toString() {
     return 'MarketplaceProductModel(id: $id, productName: $productName, price: $price, stock: $stock, category: $category)';
   }
-}
 
+  void updateUrls(UserImagesResponse userImagesResponse) {
+    List<String> userBlobName = userImagesResponse.images
+        .map((e) => e.blobName)
+        .toList();
+
+    List<String> userUrl = userImagesResponse.images
+        .map((e) => e.blobUrl)
+        .toList();
+
+    _imageUrls = _imageUrls.map((blobName) {
+      return userBlobName.contains(blobName)
+          ? userUrl[userBlobName.indexOf(blobName)]
+          : blobName;
+    }).toList();
+  }
+}

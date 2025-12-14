@@ -10,7 +10,6 @@ import 'package:provider/provider.dart';
 import '../../../../core/providers/marketplace_provider.dart';
 import '../../../../core/providers/cart_provider.dart';
 import '../../../../core/models/marketplace_product_model.dart';
-import '../../../../core/utils/azure_blob_url_helper.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final String productId;
@@ -162,7 +161,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         body: const Center(child: Text('Produk tidak ditemukan')),
       );
     }
-
     return Scaffold(
       backgroundColor: Colors.white,
       body: CustomScrollView(
