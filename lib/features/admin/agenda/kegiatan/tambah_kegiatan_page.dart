@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -126,13 +127,15 @@ class _TambahKegiatanPageState extends State<TambahKegiatanPage> {
 
       // Simpan ke Firestore dengan timeout
       final provider = Provider.of<AgendaProvider>(context, listen: false);
-      success = await provider.createAgenda(agenda).timeout(
-        const Duration(seconds: 10),
-        onTimeout: () {
-          errorMessage = 'Timeout: Operasi terlalu lama';
-          return false;
-        },
-      );
+      success = await provider
+          .createAgenda(agenda)
+          .timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              errorMessage = 'Timeout: Operasi terlalu lama';
+              return false;
+            },
+          );
     } catch (e) {
       errorMessage = e.toString();
       success = false;
@@ -197,7 +200,9 @@ class _TambahKegiatanPageState extends State<TambahKegiatanPage> {
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  errorMessage ?? provider.error ?? 'Gagal menambahkan kegiatan',
+                  errorMessage ??
+                      provider.error ??
+                      'Gagal menambahkan kegiatan',
                   style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
                 ),
               ),
@@ -432,10 +437,7 @@ class _TambahKegiatanPageState extends State<TambahKegiatanPage> {
               ),
             ),
             items: items.map((String item) {
-              return DropdownMenuItem<String>(
-                value: item,
-                child: Text(item),
-              );
+              return DropdownMenuItem<String>(value: item, child: Text(item));
             }).toList(),
             onChanged: onChanged,
             icon: Container(
@@ -458,10 +460,17 @@ class _TambahKegiatanPageState extends State<TambahKegiatanPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      body: SafeArea(
-        child: Column(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.light,
+        systemNavigationBarDividerColor: Colors.transparent,
+      ),
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8F9FA),
+        body: Column(
           children: [
             // HEADER dengan gradient modern
             Container(
@@ -477,6 +486,7 @@ class _TambahKegiatanPageState extends State<TambahKegiatanPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const SafeArea(child: SizedBox.shrink()),
                   // Back button modern
                   Row(
                     children: [
@@ -490,7 +500,11 @@ class _TambahKegiatanPageState extends State<TambahKegiatanPage> {
                           ),
                         ),
                         child: IconButton(
-                          icon: const Icon(Icons.arrow_back_rounded, color: Colors.white, size: 22),
+                          icon: const Icon(
+                            Icons.arrow_back_rounded,
+                            color: Colors.white,
+                            size: 22,
+                          ),
                           onPressed: () => Navigator.pop(context),
                           padding: const EdgeInsets.all(8),
                           constraints: const BoxConstraints(),
@@ -534,151 +548,153 @@ class _TambahKegiatanPageState extends State<TambahKegiatanPage> {
                 child: ListView(
                   padding: const EdgeInsets.all(20),
                   children: [
-                  _buildTextField(
-                    controller: _namaController,
-                    label: "Nama Kegiatan",
-                    hint: "Masukkan nama kegiatan",
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Nama kegiatan tidak boleh kosong';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  _buildDropdownField(
-                    label: "Kategori",
-                    hint: "Pilih Kategori",
-                    value: _selectedKategori,
-                    items: _kategoriOptions,
-                    onChanged: (newValue) {
-                      setState(() {
-                        _selectedKategori = newValue;
-                      });
-                    },
-                    validator: (value) =>
-                        value == null ? 'Kategori harus dipilih' : null,
-                  ),
-                  const SizedBox(height: 20),
-                  _buildTextField(
-                    controller: _tanggalController,
-                    label: "Tanggal",
-                    hint: "dd/mm/yyyy",
-                    readOnly: true,
-                    onTap: () => _selectDate(context),
-                    suffixIcon: Container(
-                      padding: const EdgeInsets.all(8),
+                    _buildTextField(
+                      controller: _namaController,
+                      label: "Nama Kegiatan",
+                      hint: "Masukkan nama kegiatan",
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Nama kegiatan tidak boleh kosong';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    _buildDropdownField(
+                      label: "Kategori",
+                      hint: "Pilih Kategori",
+                      value: _selectedKategori,
+                      items: _kategoriOptions,
+                      onChanged: (newValue) {
+                        setState(() {
+                          _selectedKategori = newValue;
+                        });
+                      },
+                      validator: (value) =>
+                          value == null ? 'Kategori harus dipilih' : null,
+                    ),
+                    const SizedBox(height: 20),
+                    _buildTextField(
+                      controller: _tanggalController,
+                      label: "Tanggal",
+                      hint: "dd/mm/yyyy",
+                      readOnly: true,
+                      onTap: () => _selectDate(context),
+                      suffixIcon: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF2988EA).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.calendar_today_rounded,
+                          size: 20,
+                          color: Color(0xFF2988EA),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Tanggal tidak boleh kosong';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    _buildTextField(
+                      controller: _lokasiController,
+                      label: "Lokasi",
+                      hint: "Masukkan lokasi",
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Lokasi tidak boleh kosong';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    _buildTextField(
+                      controller: _pjController,
+                      label: "Penanggung Jawab",
+                      hint: "Masukkan nama Penanggung Jawab",
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Penanggung Jawab tidak boleh kosong';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    _buildTextField(
+                      controller: _deskripsiController,
+                      label: "Deskripsi",
+                      hint: "Masukkan deskripsi kegiatan",
+                      maxLines: 4,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Deskripsi tidak boleh kosong';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 40),
+                    // Button Submit dengan gradient modern
+                    Container(
+                      width: double.infinity,
+                      height: 56,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF2988EA).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.calendar_today_rounded,
-                        size: 20,
-                        color: Color(0xFF2988EA),
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Tanggal tidak boleh kosong';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  _buildTextField(
-                    controller: _lokasiController,
-                    label: "Lokasi",
-                    hint: "Masukkan lokasi",
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Lokasi tidak boleh kosong';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  _buildTextField(
-                    controller: _pjController,
-                    label: "Penanggung Jawab",
-                    hint: "Masukkan nama Penanggung Jawab",
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Penanggung Jawab tidak boleh kosong';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 20),
-                  _buildTextField(
-                    controller: _deskripsiController,
-                    label: "Deskripsi",
-                    hint: "Masukkan deskripsi kegiatan",
-                    maxLines: 4,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Deskripsi tidak boleh kosong';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 40),
-                  // Button Submit dengan gradient modern
-                  Container(
-                    width: double.infinity,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      gradient: const LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [Color(0xFF2988EA), Color(0xFF2563EB)],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF2988EA).withValues(alpha: 0.4),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                          spreadRadius: 2,
+                        borderRadius: BorderRadius.circular(16),
+                        gradient: const LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [Color(0xFF2988EA), Color(0xFF2563EB)],
                         ),
-                      ],
-                    ),
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                      onPressed: _submitKegiatan,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.add_circle_rounded,
-                            color: Colors.white,
-                            size: 24,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            "Tambah Kegiatan",
-                            style: GoogleFonts.poppins(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                              letterSpacing: 0.5,
-                            ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(
+                              0xFF2988EA,
+                            ).withValues(alpha: 0.4),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                            spreadRadius: 2,
                           ),
                         ],
                       ),
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        onPressed: _submitKegiatan,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.add_circle_rounded,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              "Tambah Kegiatan",
+                              style: GoogleFonts.poppins(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 30),
-                ],
+                    const SizedBox(height: 30),
+                  ],
+                ),
               ),
             ),
-          ),
           ],
         ),
       ),

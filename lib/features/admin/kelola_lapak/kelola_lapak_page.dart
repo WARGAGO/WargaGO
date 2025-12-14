@@ -5,6 +5,7 @@
 // ============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/models/pending_seller_model.dart';
 import '../../../core/repositories/pending_seller_repository.dart';
@@ -84,10 +85,17 @@ class _KelolaLapakPageState extends State<KelolaLapakPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FD),
-      body: SafeArea(
-        child: Column(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.light,
+        systemNavigationBarDividerColor: Colors.transparent,
+      ),
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8F9FD),
+        body: Column(
           children: [
             // Header
             _buildHeader(),
@@ -129,11 +137,7 @@ class _KelolaLapakPageState extends State<KelolaLapakPage>
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF2F80ED),
-                Color(0xFF1E6FD9),
-                Color(0xFF1557B0),
-              ],
+              colors: [Color(0xFF2F80ED), Color(0xFF1E6FD9), Color(0xFF1557B0)],
               stops: [0.0, 0.5, 1.0],
             ),
             borderRadius: const BorderRadius.only(
@@ -297,7 +301,11 @@ class _KelolaLapakPageState extends State<KelolaLapakPage>
                 const LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Color(0xFFFFA500), Color(0xFFFF8C00), Color(0xFFFF7700)],
+                  colors: [
+                    Color(0xFFFFA500),
+                    Color(0xFFFF8C00),
+                    Color(0xFFFF7700),
+                  ],
                 ),
                 0,
               ),
@@ -311,7 +319,11 @@ class _KelolaLapakPageState extends State<KelolaLapakPage>
                 const LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Color(0xFF10B981), Color(0xFF059669), Color(0xFF047857)],
+                  colors: [
+                    Color(0xFF10B981),
+                    Color(0xFF059669),
+                    Color(0xFF047857),
+                  ],
                 ),
                 1,
               ),
@@ -325,7 +337,11 @@ class _KelolaLapakPageState extends State<KelolaLapakPage>
                 const LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Color(0xFFEF4444), Color(0xFFDC2626), Color(0xFFB91C1C)],
+                  colors: [
+                    Color(0xFFEF4444),
+                    Color(0xFFDC2626),
+                    Color(0xFFB91C1C),
+                  ],
                 ),
                 2,
               ),
@@ -339,7 +355,11 @@ class _KelolaLapakPageState extends State<KelolaLapakPage>
                 const LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Color(0xFF6B7280), Color(0xFF4B5563), Color(0xFF374151)],
+                  colors: [
+                    Color(0xFF6B7280),
+                    Color(0xFF4B5563),
+                    Color(0xFF374151),
+                  ],
                 ),
                 3,
               ),
@@ -350,7 +370,13 @@ class _KelolaLapakPageState extends State<KelolaLapakPage>
     );
   }
 
-  Widget _buildStatCard(String label, int count, IconData icon, Gradient gradient, int index) {
+  Widget _buildStatCard(
+    String label,
+    int count,
+    IconData icon,
+    Gradient gradient,
+    int index,
+  ) {
     return TweenAnimationBuilder<double>(
       duration: Duration(milliseconds: 600 + (index * 100)),
       tween: Tween(begin: 0.0, end: 1.0),
@@ -484,11 +510,7 @@ class _KelolaLapakPageState extends State<KelolaLapakPage>
           gradient: const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF2F80ED),
-              Color(0xFF1E6FD9),
-              Color(0xFF1557B0),
-            ],
+            colors: [Color(0xFF2F80ED), Color(0xFF1E6FD9), Color(0xFF1557B0)],
           ),
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
@@ -526,30 +548,10 @@ class _KelolaLapakPageState extends State<KelolaLapakPage>
           const Color(0xFF2F80ED).withValues(alpha: 0.1),
         ),
         tabs: [
-          Tab(
-            height: 44,
-            child: Center(
-              child: Text('Pending'),
-            ),
-          ),
-          Tab(
-            height: 44,
-            child: Center(
-              child: Text('Aktif'),
-            ),
-          ),
-          Tab(
-            height: 44,
-            child: Center(
-              child: Text('Ditolak'),
-            ),
-          ),
-          Tab(
-            height: 44,
-            child: Center(
-              child: Text('Suspend'),
-            ),
-          ),
+          Tab(height: 44, child: Center(child: Text('Pending'))),
+          Tab(height: 44, child: Center(child: Text('Aktif'))),
+          Tab(height: 44, child: Center(child: Text('Ditolak'))),
+          Tab(height: 44, child: Center(child: Text('Suspend'))),
         ],
       ),
     );
@@ -561,9 +563,7 @@ class _KelolaLapakPageState extends State<KelolaLapakPage>
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
-            child: CircularProgressIndicator(
-              color: Color(0xFF2F80ED),
-            ),
+            child: CircularProgressIndicator(color: Color(0xFF2F80ED)),
           );
         }
 
@@ -600,9 +600,7 @@ class _KelolaLapakPageState extends State<KelolaLapakPage>
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
-            child: CircularProgressIndicator(
-              color: Color(0xFF2F80ED),
-            ),
+            child: CircularProgressIndicator(color: Color(0xFF2F80ED)),
           );
         }
 
@@ -648,10 +646,7 @@ class _KelolaLapakPageState extends State<KelolaLapakPage>
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(26),
-                border: Border.all(
-                  color: const Color(0xFFE5E7EB),
-                  width: 1,
-                ),
+                border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.08),
@@ -680,7 +675,9 @@ class _KelolaLapakPageState extends State<KelolaLapakPage>
                     ).then((_) => _loadStatistics());
                   },
                   splashColor: const Color(0xFF2F80ED).withValues(alpha: 0.1),
-                  highlightColor: const Color(0xFF2F80ED).withValues(alpha: 0.05),
+                  highlightColor: const Color(
+                    0xFF2F80ED,
+                  ).withValues(alpha: 0.05),
                   child: Padding(
                     padding: const EdgeInsets.all(22),
                     child: Column(
@@ -707,7 +704,9 @@ class _KelolaLapakPageState extends State<KelolaLapakPage>
                                   borderRadius: BorderRadius.circular(20),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(0xFF2F80ED).withValues(alpha: 0.4),
+                                      color: const Color(
+                                        0xFF2F80ED,
+                                      ).withValues(alpha: 0.4),
                                       blurRadius: 16,
                                       offset: const Offset(0, 8),
                                       spreadRadius: 0,
@@ -1006,7 +1005,11 @@ class _KelolaLapakPageState extends State<KelolaLapakPage>
   }
 
   Widget _buildMetricItem(
-      String label, String value, IconData icon, Gradient gradient) {
+    String label,
+    String value,
+    IconData icon,
+    Gradient gradient,
+  ) {
     return Column(
       children: [
         Container(
@@ -1056,11 +1059,7 @@ class _KelolaLapakPageState extends State<KelolaLapakPage>
             color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(
-            icon,
-            size: 16,
-            color: color,
-          ),
+          child: Icon(icon, size: 16, color: color),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -1115,9 +1114,7 @@ class _KelolaLapakPageState extends State<KelolaLapakPage>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [startColor, endColor],
-        ),
+        gradient: LinearGradient(colors: [startColor, endColor]),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -1173,11 +1170,7 @@ class _KelolaLapakPageState extends State<KelolaLapakPage>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            size: 80,
-            color: const Color(0xFF9CA3AF),
-          ),
+          Icon(icon, size: 80, color: const Color(0xFF9CA3AF)),
           const SizedBox(height: 16),
           Text(
             message,
@@ -1248,9 +1241,8 @@ class _KelolaLapakPageState extends State<KelolaLapakPage>
       'Sep',
       'Okt',
       'Nov',
-      'Des'
+      'Des',
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year}';
   }
 }
-

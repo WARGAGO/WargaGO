@@ -5,10 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 class CustomDataPendudukTabBar extends StatelessWidget {
   final TabController controller;
 
-  const CustomDataPendudukTabBar({
-    super.key,
-    required this.controller,
-  });
+  const CustomDataPendudukTabBar({super.key, required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -78,35 +75,47 @@ class CustomDataPendudukTabBar extends StatelessWidget {
             fontSize: 13,
             fontWeight: FontWeight.w600,
           ),
-          tabs: const [
+          tabs: [
             Tab(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.person_rounded, size: 18),
-                  SizedBox(width: 6),
-                  Text('Warga'),
-                ],
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.person_rounded, size: 18),
+                    SizedBox(width: 6),
+                    Text('Warga'),
+                  ],
+                ),
               ),
             ),
             Tab(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.family_restroom_rounded, size: 18),
-                  SizedBox(width: 6),
-                  Text('Keluarga'),
-                ],
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.family_restroom_rounded, size: 18),
+                    SizedBox(width: 6),
+                    Text('Keluarga'),
+                  ],
+                ),
               ),
             ),
             Tab(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.home_rounded, size: 18),
-                  SizedBox(width: 6),
-                  Text('Rumah'),
-                ],
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.home_rounded, size: 18),
+                    SizedBox(width: 6),
+                    Text('Rumah'),
+                  ],
+                ),
               ),
             ),
           ],
@@ -115,4 +124,3 @@ class CustomDataPendudukTabBar extends StatelessWidget {
     );
   }
 }
-

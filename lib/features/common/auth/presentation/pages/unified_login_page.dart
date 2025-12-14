@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show SystemUiOverlayStyle, SystemChrome;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:wargago/core/constants/app_routes.dart';
@@ -8,9 +9,7 @@ import 'package:wargago/features/common/auth/presentation/widgets/auth_widgets.d
 import 'package:wargago/features/common/classification/widgets/inkwell_iconbutton.dart';
 
 class UnifiedLoginPage extends StatelessWidget {
-  const UnifiedLoginPage({
-    super.key,
-  });
+  const UnifiedLoginPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -32,13 +31,20 @@ class UnifiedLoginPage extends StatelessWidget {
             children: [
               // Header with back button, "Don't have account", and "Get Started"
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 12,
+                ),
                 child: Row(
                   children: [
                     // Back button - Navigate to preAuth (keluar dari login)
                     InkWellIconButton(
                       onTap: () => context.go(AppRoutes.preAuth),
-                      icon: Icon(Icons.arrow_back_ios_new, color: Colors.white70, size: 20),
+                      icon: Icon(
+                        Icons.arrow_back_ios_new,
+                        color: Colors.white70,
+                        size: 20,
+                      ),
                       color: Colors.transparent,
                     ),
                     Spacer(),
@@ -59,7 +65,10 @@ class UnifiedLoginPage extends StatelessWidget {
                       },
                       style: TextButton.styleFrom(
                         backgroundColor: Colors.white.withValues(alpha: 0.2),
-                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 8,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
@@ -97,9 +106,10 @@ class _LoginBody extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: ConstrainedBox(
         constraints: BoxConstraints(
-          minHeight: MediaQuery.of(context).size.height -
-                     MediaQuery.of(context).padding.top -
-                     MediaQuery.of(context).padding.bottom,
+          minHeight:
+              MediaQuery.of(context).size.height -
+              MediaQuery.of(context).padding.top -
+              MediaQuery.of(context).padding.bottom,
         ),
         child: IntrinsicHeight(
           child: Column(
@@ -196,10 +206,7 @@ class _LoginIntro extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           'Enter your details below',
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            color: Colors.grey.shade600,
-          ),
+          style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey.shade600),
         ),
       ],
     );
@@ -223,6 +230,20 @@ class _LoginFieldsState extends State<_LoginFields> {
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   bool _obscurePassword = true;
+
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.light,
+        systemNavigationBarDividerColor: Colors.transparent,
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -287,8 +308,12 @@ class _LoginFieldsState extends State<_LoginFields> {
         return;
       }
 
-      if (!isAdminEmail && !isBendaharaEmail && !isSekretarisEmail &&
-          (user?.role == 'admin' || user?.role == 'bendahara' || user?.role == 'sekretaris')) {
+      if (!isAdminEmail &&
+          !isBendaharaEmail &&
+          !isSekretarisEmail &&
+          (user?.role == 'admin' ||
+              user?.role == 'bendahara' ||
+              user?.role == 'sekretaris')) {
         AuthDialogs.showError(
           context,
           'Login Ditolak',
@@ -376,8 +401,12 @@ class _LoginFieldsState extends State<_LoginFields> {
           return;
         }
 
-        if (!isAdminEmail && !isBendaharaEmail && !isSekretarisEmail &&
-            (user?.role == 'admin' || user?.role == 'bendahara' || user?.role == 'sekretaris')) {
+        if (!isAdminEmail &&
+            !isBendaharaEmail &&
+            !isSekretarisEmail &&
+            (user?.role == 'admin' ||
+                user?.role == 'bendahara' ||
+                user?.role == 'sekretaris')) {
           AuthDialogs.showError(
             context,
             'Login Ditolak',
@@ -469,7 +498,10 @@ class _LoginFieldsState extends State<_LoginFields> {
                       color: Colors.grey.shade400,
                     ),
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -516,13 +548,19 @@ class _LoginFieldsState extends State<_LoginFields> {
                       color: Colors.grey.shade400,
                     ),
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
                         color: Colors.grey.shade600,
                       ),
-                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                      onPressed: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
                     ),
                   ),
                   validator: (value) {
@@ -571,7 +609,9 @@ class _LoginFieldsState extends State<_LoginFields> {
                           height: 24,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              Colors.white,
+                            ),
                           ),
                         )
                       : Text(
@@ -675,4 +715,3 @@ class _LoginFieldsState extends State<_LoginFields> {
     );
   }
 }
-

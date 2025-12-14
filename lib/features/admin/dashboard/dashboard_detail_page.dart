@@ -198,8 +198,16 @@ class _StatusPendudukCard extends StatelessWidget {
                     size: const Size(220, 220),
                     painter: _PieChartPainter(
                       segments: const [
-                        PieSegment(percentage: 0.22, color: Color(0xFF1E3A8A), label: 'Nonaktif\n22%'),
-                        PieSegment(percentage: 0.78, color: Color(0xFF2F80ED), label: 'Aktif\n78%'),
+                        PieSegment(
+                          percentage: 0.22,
+                          color: Color(0xFF1E3A8A),
+                          label: 'Nonaktif\n22%',
+                        ),
+                        PieSegment(
+                          percentage: 0.78,
+                          color: Color(0xFF2F80ED),
+                          label: 'Aktif\n78%',
+                        ),
                       ],
                     ),
                   ),
@@ -277,8 +285,16 @@ class _JenisKelaminCard extends StatelessWidget {
                 size: const Size(220, 220),
                 painter: _PieChartPainter(
                   segments: const [
-                    PieSegment(percentage: 0.22, color: Color(0xFF1E3A8A), label: 'Wanita\n22%'),
-                    PieSegment(percentage: 0.78, color: Color(0xFF2F80ED), label: 'Laki-laki\n78%'),
+                    PieSegment(
+                      percentage: 0.22,
+                      color: Color(0xFF1E3A8A),
+                      label: 'Wanita\n22%',
+                    ),
+                    PieSegment(
+                      percentage: 0.78,
+                      color: Color(0xFF2F80ED),
+                      label: 'Laki-laki\n78%',
+                    ),
                   ],
                 ),
               ),
@@ -323,7 +339,11 @@ class _ViewsByCountryCard extends StatelessWidget {
                       color: const Color(0xFF9CA3AF),
                     ),
                   ),
-                  const Icon(Icons.keyboard_arrow_down, size: 16, color: Color(0xFF9CA3AF)),
+                  const Icon(
+                    Icons.keyboard_arrow_down,
+                    size: 16,
+                    color: Color(0xFF9CA3AF),
+                  ),
                 ],
               ),
             ],
@@ -347,10 +367,22 @@ class _ViewsByCountryCard extends StatelessWidget {
                   size: const Size(140, 140),
                   painter: _DonutChartPainter(
                     segments: const [
-                      DonutSegment(percentage: 0.3911, color: Color(0xFF2F80ED)),
-                      DonutSegment(percentage: 0.2802, color: Color(0xFF93C5FD)),
-                      DonutSegment(percentage: 0.2313, color: Color(0xFF1E3A8A)),
-                      DonutSegment(percentage: 0.0603, color: Color(0xFFE5E7EB)),
+                      DonutSegment(
+                        percentage: 0.3911,
+                        color: Color(0xFF2F80ED),
+                      ),
+                      DonutSegment(
+                        percentage: 0.2802,
+                        color: Color(0xFF93C5FD),
+                      ),
+                      DonutSegment(
+                        percentage: 0.2313,
+                        color: Color(0xFF1E3A8A),
+                      ),
+                      DonutSegment(
+                        percentage: 0.0603,
+                        color: Color(0xFFE5E7EB),
+                      ),
                     ],
                   ),
                 ),
@@ -412,10 +444,7 @@ class _LegendItem extends StatelessWidget {
         Container(
           width: 8,
           height: 8,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 8),
         Text(
@@ -516,10 +545,7 @@ class _BubbleLegend extends StatelessWidget {
         Container(
           width: 8,
           height: 8,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 6),
         Text(
@@ -589,11 +615,23 @@ class _AgamaCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    _AgamaLegendItem(color: Color(0xFF2F80ED), label: 'Islam', percentage: '20%'),
+                    _AgamaLegendItem(
+                      color: Color(0xFF2F80ED),
+                      label: 'Islam',
+                      percentage: '20%',
+                    ),
                     const SizedBox(height: 12),
-                    _AgamaLegendItem(color: Color(0xFF8B5CF6), label: 'Kristen', percentage: '50%'),
+                    _AgamaLegendItem(
+                      color: Color(0xFF8B5CF6),
+                      label: 'Kristen',
+                      percentage: '50%',
+                    ),
                     const SizedBox(height: 12),
-                    _AgamaLegendItem(color: Color(0xFF1F1F1F), label: 'Lainnya', percentage: '10%'),
+                    _AgamaLegendItem(
+                      color: Color(0xFF1F1F1F),
+                      label: 'Lainnya',
+                      percentage: '10%',
+                    ),
                   ],
                 ),
               ),
@@ -623,10 +661,7 @@ class _AgamaLegendItem extends StatelessWidget {
         Container(
           width: 8,
           height: 8,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 8),
         Text(
@@ -721,9 +756,17 @@ class _PendidikanCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _PendidikanLegend(color: Color(0xFF2F80ED), label: 'Sarjana/Diploma', percentage: '65%'),
+              _PendidikanLegend(
+                color: Color(0xFF2F80ED),
+                label: 'Sarjana/Diploma',
+                percentage: '65%',
+              ),
               const SizedBox(width: 20),
-              _PendidikanLegend(color: Color(0xFFE5E7EB), label: 'SMA/SMK', percentage: '35%'),
+              _PendidikanLegend(
+                color: Color(0xFFE5E7EB),
+                label: 'SMA/SMK',
+                percentage: '35%',
+              ),
             ],
           ),
         ],
@@ -751,10 +794,7 @@ class _PendidikanLegend extends StatelessWidget {
         Container(
           width: 8,
           height: 8,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
         const SizedBox(width: 6),
         Text(
@@ -848,10 +888,7 @@ class DonutSegment {
   final double percentage;
   final Color color;
 
-  const DonutSegment({
-    required this.percentage,
-    required this.color,
-  });
+  const DonutSegment({required this.percentage, required this.color});
 }
 
 class _DonutChartPainter extends CustomPainter {
@@ -918,7 +955,10 @@ class _BubbleChartPainter extends CustomPainter {
     largeText.layout();
     largeText.paint(
       canvas,
-      Offset(center.dx - 20 - largeText.width / 2, center.dy + 10 - largeText.height / 2),
+      Offset(
+        center.dx - 20 - largeText.width / 2,
+        center.dy + 10 - largeText.height / 2,
+      ),
     );
 
     // Medium purple circle (20%)
@@ -942,7 +982,10 @@ class _BubbleChartPainter extends CustomPainter {
     mediumText.layout();
     mediumText.paint(
       canvas,
-      Offset(center.dx + 60 - mediumText.width / 2, center.dy - 30 - mediumText.height / 2),
+      Offset(
+        center.dx + 60 - mediumText.width / 2,
+        center.dy - 30 - mediumText.height / 2,
+      ),
     );
 
     // Small black circle (10%)
@@ -966,7 +1009,10 @@ class _BubbleChartPainter extends CustomPainter {
     smallText.layout();
     smallText.paint(
       canvas,
-      Offset(center.dx + 30 - smallText.width / 2, center.dy + 60 - smallText.height / 2),
+      Offset(
+        center.dx + 30 - smallText.width / 2,
+        center.dy + 60 - smallText.height / 2,
+      ),
     );
   }
 

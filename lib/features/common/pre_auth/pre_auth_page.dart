@@ -223,7 +223,8 @@ class _PreAuthPageState extends State<PreAuthPage>
     SystemChrome.setSystemUIOverlayStyle(
       const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        systemNavigationBarColor: Colors.white,
+        statusBarIconBrightness: Brightness.dark,
+        systemNavigationBarColor: Colors.transparent,
         systemNavigationBarIconBrightness: Brightness.dark,
         systemNavigationBarDividerColor: Colors.transparent,
       ),
@@ -285,87 +286,91 @@ class _PreAuthPageState extends State<PreAuthPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _kBackground,
-      body: AnimatedBuilder(
-        animation: Listenable.merge([_backgroundProgress, _fadeAnimation]),
-        builder: (context, _) {
-          return Stack(
-            children: [
-              // Modern Gradient Background
-              _ModernGradientBackground(progress: _backgroundProgress.value),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.dark,
+      child: Scaffold(
+        backgroundColor: _kBackground,
+        body: AnimatedBuilder(
+          animation: Listenable.merge([_backgroundProgress, _fadeAnimation]),
+          builder: (context, _) {
+            return Stack(
+              children: [
+                // Modern Gradient Background
+                _ModernGradientBackground(progress: _backgroundProgress.value),
 
-              // Minimal Floating Particles
-              _MinimalParticles(progress: _backgroundProgress.value),
+                // Minimal Floating Particles
+                _MinimalParticles(progress: _backgroundProgress.value),
 
-              // Main Content with Fade & Slide Animation
-              FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _slideAnimation,
-                  child: Container(
-                    height: MediaQuery.of(context).size.height,
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: SingleChildScrollView(
-                      reverse: true,
-                      child: Column(
-                        children: [
-                          // const Spacer(flex: 2),
+                // Main Content with Fade & Slide Animation
+                FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: SlideTransition(
+                    position: _slideAnimation,
+                    child: Container(
+                      height: MediaQuery.of(context).size.height,
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: SingleChildScrollView(
+                        reverse: true,
+                        child: Column(
+                          children: [
+                            // const Spacer(flex: 2),
 
-                          // Hero Logo Section
-                          SafeArea(child: _buildHeroSection()),
+                            // Hero Logo Section
+                            SafeArea(child: _buildHeroSection()),
 
-                          const SizedBox(height: 60),
+                            const SizedBox(height: 60),
 
-                          // Glassmorphism Content Card
-                          _buildContentCard(context),
-                          SizedBox(
-                            height:
-                                (_actionButtonHeight ??
-                                    MediaQuery.of(context).size.height * 0.2) *
-                                1.5,
-                          ),
-                          // const Spacer(flex: 5),
-                        ],
+                            // Glassmorphism Content Card
+                            _buildContentCard(context),
+                            SizedBox(
+                              height:
+                                  (_actionButtonHeight ??
+                                      MediaQuery.of(context).size.height *
+                                          0.2) *
+                                  1.5,
+                            ),
+                            // const Spacer(flex: 5),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
 
-              // Modern Action Buttons
-              Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  _MeasureSizeWidget(
-                    onChange: (value) => _actionButtonHeight = value.height,
-                    child: SafeArea(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: _buildActionButtons(context),
+                // Modern Action Buttons
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    _MeasureSizeWidget(
+                      onChange: (value) => _actionButtonHeight = value.height,
+                      child: SafeArea(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: _buildActionButtons(context),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                  ],
+                ),
+
+                SafeArea(
+                  child: Align(
+                    alignment: AlignmentGeometry.topRight,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: InkWellIconButton(
+                        onTap: _handleInstanceApi,
+                        icon: Icon(RemixIcons.instance_line),
+                        color: Colors.transparent,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 32),
-                ],
-              ),
-
-              SafeArea(
-                child: Align(
-                  alignment: AlignmentGeometry.topRight,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: InkWellIconButton(
-                      onTap: _handleInstanceApi,
-                      icon: Icon(RemixIcons.instance_line),
-                      color: Colors.transparent,
-                    ),
-                  ),
                 ),
-              ),
-            ],
-          );
-        },
+              ],
+            );
+          },
+        ),
       ),
     );
   }

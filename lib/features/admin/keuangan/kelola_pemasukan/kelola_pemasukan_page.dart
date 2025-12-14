@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -91,9 +92,12 @@ class _KelolaPemasukanPageState extends State<KelolaPemasukanPage>
       builder: (context, jenisIuranProvider, pemasukanLainProvider, child) {
         // Use ALL data lists (unfiltered) to get accurate totals
         final jenisIuranList = jenisIuranProvider.allJenisIuranList;
-        final pemasukanList = pemasukanLainProvider.allPemasukanList; // ✅ Changed to allPemasukanList
+        final pemasukanList = pemasukanLainProvider
+            .allPemasukanList; // ✅ Changed to allPemasukanList
 
-        print('🔄 Stats Card Rebuild: Jenis Iuran=${jenisIuranList.length}, Pemasukan Lain=${pemasukanList.length}');
+        print(
+          '🔄 Stats Card Rebuild: Jenis Iuran=${jenisIuranList.length}, Pemasukan Lain=${pemasukanList.length}',
+        );
 
         // Calculate total from Jenis Iuran
         final totalJenisIuran = jenisIuranList.fold<double>(
@@ -111,7 +115,9 @@ class _KelolaPemasukanPageState extends State<KelolaPemasukanPage>
         final totalKeseluruhan = totalJenisIuran + totalPemasukanLain;
         final totalItems = jenisIuranList.length + pemasukanList.length;
 
-        print('💰 Total Calculation: Jenis Iuran=Rp ${totalJenisIuran.toStringAsFixed(0)}, Pemasukan Lain=Rp ${totalPemasukanLain.toStringAsFixed(0)}, TOTAL=Rp ${totalKeseluruhan.toStringAsFixed(0)}');
+        print(
+          '💰 Total Calculation: Jenis Iuran=Rp ${totalJenisIuran.toStringAsFixed(0)}, Pemasukan Lain=Rp ${totalPemasukanLain.toStringAsFixed(0)}, TOTAL=Rp ${totalKeseluruhan.toStringAsFixed(0)}',
+        );
 
         final formatter = NumberFormat.currency(
           locale: 'id_ID',
@@ -129,82 +135,94 @@ class _KelolaPemasukanPageState extends State<KelolaPemasukanPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF3B82F6),
-      body: Column(
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.light,
+        systemNavigationBarDividerColor: Colors.transparent,
+      ),
+      child: Scaffold(
+        backgroundColor: const Color(0xFF3B82F6),
+        body: Column(
+          children: [
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
+                ),
               ),
-            ),
-            child: SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    KelolaPemasukanHeader(
-                      onBack: () => Navigator.pop(context),
-                      onFilter: () {},
-                      onExport: _showExportDialog,
-                    ),
-                    const SizedBox(height: KeuanganSpacing.xxl),
-                    _buildDynamicStatsCard(),
-                  ],
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      KelolaPemasukanHeader(
+                        onBack: () => Navigator.pop(context),
+                        onFilter: () {},
+                        onExport: _showExportDialog,
+                      ),
+                      const SizedBox(height: KeuanganSpacing.xxl),
+                      _buildDynamicStatsCard(),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          Expanded(
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Color(0xFFF8FAFC),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+            Expanded(
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+                ),
+                child: KelolaPemasukanTabbedContent(
+                  tabController: _tabController,
+                  onTabChange: () => setState(() {}),
+                  tabs: const [
+                    PemasukanTabItem(
+                      icon: Icons.list_alt_rounded,
+                      label: 'Iuran',
+                    ),
+                    PemasukanTabItem(
+                      icon: Icons.more_horiz_rounded,
+                      label: 'Lainnya',
+                    ),
+                  ],
+                  views: [JenisIuranTab(), LainnyaTab()],
+                ),
               ),
-              child: KelolaPemasukanTabbedContent(
-                tabController: _tabController,
-                onTabChange: () => setState(() {}),
-                tabs: const [
-                  PemasukanTabItem(icon: Icons.list_alt_rounded, label: 'Iuran'),
-                  PemasukanTabItem(icon: Icons.more_horiz_rounded, label: 'Lainnya'),
-                ],
-                views: [
-                  JenisIuranTab(),
-                  LainnyaTab(),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-      floatingActionButton: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF3B82F6).withValues(alpha: 0.4),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-              spreadRadius: 2,
             ),
           ],
         ),
-        child: FloatingActionButton.extended(
-          onPressed: _showAddDialog,
-          backgroundColor: const Color(0xFF3B82F6),
-          elevation: 0,
-          icon: const Icon(Icons.add_rounded, color: Colors.white, size: 24),
-          label: Text(
-            'Tambah',
-            style: GoogleFonts.poppins(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
+        floatingActionButton: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF3B82F6).withValues(alpha: 0.4),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+                spreadRadius: 2,
+              ),
+            ],
+          ),
+          child: FloatingActionButton.extended(
+            onPressed: _showAddDialog,
+            backgroundColor: const Color(0xFF3B82F6),
+            elevation: 0,
+            icon: const Icon(Icons.add_rounded, color: Colors.white, size: 24),
+            label: Text(
+              'Tambah',
+              style: GoogleFonts.poppins(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
             ),
           ),
         ),
@@ -217,9 +235,7 @@ class _KelolaPemasukanPageState extends State<KelolaPemasukanPage>
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
 
     try {
@@ -244,11 +260,14 @@ class _KelolaPemasukanPageState extends State<KelolaPemasukanPage>
         final data = doc.data();
         exportData.add({
           'tanggal': data['createdAt'] != null
-              ? DateFormat('dd/MM/yyyy HH:mm').format((data['createdAt'] as Timestamp).toDate())
+              ? DateFormat(
+                  'dd/MM/yyyy HH:mm',
+                ).format((data['createdAt'] as Timestamp).toDate())
               : '-',
           'name': data['nama_iuran'] ?? '-',
           'category': 'Iuran',
-          'nominal': 'Rp ${NumberFormat('#,###').format((data['jumlah_iuran'] as num?)?.toDouble() ?? 0)}',
+          'nominal':
+              'Rp ${NumberFormat('#,###').format((data['jumlah_iuran'] as num?)?.toDouble() ?? 0)}',
           'penerima': '-',
           'deskripsi': 'Jenis Iuran: ${data['nama_iuran'] ?? '-'}',
           'status': 'Aktif',
@@ -260,11 +279,14 @@ class _KelolaPemasukanPageState extends State<KelolaPemasukanPage>
         final data = doc.data();
         exportData.add({
           'tanggal': data['tanggal'] != null
-              ? DateFormat('dd/MM/yyyy HH:mm').format((data['tanggal'] as Timestamp).toDate())
+              ? DateFormat(
+                  'dd/MM/yyyy HH:mm',
+                ).format((data['tanggal'] as Timestamp).toDate())
               : '-',
           'name': data['name'] ?? '-',
           'category': data['category'] ?? '-',
-          'nominal': 'Rp ${NumberFormat('#,###').format((data['nominal'] as num?)?.toDouble() ?? 0)}',
+          'nominal':
+              'Rp ${NumberFormat('#,###').format((data['nominal'] as num?)?.toDouble() ?? 0)}',
           'penerima': data['createdBy'] ?? '-',
           'deskripsi': data['deskripsi'] ?? '-',
           'status': data['status'] ?? 'Aktif',
@@ -278,7 +300,10 @@ class _KelolaPemasukanPageState extends State<KelolaPemasukanPage>
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Tidak ada data untuk di-export', style: GoogleFonts.poppins()),
+              content: Text(
+                'Tidak ada data untuk di-export',
+                style: GoogleFonts.poppins(),
+              ),
               backgroundColor: Colors.orange,
             ),
           );
@@ -316,9 +341,7 @@ class _KelolaPemasukanPageState extends State<KelolaPemasukanPage>
     if (currentIndex == 0) {
       final result = await Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => const FormJenisIuranPage(),
-        ),
+        MaterialPageRoute(builder: (context) => const FormJenisIuranPage()),
       );
 
       // Refresh data setelah kembali dari form
@@ -334,9 +357,7 @@ class _KelolaPemasukanPageState extends State<KelolaPemasukanPage>
     if (currentIndex == 1) {
       final result = await Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => const PemasukanNonIuranPage(),
-        ),
+        MaterialPageRoute(builder: (context) => const PemasukanNonIuranPage()),
       );
 
       // Refresh data setelah kembali dari form

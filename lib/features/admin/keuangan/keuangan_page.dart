@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -282,63 +283,77 @@ class _KeuanganPageState extends State<KeuanganPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF2988EA),
-      body: Stack(
-        children: [
-          SizedBox(
-            child: Column(
-              children: [
-                // AppBar di area biru
-                _buildAppBar(),
-                // Content area
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const SizedBox(height: 20),
-                        // Cards di area biru
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Column(
-                            children: [
-                              _buildTotalAssetCard(),
-                              const SizedBox(height: 16),
-                              _buildKPICards(),
-                              const SizedBox(height: 16),
-                            ],
-                          ),
-                        ),
-                        // Content di area putih dengan rounded corner
-                        Container(
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(24),
-                            ),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.light,
+        systemNavigationBarDividerColor: Colors.transparent,
+      ),
+      child: Scaffold(
+        backgroundColor: const Color(0xFF2988EA),
+        body: Stack(
+          children: [
+            SizedBox(
+              child: Column(
+                children: [
+                  // AppBar di area biru
+                  _buildAppBar(),
+                  // Content area
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const SizedBox(height: 20),
+                          // Cards di area biru
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                _buildKelolaButtons(),
-                                const SizedBox(height: 20),
-                                _buildLaporanSection(),
-                                const SizedBox(height: 20),
+                                _buildTotalAssetCard(),
+                                const SizedBox(height: 16),
+                                _buildKPICards(),
+                                const SizedBox(height: 16),
                               ],
                             ),
                           ),
-                        ),
-                      ],
+                          // Content di area putih dengan rounded corner
+                          Container(
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(24),
+                              ),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(
+                                20,
+                                20,
+                                20,
+                                100,
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  _buildKelolaButtons(),
+                                  const SizedBox(height: 20),
+                                  _buildLaporanSection(),
+                                  const SizedBox(height: 20),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1697,7 +1712,9 @@ class _KeuanganPageState extends State<KeuanganPage> {
         0,
         (sum, item) => sum + (item['nominal'] as double),
       );
-      debugPrint('   💰 Total Pemasukan: ${currencyFormat.format(totalPemasukan)}');
+      debugPrint(
+        '   💰 Total Pemasukan: ${currencyFormat.format(totalPemasukan)}',
+      );
 
       // 2. LOAD PENGELUARAN DATA
       debugPrint('2️⃣  Loading Pengeluaran data...');
@@ -1715,7 +1732,9 @@ class _KeuanganPageState extends State<KeuanganPage> {
         final nominal = (data['nominal'] as num?)?.toDouble() ?? 0;
         pengeluaranData.add({
           'tanggal': data['tanggal'] != null
-              ? DateFormat('dd/MM/yyyy').format((data['tanggal'] as Timestamp).toDate())
+              ? DateFormat(
+                  'dd/MM/yyyy',
+                ).format((data['tanggal'] as Timestamp).toDate())
               : '-',
           'name': data['judul'] ?? '-',
           'category': data['kategori'] ?? 'Pengeluaran',
@@ -1729,8 +1748,12 @@ class _KeuanganPageState extends State<KeuanganPage> {
         0,
         (sum, item) => sum + (item['nominal'] as double),
       );
-      debugPrint('   💸 Total Pengeluaran: ${currencyFormat.format(totalPengeluaran)}');
-      debugPrint('   📊 Saldo: ${currencyFormat.format(totalPemasukan - totalPengeluaran)}');
+      debugPrint(
+        '   💸 Total Pengeluaran: ${currencyFormat.format(totalPengeluaran)}',
+      );
+      debugPrint(
+        '   📊 Saldo: ${currencyFormat.format(totalPemasukan - totalPengeluaran)}',
+      );
       debugPrint('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
 
       // 3. SHOW PUBLISH DIALOG

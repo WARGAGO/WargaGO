@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show SystemUiOverlayStyle, SystemChrome;
 import 'package:go_router/go_router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:wargago/core/widgets/admin_app_bottom_navigation.dart';
 import 'package:wargago/core/widgets/warga_app_bottom_navigation.dart';
 import 'package:wargago/features/admin/data_warga/data_warga_main_page.dart';
@@ -55,7 +55,18 @@ class AppRouterConfig {
       GoRoute(
         path: AppRoutes.onboarding,
         name: 'onboarding',
-        builder: (context, state) => const OnboardingPage(),
+        builder: (context, state) {
+          SystemChrome.setSystemUIOverlayStyle(
+            const SystemUiOverlayStyle(
+              statusBarColor: Colors.transparent,
+              statusBarIconBrightness: Brightness.light,
+              systemNavigationBarColor: Colors.transparent,
+              systemNavigationBarIconBrightness: Brightness.light,
+              systemNavigationBarDividerColor: Colors.transparent,
+            ),
+          );
+          return const OnboardingPage();
+        },
       ),
       GoRoute(
         path: AppRoutes.preAuth,
