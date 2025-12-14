@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
@@ -20,7 +21,11 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedFilter = 'Semua';
   String _searchQuery = '';
-  final List<String> _filterOptions = ['Semua', 'Mutasi Masuk', 'Mutasi Keluar'];
+  final List<String> _filterOptions = [
+    'Semua',
+    'Mutasi Masuk',
+    'Mutasi Keluar',
+  ];
 
   @override
   void dispose() {
@@ -30,10 +35,17 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      body: SafeArea(
-        child: Column(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.light,
+        systemNavigationBarDividerColor: Colors.transparent,
+      ),
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8F9FA),
+        body: Column(
           children: [
             // HEADER dengan Gradient Modern
             Container(
@@ -62,63 +74,68 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
                   ),
                 ],
               ),
-              child: Row(
+              child: Column(
                 children: [
-                  // Back button
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(
-                      Icons.arrow_back_rounded,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.white.withValues(alpha: 0.2),
-                      padding: const EdgeInsets.all(8),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.3),
-                        width: 1.5,
+                  const SafeArea(child: SizedBox.shrink()),
+                  Row(
+                    children: [
+                      // Back button
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(
+                          Icons.arrow_back_rounded,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.white.withValues(alpha: 0.2),
+                          padding: const EdgeInsets.all(8),
+                        ),
                       ),
-                    ),
-                    child: const Icon(
-                      Icons.swap_horiz_rounded,
-                      color: Colors.white,
-                      size: 28,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Data Mutasi",
-                          style: GoogleFonts.poppins(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.5,
+                      const SizedBox(width: 12),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.3),
+                            width: 1.5,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "Riwayat perpindahan warga",
-                          style: GoogleFonts.poppins(
-                            color: Colors.white.withValues(alpha: 0.9),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        child: const Icon(
+                          Icons.swap_horiz_rounded,
+                          color: Colors.white,
+                          size: 28,
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Data Mutasi",
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontSize: 22,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              "Riwayat perpindahan warga",
+                              style: GoogleFonts.poppins(
+                                color: Colors.white.withValues(alpha: 0.9),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -154,7 +171,10 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
                         decoration: BoxDecoration(
                           gradient: isSelected
                               ? const LinearGradient(
-                                  colors: [Color(0xFF2F80ED), Color(0xFF1E6FD9)],
+                                  colors: [
+                                    Color(0xFF2F80ED),
+                                    Color(0xFF1E6FD9),
+                                  ],
                                 )
                               : null,
                           color: isSelected ? null : Colors.transparent,
@@ -164,9 +184,13 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
                           child: Text(
                             filter,
                             style: GoogleFonts.poppins(
-                              color: isSelected ? Colors.white : const Color(0xFF6B7280),
+                              color: isSelected
+                                  ? Colors.white
+                                  : const Color(0xFF6B7280),
                               fontSize: 14,
-                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.w500,
                             ),
                           ),
                         ),
@@ -234,28 +258,26 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
             ),
 
             // LIST SECTION
-            Expanded(
-              child: _buildMutasiList(),
-            ),
+            Expanded(child: _buildMutasiList()),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const TambahDataMutasiPage(),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const TambahDataMutasiPage(),
+              ),
+            );
+          },
+          backgroundColor: const Color(0xFF2F80ED),
+          icon: const Icon(Icons.add, color: Colors.white),
+          label: Text(
+            'Tambah Mutasi',
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
             ),
-          );
-        },
-        backgroundColor: const Color(0xFF2F80ED),
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: Text(
-          'Tambah Mutasi',
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
           ),
         ),
       ),
@@ -268,9 +290,7 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
       builder: (context, snapshot) {
         // Loading state
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
+          return const Center(child: CircularProgressIndicator());
         }
 
         // Error state
@@ -279,11 +299,7 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 80,
-                  color: Colors.red[300],
-                ),
+                Icon(Icons.error_outline, size: 80, color: Colors.red[300]),
                 const SizedBox(height: 16),
                 Text(
                   'Terjadi kesalahan',
@@ -315,13 +331,18 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
         if (_selectedFilter == 'Semua') {
           filteredData = allMutasi;
         } else if (_selectedFilter == 'Mutasi Masuk') {
-          filteredData = allMutasi.where((item) => item.jenisMutasi == 'Mutasi Masuk').toList();
+          filteredData = allMutasi
+              .where((item) => item.jenisMutasi == 'Mutasi Masuk')
+              .toList();
         } else if (_selectedFilter == 'Mutasi Keluar') {
           // Mutasi Keluar mencakup "Keluar Perumahan" dan "Pindah Rumah"
-          filteredData = allMutasi.where((item) =>
-            item.jenisMutasi == 'Keluar Perumahan' ||
-            item.jenisMutasi == 'Pindah Rumah'
-          ).toList();
+          filteredData = allMutasi
+              .where(
+                (item) =>
+                    item.jenisMutasi == 'Keluar Perumahan' ||
+                    item.jenisMutasi == 'Pindah Rumah',
+              )
+              .toList();
         } else {
           filteredData = allMutasi;
         }
@@ -339,7 +360,9 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
 
         // Sort by tanggalMutasi (terbaru di atas)
         filteredData.sort((a, b) {
-          return b.tanggalMutasi.compareTo(a.tanggalMutasi); // Descending (terbaru di atas)
+          return b.tanggalMutasi.compareTo(
+            a.tanggalMutasi,
+          ); // Descending (terbaru di atas)
         });
 
         if (filteredData.isEmpty) {
@@ -347,11 +370,7 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.inbox_outlined,
-                  size: 80,
-                  color: Colors.grey[300],
-                ),
+                Icon(Icons.inbox_outlined, size: 80, color: Colors.grey[300]),
                 const SizedBox(height: 16),
                 Text(
                   _searchQuery.isNotEmpty
@@ -368,8 +387,8 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
                   _searchQuery.isNotEmpty
                       ? 'Coba kata kunci lain'
                       : (_selectedFilter == 'Semua'
-                          ? 'Belum ada data mutasi'
-                          : 'Tidak ada data $_selectedFilter'),
+                            ? 'Belum ada data mutasi'
+                            : 'Tidak ada data $_selectedFilter'),
                   style: GoogleFonts.poppins(
                     fontSize: 12,
                     color: Colors.grey[500],
@@ -438,13 +457,10 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
               sliver: SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final mutasi = filteredData[index];
-                    return _buildMutasiCard(mutasi);
-                  },
-                  childCount: filteredData.length,
-                ),
+                delegate: SliverChildBuilderDelegate((context, index) {
+                  final mutasi = filteredData[index];
+                  return _buildMutasiCard(mutasi);
+                }, childCount: filteredData.length),
               ),
             ),
           ],
@@ -491,7 +507,10 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
                   children: [
                     // Status Badge
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: isMasuk
                             ? const Color(0xFF10B981).withValues(alpha: 0.1)
@@ -504,7 +523,9 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
                           Icon(
                             isMasuk ? Icons.arrow_downward : Icons.arrow_upward,
                             size: 14,
-                            color: isMasuk ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                            color: isMasuk
+                                ? const Color(0xFF10B981)
+                                : const Color(0xFFEF4444),
                           ),
                           const SizedBox(width: 4),
                           Text(
@@ -512,7 +533,9 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
                             style: GoogleFonts.poppins(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: isMasuk ? const Color(0xFF10B981) : const Color(0xFFEF4444),
+                              color: isMasuk
+                                  ? const Color(0xFF10B981)
+                                  : const Color(0xFFEF4444),
                             ),
                           ),
                         ],
@@ -597,7 +620,9 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
                               child: Icon(
                                 Icons.arrow_downward,
                                 size: 16,
@@ -625,11 +650,7 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
                 // Alasan
                 Row(
                   children: [
-                    Icon(
-                      Icons.info_outline,
-                      size: 14,
-                      color: Colors.grey[400],
-                    ),
+                    Icon(Icons.info_outline, size: 14, color: Colors.grey[400]),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
@@ -659,11 +680,7 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          icon,
-          size: 16,
-          color: Colors.grey[600],
-        ),
+        Icon(icon, size: 16, color: Colors.grey[600]),
         const SizedBox(width: 8),
         Expanded(
           child: Column(
@@ -693,4 +710,3 @@ class _DataMutasiWargaPageState extends State<DataMutasiWargaPage> {
     );
   }
 }
-

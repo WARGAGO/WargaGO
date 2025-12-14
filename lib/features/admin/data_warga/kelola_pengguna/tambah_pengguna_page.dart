@@ -226,7 +226,10 @@ class _TambahPenggunaPageState extends State<TambahPenggunaPage> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.add_circle_outline, color: Colors.white),
+                            const Icon(
+                              Icons.add_circle_outline,
+                              color: Colors.white,
+                            ),
                             const SizedBox(width: 12),
                             Text(
                               'Buat Akun Admin',
@@ -251,7 +254,7 @@ class _TambahPenggunaPageState extends State<TambahPenggunaPage> {
 
   AppBar _buildAppBar() {
     return AppBar(
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.white,
       elevation: 0,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF1F2937)),
@@ -368,7 +371,9 @@ class _TambahPenggunaPageState extends State<TambahPenggunaPage> {
           id: uid,
           email: _emailController.text.trim(),
           nama: _namaController.text.trim(),
-          nik: _nikController.text.trim().isEmpty ? null : _nikController.text.trim(),
+          nik: _nikController.text.trim().isEmpty
+              ? null
+              : _nikController.text.trim(),
           noTelepon: _noTeleponController.text.trim().isEmpty
               ? null
               : _noTeleponController.text.trim(),
@@ -415,9 +420,7 @@ class _TambahPenggunaPageState extends State<TambahPenggunaPage> {
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -427,11 +430,7 @@ class _TambahPenggunaPageState extends State<TambahPenggunaPage> {
                 color: Color(0xFF10B981),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.check,
-                color: Colors.white,
-                size: 48,
-              ),
+              child: const Icon(Icons.check, color: Colors.white, size: 48),
             ),
             const SizedBox(height: 24),
             Text(
@@ -445,10 +444,7 @@ class _TambahPenggunaPageState extends State<TambahPenggunaPage> {
             const SizedBox(height: 12),
             Text(
               'Akun admin berhasil dibuat',
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
+              style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -502,9 +498,7 @@ class _TambahPenggunaPageState extends State<TambahPenggunaPage> {
         ),
         backgroundColor: const Color(0xFFEF4444),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }

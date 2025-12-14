@@ -10,6 +10,7 @@
 // ============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show SystemChrome, SystemUiOverlayStyle;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -41,13 +42,20 @@ class WargaRegisterPage extends StatelessWidget {
             children: [
               // Header with back button, "Already have account", and "Sign In"
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 12,
+                ),
                 child: Row(
                   children: [
                     // Back button - Navigate to preAuth (keluar dari register)
                     InkWellIconButton(
                       onTap: () => context.go(AppRoutes.preAuth),
-                      icon: Icon(Icons.arrow_back_ios_new, color: Colors.white70, size: 20),
+                      icon: Icon(
+                        Icons.arrow_back_ios_new,
+                        color: Colors.white70,
+                        size: 20,
+                      ),
                       color: Colors.transparent,
                     ),
                     Spacer(),
@@ -68,7 +76,10 @@ class WargaRegisterPage extends StatelessWidget {
                       },
                       style: TextButton.styleFrom(
                         backgroundColor: Colors.white.withValues(alpha: 0.2),
-                        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 8,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
@@ -114,6 +125,20 @@ class _RegisterBodyState extends State<_RegisterBody> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.light,
+        systemNavigationBarDividerColor: Colors.transparent,
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -338,10 +363,14 @@ class _RegisterBodyState extends State<_RegisterBody> {
                             obscureText: _obscurePassword,
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                _obscurePassword
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
                                 color: Colors.grey.shade600,
                               ),
-                              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                              onPressed: () => setState(
+                                () => _obscurePassword = !_obscurePassword,
+                              ),
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
@@ -363,10 +392,15 @@ class _RegisterBodyState extends State<_RegisterBody> {
                             obscureText: _obscureConfirmPassword,
                             suffixIcon: IconButton(
                               icon: Icon(
-                                _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                                _obscureConfirmPassword
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
                                 color: Colors.grey.shade600,
                               ),
-                              onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                              onPressed: () => setState(
+                                () => _obscureConfirmPassword =
+                                    !_obscureConfirmPassword,
+                              ),
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
@@ -393,7 +427,9 @@ class _RegisterBodyState extends State<_RegisterBody> {
                               borderRadius: BorderRadius.circular(14),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Color(0xFF2F80ED).withValues(alpha: 0.4),
+                                  color: Color(
+                                    0xFF2F80ED,
+                                  ).withValues(alpha: 0.4),
                                   blurRadius: 12,
                                   offset: Offset(0, 6),
                                 ),
@@ -411,7 +447,10 @@ class _RegisterBodyState extends State<_RegisterBody> {
                                           height: 24,
                                           child: CircularProgressIndicator(
                                             strokeWidth: 2,
-                                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                            valueColor:
+                                                AlwaysStoppedAnimation<Color>(
+                                                  Colors.white,
+                                                ),
                                           ),
                                         )
                                       : Text(
@@ -432,10 +471,15 @@ class _RegisterBodyState extends State<_RegisterBody> {
                           Row(
                             children: [
                               Expanded(
-                                child: Divider(color: Colors.grey.shade300, thickness: 1),
+                                child: Divider(
+                                  color: Colors.grey.shade300,
+                                  thickness: 1,
+                                ),
                               ),
                               Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
                                 child: Text(
                                   'Or sign up with',
                                   style: GoogleFonts.poppins(
@@ -445,7 +489,10 @@ class _RegisterBodyState extends State<_RegisterBody> {
                                 ),
                               ),
                               Expanded(
-                                child: Divider(color: Colors.grey.shade300, thickness: 1),
+                                child: Divider(
+                                  color: Colors.grey.shade300,
+                                  thickness: 1,
+                                ),
                               ),
                             ],
                           ),
@@ -471,13 +518,14 @@ class _RegisterBodyState extends State<_RegisterBody> {
                                       'assets/icons/google_icon.png',
                                       height: 24,
                                       width: 24,
-                                      errorBuilder: (context, error, stackTrace) {
-                                        return const Icon(
-                                          Icons.g_mobiledata,
-                                          size: 32,
-                                          color: Color(0xFF4285F4),
-                                        );
-                                      },
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                            return const Icon(
+                                              Icons.g_mobiledata,
+                                              size: 32,
+                                              color: Color(0xFF4285F4),
+                                            );
+                                          },
                                     ),
                                     SizedBox(width: 12),
                                     Text(
@@ -548,7 +596,10 @@ class _RegisterBodyState extends State<_RegisterBody> {
                 color: Colors.grey.shade400,
               ),
               border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
               suffixIcon: suffixIcon,
             ),
             validator: validator,
@@ -558,7 +609,3 @@ class _RegisterBodyState extends State<_RegisterBody> {
     );
   }
 }
-
-
-
-

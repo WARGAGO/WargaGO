@@ -69,7 +69,7 @@ class _DataWargaPageState extends State<DataWargaPage>
   AppBar _buildAppBar() {
     return AppBar(
       elevation: 0,
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.white,
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF1F2937)),
         onPressed: () => Navigator.pop(context),

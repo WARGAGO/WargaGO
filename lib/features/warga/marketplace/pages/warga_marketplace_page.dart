@@ -5,6 +5,7 @@
 // ============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/providers/marketplace_provider.dart';
 import '../../../../core/models/marketplace_product_model.dart';
@@ -24,7 +25,8 @@ class WargaMarketplacePage extends StatefulWidget {
   State<WargaMarketplacePage> createState() => _WargaMarketplacePageState();
 }
 
-class _WargaMarketplacePageState extends State<WargaMarketplacePage> with WidgetsBindingObserver {
+class _WargaMarketplacePageState extends State<WargaMarketplacePage>
+    with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
@@ -58,75 +60,75 @@ class _WargaMarketplacePageState extends State<WargaMarketplacePage> with Widget
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FD),
-      body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            // Custom App Bar
-            SliverToBoxAdapter(
-              child: Column(
-                children: [
-                  const MarketplaceAppBar(),
-                  const SizedBox(height: 8),
-                  // Location Header (Optional)
-                  const MarketplaceLocationHeader(),
-                  const SizedBox(height: 8),
-                  // Search Bar
-                  MarketplaceSearchBar(
-                    onSearch: (keyword) {
-                      final provider = Provider.of<MarketplaceProvider>(
-                        context,
-                        listen: false,
-                      );
-                      provider.searchProducts(keyword);
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                ],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.white,
+        statusBarIconBrightness: Brightness.dark,
+        systemNavigationBarColor: Colors.white,
+        systemNavigationBarIconBrightness: Brightness.dark,
+        systemNavigationBarDividerColor: Colors.white,
+      ),
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8F9FD),
+        body: SafeArea(
+          child: CustomScrollView(
+            slivers: [
+              // Custom App Bar
+              SliverToBoxAdapter(
+                child: Column(
+                  children: [
+                    const MarketplaceAppBar(),
+                    const SizedBox(height: 8),
+                    // Location Header (Optional)
+                    const MarketplaceLocationHeader(),
+                    const SizedBox(height: 8),
+                    // Search Bar
+                    MarketplaceSearchBar(
+                      onSearch: (keyword) {
+                        final provider = Provider.of<MarketplaceProvider>(
+                          context,
+                          listen: false,
+                        );
+                        provider.searchProducts(keyword);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
               ),
-            ),
 
-            // Special Offers Section
-            const SliverToBoxAdapter(
-              child: Column(
-                children: [
-                  MarketplaceSpecialOffers(),
-                  SizedBox(height: 24),
-                ],
+              // Special Offers Section
+              const SliverToBoxAdapter(
+                child: Column(
+                  children: [MarketplaceSpecialOffers(), SizedBox(height: 24)],
+                ),
               ),
-            ),
 
-            // Categories Section (includes subcategories when Sayuran selected)
-            const SliverToBoxAdapter(
-              child: Column(
-                children: [
-                  MarketplaceCategoryIcons(),
-                  SizedBox(height: 24),
-                ],
+              // Categories Section (includes subcategories when Sayuran selected)
+              const SliverToBoxAdapter(
+                child: Column(
+                  children: [MarketplaceCategoryIcons(), SizedBox(height: 24)],
+                ),
               ),
-            ),
 
-            // Top Rated Stores Section
-            const SliverToBoxAdapter(
-              child: Column(
-                children: [
-                  MarketplaceTopStores(),
-                  SizedBox(height: 24),
-                ],
+              // Top Rated Stores Section
+              const SliverToBoxAdapter(
+                child: Column(
+                  children: [MarketplaceTopStores(), SizedBox(height: 24)],
+                ),
               ),
-            ),
 
-            // Popular Products Section
-            const SliverToBoxAdapter(
-              child: Column(
-                children: [
-                  MarketplacePopularProducts(),
-                  SizedBox(height: 24),
-                ],
+              // Popular Products Section
+              const SliverToBoxAdapter(
+                child: Column(
+                  children: [
+                    MarketplacePopularProducts(),
+                    SizedBox(height: 24),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

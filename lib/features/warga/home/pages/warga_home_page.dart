@@ -6,6 +6,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -101,7 +102,9 @@ class _WargaHomePageState extends State<WargaHomePage> {
                   hasKTPDocument = true;
                   // Case-insensitive status parsing
                   ktpStatus = KYCStatus.values.firstWhere(
-                    (e) => e.toString().split('.').last.toLowerCase() == statusStr?.toLowerCase(),
+                    (e) =>
+                        e.toString().split('.').last.toLowerCase() ==
+                        statusStr?.toLowerCase(),
                     orElse: () => KYCStatus.pending,
                   );
                   if (kDebugMode) {
@@ -111,7 +114,9 @@ class _WargaHomePageState extends State<WargaHomePage> {
                   hasKKDocument = true;
                   // Case-insensitive status parsing
                   kkStatus = KYCStatus.values.firstWhere(
-                    (e) => e.toString().split('.').last.toLowerCase() == statusStr?.toLowerCase(),
+                    (e) =>
+                        e.toString().split('.').last.toLowerCase() ==
+                        statusStr?.toLowerCase(),
                     orElse: () => KYCStatus.pending,
                   );
                   if (kDebugMode) {
@@ -127,20 +132,30 @@ class _WargaHomePageState extends State<WargaHomePage> {
             // Incomplete: No KTP uploaded
 
             // ⭐ UPDATED: KK is optional, only KTP is required
-            bool isKycComplete = hasKTPDocument && ktpStatus == KYCStatus.approved;
+            bool isKycComplete =
+                hasKTPDocument && ktpStatus == KYCStatus.approved;
 
             // ⭐ UPDATED: Pending if KTP exists but not approved yet
-            bool isKycPending = hasKTPDocument &&
-                               !isKycComplete &&
-                               ktpStatus != KYCStatus.rejected;
+            bool isKycPending =
+                hasKTPDocument &&
+                !isKycComplete &&
+                ktpStatus != KYCStatus.rejected;
 
             if (kDebugMode) {
               print('🎯 ========== FINAL STATUS ==========');
               print('   👤 User Status: $userStatus');
-              print('   📄 Has KTP: $hasKTPDocument (Status: $ktpStatus) - REQUIRED');
-              print('   📄 Has KK: $hasKKDocument (Status: $kkStatus) - OPTIONAL');
-              print('   🔍 KTP == approved? ${ktpStatus == KYCStatus.approved}');
-              print('   ✅ isKycComplete: $isKycComplete (KTP approved = complete)');
+              print(
+                '   📄 Has KTP: $hasKTPDocument (Status: $ktpStatus) - REQUIRED',
+              );
+              print(
+                '   📄 Has KK: $hasKKDocument (Status: $kkStatus) - OPTIONAL',
+              );
+              print(
+                '   🔍 KTP == approved? ${ktpStatus == KYCStatus.approved}',
+              );
+              print(
+                '   ✅ isKycComplete: $isKycComplete (KTP approved = complete)',
+              );
               print('   ⏳ isKycPending: $isKycPending');
               print('   🎯 Show KYC Alert: ${!isKycComplete}');
               if (!isKycComplete && hasKTPDocument) {
@@ -157,160 +172,188 @@ class _WargaHomePageState extends State<WargaHomePage> {
               print('========================================');
             }
 
-            return Scaffold(
-              backgroundColor: const Color(0xFFF8F9FD),
-              body: SafeArea(
-                child: Column(
-                  children: [
-                    // 1. App Bar (Header)
-                    HomeAppBar(
-                      notificationCount: 3,
-                      userName: userName,
-                    ),
+            return AnnotatedRegion<SystemUiOverlayStyle>(
+              value: SystemUiOverlayStyle(
+                statusBarColor: Colors.white,
+                statusBarIconBrightness: Brightness.dark,
+                systemNavigationBarColor: Colors.white,
+                systemNavigationBarIconBrightness: Brightness.dark,
+                systemNavigationBarDividerColor: Colors.white,
+              ),
+              child: Scaffold(
+                backgroundColor: const Color(0xFFF8F9FD),
+                body: SafeArea(
+                  child: Column(
+                    children: [
+                      // 1. App Bar (Header)
+                      HomeAppBar(notificationCount: 3, userName: userName),
 
-                    // 2. Scrollable Content (termasuk KYC Alert di dalamnya)
-                    Expanded(
-                      child: RefreshIndicator(
-                        onRefresh: () async {
-                          // Refresh user data from Firestore
-                          await authProvider.refreshUserData();
-                        },
-                        color: const Color(0xFF2F80ED),
-                        child: SingleChildScrollView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // KYC Alert - Sekarang di dalam scroll (ikut scroll)
-                              if (!isKycComplete)
-                                HomeKycAlert(
-                                  isKycComplete: isKycComplete,
-                                  isKycPending: isKycPending,
-                                  onUploadTap: () {
-                                    context.push(AppRoutes.wargaKYC);
+                      // 2. Scrollable Content (termasuk KYC Alert di dalamnya)
+                      Expanded(
+                        child: RefreshIndicator(
+                          onRefresh: () async {
+                            // Refresh user data from Firestore
+                            await authProvider.refreshUserData();
+                          },
+                          color: const Color(0xFF2F80ED),
+                          child: SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // KYC Alert - Sekarang di dalam scroll (ikut scroll)
+                                if (!isKycComplete)
+                                  HomeKycAlert(
+                                    isKycComplete: isKycComplete,
+                                    isKycPending: isKycPending,
+                                    onUploadTap: () {
+                                      context.push(AppRoutes.wargaKYC);
+                                    },
+                                  ),
+
+                                if (!isKycComplete) const SizedBox(height: 16),
+
+                                // Polling Alert - Active polls
+                                Consumer<PollProvider>(
+                                  builder: (context, pollProvider, child) {
+                                    return HomePollAlert(
+                                      activeOfficialPoll:
+                                          pollProvider.activeOfficialPoll,
+                                      communityPollCount:
+                                          pollProvider.activeCommunityPollCount,
+                                      hasUserVoted:
+                                          false, // TODO: Implement check
+                                      onViewPollTap: () {
+                                        if (kDebugMode) {
+                                          print(
+                                            '🗳️ onViewPollTap clicked - Navigating to PollListPage',
+                                          );
+                                        }
+                                        try {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const PollListPage(),
+                                            ),
+                                          );
+                                        } catch (e) {
+                                          if (kDebugMode) {
+                                            print(
+                                              '❌ Error navigating to PollListPage: $e',
+                                            );
+                                          }
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text('Error: $e'),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                        }
+                                      },
+                                      onVoteTap: () {
+                                        if (kDebugMode) {
+                                          print(
+                                            '🗳️ onVoteTap clicked - Navigating to PollListPage',
+                                          );
+                                        }
+                                        try {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const PollListPage(),
+                                            ),
+                                          );
+                                        } catch (e) {
+                                          if (kDebugMode) {
+                                            print(
+                                              '❌ Error navigating to PollListPage: $e',
+                                            );
+                                          }
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text('Error: $e'),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                        }
+                                      },
+                                      onViewAllCommunityTap: () {
+                                        if (kDebugMode) {
+                                          print(
+                                            '🗳️ onViewAllCommunityTap clicked - Navigating to PollListPage',
+                                          );
+                                        }
+                                        try {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const PollListPage(),
+                                            ),
+                                          );
+                                        } catch (e) {
+                                          if (kDebugMode) {
+                                            print(
+                                              '❌ Error navigating to PollListPage: $e',
+                                            );
+                                          }
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text('Error: $e'),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                        }
+                                      },
+                                    );
                                   },
                                 ),
 
-                              if (!isKycComplete) const SizedBox(height: 16),
+                                const SizedBox(height: 16),
 
-                              // Polling Alert - Active polls
-                              Consumer<PollProvider>(
-                                builder: (context, pollProvider, child) {
-                                  return HomePollAlert(
-                                    activeOfficialPoll: pollProvider.activeOfficialPoll,
-                                    communityPollCount: pollProvider.activeCommunityPollCount,
-                                    hasUserVoted: false, // TODO: Implement check
-                                    onViewPollTap: () {
-                                      if (kDebugMode) {
-                                        print('🗳️ onViewPollTap clicked - Navigating to PollListPage');
-                                      }
-                                      try {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => const PollListPage(),
-                                          ),
-                                        );
-                                      } catch (e) {
-                                        if (kDebugMode) {
-                                          print('❌ Error navigating to PollListPage: $e');
-                                        }
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text('Error: $e'),
-                                            backgroundColor: Colors.red,
-                                          ),
-                                        );
-                                      }
-                                    },
-                                    onVoteTap: () {
-                                      if (kDebugMode) {
-                                        print('🗳️ onVoteTap clicked - Navigating to PollListPage');
-                                      }
-                                      try {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => const PollListPage(),
-                                          ),
-                                        );
-                                      } catch (e) {
-                                        if (kDebugMode) {
-                                          print('❌ Error navigating to PollListPage: $e');
-                                        }
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text('Error: $e'),
-                                            backgroundColor: Colors.red,
-                                          ),
-                                        );
-                                      }
-                                    },
-                                    onViewAllCommunityTap: () {
-                                      if (kDebugMode) {
-                                        print('🗳️ onViewAllCommunityTap clicked - Navigating to PollListPage');
-                                      }
-                                      try {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => const PollListPage(),
-                                          ),
-                                        );
-                                      } catch (e) {
-                                        if (kDebugMode) {
-                                          print('❌ Error navigating to PollListPage: $e');
-                                        }
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text('Error: $e'),
-                                            backgroundColor: Colors.red,
-                                          ),
-                                        );
-                                      }
-                                    },
-                                  );
-                                },
-                              ),
+                                // News Carousel - Berita & Pengumuman
+                                const HomeNewsCarousel(),
+                                const SizedBox(height: 24),
 
-                              const SizedBox(height: 16),
+                                // Info Cards
+                                const HomeInfoCards(),
+                                const SizedBox(height: 28),
 
-                              // News Carousel - Berita & Pengumuman
-                              const HomeNewsCarousel(),
-                              const SizedBox(height: 24),
+                                // Quick Access Section
+                                _buildSectionTitle('Akses Cepat'),
+                                const SizedBox(height: 16),
+                                const HomeQuickAccessGrid(),
+                                const SizedBox(height: 28),
 
+                                // Upcoming Events - Kegiatan Mendatang
+                                const HomeUpcomingEvents(),
+                                const SizedBox(height: 24),
 
-                              // Info Cards
-                              const HomeInfoCards(),
-                              const SizedBox(height: 28),
+                                // Emergency Contacts - Kontak Darurat
+                                const HomeEmergencyContacts(),
+                                const SizedBox(height: 24),
 
-
-                              // Quick Access Section
-                              _buildSectionTitle('Akses Cepat'),
-                              const SizedBox(height: 16),
-                              const HomeQuickAccessGrid(),
-                              const SizedBox(height: 28),
-
-                              // Upcoming Events - Kegiatan Mendatang
-                              const HomeUpcomingEvents(),
-                              const SizedBox(height: 24),
-
-                              // Emergency Contacts - Kontak Darurat
-                              const HomeEmergencyContacts(),
-                              const SizedBox(height: 24),
-
-                              // Feature List Section
-                              _buildSectionTitle('Fitur Lainnya'),
-                              const SizedBox(height: 16),
-                              const HomeFeatureList(),
-                              const SizedBox(height: 20),
-                            ],
+                                // Feature List Section
+                                _buildSectionTitle('Fitur Lainnya'),
+                                const SizedBox(height: 16),
+                                const HomeFeatureList(),
+                                const SizedBox(height: 20),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             );
@@ -326,10 +369,7 @@ class _WargaHomePageState extends State<WargaHomePage> {
       body: SafeArea(
         child: Column(
           children: [
-            HomeAppBar(
-              notificationCount: 3,
-              userName: userName,
-            ),
+            HomeAppBar(notificationCount: 3, userName: userName),
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () async {
@@ -398,14 +438,3 @@ class _WargaHomePageState extends State<WargaHomePage> {
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-

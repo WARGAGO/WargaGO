@@ -1,5 +1,6 @@
 // filepath: lib/features/admin/iuran/kelola_iuran_page.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../core/models/iuran_model.dart';
@@ -22,10 +23,17 @@ class _KelolaIuranPageState extends State<KelolaIuranPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      body: SafeArea(
-        child: Column(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.light,
+        systemNavigationBarDividerColor: Colors.transparent,
+      ),
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8F9FA),
+        body: Column(
           children: [
             // Header
             _buildHeader(),
@@ -37,13 +45,11 @@ class _KelolaIuranPageState extends State<KelolaIuranPage> {
             _buildSearchBar(),
 
             // Iuran List
-            Expanded(
-              child: _buildIuranList(),
-            ),
+            Expanded(child: _buildIuranList()),
           ],
         ),
+        floatingActionButton: _buildFAB(),
       ),
-      floatingActionButton: _buildFAB(),
     );
   }
 
@@ -55,15 +61,9 @@ class _KelolaIuranPageState extends State<KelolaIuranPage> {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF2F80ED),
-            Color(0xFF1E6FD9),
-            Color(0xFF0F5FCC),
-          ],
+          colors: [Color(0xFF2F80ED), Color(0xFF1E6FD9), Color(0xFF0F5FCC)],
         ),
-        borderRadius: const BorderRadius.vertical(
-          bottom: Radius.circular(32),
-        ),
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF2F80ED).withValues(alpha: 0.3),
@@ -72,63 +72,68 @@ class _KelolaIuranPageState extends State<KelolaIuranPage> {
           ),
         ],
       ),
-      child: Row(
+      child: Column(
         children: [
-          // Back button
-          IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(
-              Icons.arrow_back_rounded,
-              color: Colors.white,
-              size: 24,
-            ),
-            style: IconButton.styleFrom(
-              backgroundColor: Colors.white.withValues(alpha: 0.2),
-              padding: const EdgeInsets.all(8),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.3),
-                width: 1.5,
+          const SafeArea(child: SizedBox.shrink()),
+          Row(
+            children: [
+              // Back button
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(
+                  Icons.arrow_back_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.white.withValues(alpha: 0.2),
+                  padding: const EdgeInsets.all(8),
+                ),
               ),
-            ),
-            child: const Icon(
-              Icons.account_balance_wallet_rounded,
-              color: Colors.white,
-              size: 28,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Kelola Iuran",
-                  style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
+              const SizedBox(width: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    width: 1.5,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  "Manajemen iuran & tagihan warga",
-                  style: GoogleFonts.poppins(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
+                child: const Icon(
+                  Icons.account_balance_wallet_rounded,
+                  color: Colors.white,
+                  size: 28,
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Kelola Iuran",
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "Manajemen iuran & tagihan warga",
+                      style: GoogleFonts.poppins(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -175,9 +180,13 @@ class _KelolaIuranPageState extends State<KelolaIuranPage> {
                   child: Text(
                     filter,
                     style: GoogleFonts.poppins(
-                      color: isSelected ? Colors.white : const Color(0xFF6B7280),
+                      color: isSelected
+                          ? Colors.white
+                          : const Color(0xFF6B7280),
                       fontSize: 13,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.w500,
                     ),
                   ),
                 ),
@@ -211,13 +220,13 @@ class _KelolaIuranPageState extends State<KelolaIuranPage> {
         },
         decoration: InputDecoration(
           hintText: 'Cari iuran...',
-          hintStyle: GoogleFonts.poppins(
-            color: Colors.grey[400],
-            fontSize: 14,
-          ),
+          hintStyle: GoogleFonts.poppins(color: Colors.grey[400], fontSize: 14),
           prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
         ),
         style: GoogleFonts.poppins(fontSize: 14),
       ),
@@ -229,8 +238,8 @@ class _KelolaIuranPageState extends State<KelolaIuranPage> {
       stream: _selectedFilter == 'Aktif'
           ? _iuranService.getIuranByStatus('aktif')
           : _selectedFilter == 'Nonaktif'
-              ? _iuranService.getIuranByStatus('nonaktif')
-              : _iuranService.getAllIuran(),
+          ? _iuranService.getIuranByStatus('nonaktif')
+          : _iuranService.getAllIuran(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
@@ -348,11 +357,7 @@ class _KelolaIuranPageState extends State<KelolaIuranPage> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            categoryIcon,
-                            size: 16,
-                            color: categoryColor,
-                          ),
+                          Icon(categoryIcon, size: 16, color: categoryColor),
                           const SizedBox(width: 6),
                           Text(
                             iuran.kategori ?? 'Umum',
@@ -382,7 +387,9 @@ class _KelolaIuranPageState extends State<KelolaIuranPage> {
                         style: GoogleFonts.poppins(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
-                          color: isAktif ? const Color(0xFF10B981) : Colors.grey,
+                          color: isAktif
+                              ? const Color(0xFF10B981)
+                              : Colors.grey,
                         ),
                       ),
                     ),
@@ -415,10 +422,7 @@ class _KelolaIuranPageState extends State<KelolaIuranPage> {
                 const SizedBox(height: 12),
 
                 // Divider
-                Container(
-                  height: 1,
-                  color: Colors.grey.withValues(alpha: 0.1),
-                ),
+                Container(height: 1, color: Colors.grey.withValues(alpha: 0.1)),
                 const SizedBox(height: 12),
 
                 // Info: Nominal, Tipe, Jatuh Tempo
@@ -483,7 +487,8 @@ class _KelolaIuranPageState extends State<KelolaIuranPage> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            iuran.tipe[0].toUpperCase() + iuran.tipe.substring(1),
+                            iuran.tipe[0].toUpperCase() +
+                                iuran.tipe.substring(1),
                             style: GoogleFonts.poppins(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
@@ -556,10 +561,7 @@ class _KelolaIuranPageState extends State<KelolaIuranPage> {
           const SizedBox(height: 8),
           Text(
             'Tambah iuran baru dengan tombol + di bawah',
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: Colors.grey[400],
-            ),
+            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[400]),
             textAlign: TextAlign.center,
           ),
         ],
@@ -572,11 +574,7 @@ class _KelolaIuranPageState extends State<KelolaIuranPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.search_off,
-            size: 80,
-            color: Colors.grey[300],
-          ),
+          Icon(Icons.search_off, size: 80, color: Colors.grey[300]),
           const SizedBox(height: 16),
           Text(
             'Iuran Tidak Ditemukan',
@@ -589,10 +587,7 @@ class _KelolaIuranPageState extends State<KelolaIuranPage> {
           const SizedBox(height: 8),
           Text(
             'Coba kata kunci lain',
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: Colors.grey[400],
-            ),
+            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[400]),
           ),
         ],
       ),
@@ -604,11 +599,7 @@ class _KelolaIuranPageState extends State<KelolaIuranPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.error_outline,
-            size: 80,
-            color: Colors.grey[300],
-          ),
+          Icon(Icons.error_outline, size: 80, color: Colors.grey[300]),
           const SizedBox(height: 16),
           Text(
             'Terjadi Kesalahan',
@@ -621,10 +612,7 @@ class _KelolaIuranPageState extends State<KelolaIuranPage> {
           const SizedBox(height: 8),
           Text(
             error,
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: Colors.grey[400],
-            ),
+            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[400]),
             textAlign: TextAlign.center,
           ),
         ],
@@ -637,9 +625,7 @@ class _KelolaIuranPageState extends State<KelolaIuranPage> {
       onPressed: () {
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => const TambahIuranPage(),
-          ),
+          MaterialPageRoute(builder: (context) => const TambahIuranPage()),
         );
       },
       backgroundColor: const Color(0xFF2F80ED),
@@ -654,4 +640,3 @@ class _KelolaIuranPageState extends State<KelolaIuranPage> {
     );
   }
 }
-

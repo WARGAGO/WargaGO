@@ -31,20 +31,44 @@ class _TambahIuranPageState extends State<TambahIuranPage> {
 
   final List<String> _tipeOptions = ['bulanan', 'tahunan', 'insidental'];
   final List<Map<String, dynamic>> _kategoriOptions = [
-    {'name': 'Umum', 'icon': Icons.account_balance_wallet_rounded, 'color': Color(0xFF2F80ED)},
-    {'name': 'Kebersihan', 'icon': Icons.cleaning_services_rounded, 'color': Color(0xFF10B981)},
-    {'name': 'Keamanan', 'icon': Icons.security_rounded, 'color': Color(0xFFEF4444)},
-    {'name': 'Pembangunan', 'icon': Icons.construction_rounded, 'color': Color(0xFFF59E0B)},
-    {'name': 'Lainnya', 'icon': Icons.more_horiz_rounded, 'color': Color(0xFF8B5CF6)},
+    {
+      'name': 'Umum',
+      'icon': Icons.account_balance_wallet_rounded,
+      'color': Color(0xFF2F80ED),
+    },
+    {
+      'name': 'Kebersihan',
+      'icon': Icons.cleaning_services_rounded,
+      'color': Color(0xFF10B981),
+    },
+    {
+      'name': 'Keamanan',
+      'icon': Icons.security_rounded,
+      'color': Color(0xFFEF4444),
+    },
+    {
+      'name': 'Pembangunan',
+      'icon': Icons.construction_rounded,
+      'color': Color(0xFFF59E0B),
+    },
+    {
+      'name': 'Lainnya',
+      'icon': Icons.more_horiz_rounded,
+      'color': Color(0xFF8B5CF6),
+    },
   ];
 
   @override
   void initState() {
     super.initState();
     _judulController = TextEditingController(text: widget.iuran?.judul ?? '');
-    _deskripsiController = TextEditingController(text: widget.iuran?.deskripsi ?? '');
+    _deskripsiController = TextEditingController(
+      text: widget.iuran?.deskripsi ?? '',
+    );
     _nominalController = TextEditingController(
-      text: widget.iuran != null ? widget.iuran!.nominal.toInt().toString() : '',
+      text: widget.iuran != null
+          ? widget.iuran!.nominal.toInt().toString()
+          : '',
     );
 
     if (widget.iuran != null) {
@@ -64,10 +88,17 @@ class _TambahIuranPageState extends State<TambahIuranPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      body: SafeArea(
-        child: Column(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.light,
+        systemNavigationBarDividerColor: Colors.transparent,
+      ),
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8F9FA),
+        body: Column(
           children: [
             _buildHeader(),
             Expanded(
@@ -110,15 +141,9 @@ class _TambahIuranPageState extends State<TambahIuranPage> {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF2F80ED),
-            Color(0xFF1E6FD9),
-            Color(0xFF0F5FCC),
-          ],
+          colors: [Color(0xFF2F80ED), Color(0xFF1E6FD9), Color(0xFF0F5FCC)],
         ),
-        borderRadius: const BorderRadius.vertical(
-          bottom: Radius.circular(32),
-        ),
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF2F80ED).withValues(alpha: 0.3),
@@ -127,62 +152,69 @@ class _TambahIuranPageState extends State<TambahIuranPage> {
           ),
         ],
       ),
-      child: Row(
+      child: Column(
         children: [
-          IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(
-              Icons.arrow_back_rounded,
-              color: Colors.white,
-              size: 24,
-            ),
-            style: IconButton.styleFrom(
-              backgroundColor: Colors.white.withValues(alpha: 0.2),
-              padding: const EdgeInsets.all(8),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.3),
-                width: 1.5,
+          const SafeArea(child: SizedBox.shrink()),
+          Row(
+            children: [
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(
+                  Icons.arrow_back_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.white.withValues(alpha: 0.2),
+                  padding: const EdgeInsets.all(8),
+                ),
               ),
-            ),
-            child: Icon(
-              _isEditMode ? Icons.edit_rounded : Icons.add_rounded,
-              color: Colors.white,
-              size: 28,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _isEditMode ? "Edit Iuran" : "Tambah Iuran Baru",
-                  style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
+              const SizedBox(width: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    width: 1.5,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  _isEditMode ? "Perbarui data iuran" : "Isi form di bawah dengan lengkap",
-                  style: GoogleFonts.poppins(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
+                child: Icon(
+                  _isEditMode ? Icons.edit_rounded : Icons.add_rounded,
+                  color: Colors.white,
+                  size: 28,
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _isEditMode ? "Edit Iuran" : "Tambah Iuran Baru",
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _isEditMode
+                          ? "Perbarui data iuran"
+                          : "Isi form di bawah dengan lengkap",
+                      style: GoogleFonts.poppins(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -223,24 +255,15 @@ class _TambahIuranPageState extends State<TambahIuranPage> {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(
-                color: Color(0xFFE5E7EB),
-                width: 1,
-              ),
+              borderSide: const BorderSide(color: Color(0xFFE5E7EB), width: 1),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(
-                color: Color(0xFF2F80ED),
-                width: 2,
-              ),
+              borderSide: const BorderSide(color: Color(0xFF2F80ED), width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(
-                color: Color(0xFFEF4444),
-                width: 1,
-              ),
+              borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1),
             ),
           ),
           validator: (value) {
@@ -284,24 +307,15 @@ class _TambahIuranPageState extends State<TambahIuranPage> {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(
-                color: Color(0xFFE5E7EB),
-                width: 1,
-              ),
+              borderSide: const BorderSide(color: Color(0xFFE5E7EB), width: 1),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(
-                color: Color(0xFF2F80ED),
-                width: 2,
-              ),
+              borderSide: const BorderSide(color: Color(0xFF2F80ED), width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(
-                color: Color(0xFFEF4444),
-                width: 1,
-              ),
+              borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1),
             ),
             contentPadding: const EdgeInsets.all(16),
           ),
@@ -332,9 +346,7 @@ class _TambahIuranPageState extends State<TambahIuranPage> {
         TextFormField(
           controller: _nominalController,
           keyboardType: TextInputType.number,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-          ],
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
           decoration: InputDecoration(
             hintText: '50000',
             hintStyle: GoogleFonts.poppins(
@@ -360,24 +372,15 @@ class _TambahIuranPageState extends State<TambahIuranPage> {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(
-                color: Color(0xFFE5E7EB),
-                width: 1,
-              ),
+              borderSide: const BorderSide(color: Color(0xFFE5E7EB), width: 1),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(
-                color: Color(0xFF2F80ED),
-                width: 2,
-              ),
+              borderSide: const BorderSide(color: Color(0xFF2F80ED), width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(
-                color: Color(0xFFEF4444),
-                width: 1,
-              ),
+              borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1),
             ),
           ),
           validator: (value) {
@@ -414,10 +417,7 @@ class _TambahIuranPageState extends State<TambahIuranPage> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: const Color(0xFFE5E7EB),
-              width: 1,
-            ),
+            border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
           ),
           child: Row(
             children: _tipeOptions.map((tipe) {
@@ -445,7 +445,9 @@ class _TambahIuranPageState extends State<TambahIuranPage> {
                         style: GoogleFonts.poppins(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: isSelected ? Colors.white : const Color(0xFF6B7280),
+                          color: isSelected
+                              ? Colors.white
+                              : const Color(0xFF6B7280),
                         ),
                       ),
                     ),
@@ -577,10 +579,7 @@ class _TambahIuranPageState extends State<TambahIuranPage> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: const Color(0xFFE5E7EB),
-                width: 1,
-              ),
+              border: Border.all(color: const Color(0xFFE5E7EB), width: 1),
             ),
             child: Row(
               children: [
@@ -640,12 +639,16 @@ class _TambahIuranPageState extends State<TambahIuranPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    _isEditMode ? Icons.check_circle_outline_rounded : Icons.add_circle_outline_rounded,
+                    _isEditMode
+                        ? Icons.check_circle_outline_rounded
+                        : Icons.add_circle_outline_rounded,
                     size: 22,
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    _isEditMode ? 'Simpan Perubahan' : 'Buat Iuran & Generate Tagihan',
+                    _isEditMode
+                        ? 'Simpan Perubahan'
+                        : 'Buat Iuran & Generate Tagihan',
                     style: GoogleFonts.poppins(
                       fontSize: 15,
                       fontWeight: FontWeight.w600,
@@ -739,4 +742,3 @@ class _TambahIuranPageState extends State<TambahIuranPage> {
     }
   }
 }
-

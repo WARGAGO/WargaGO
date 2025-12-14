@@ -1,5 +1,6 @@
 // filepath: lib/features/admin/iuran/detail_iuran_page.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -19,21 +20,31 @@ class DetailIuranPage extends StatefulWidget {
 class _DetailIuranPageState extends State<DetailIuranPage> {
   final IuranService _iuranService = IuranService();
   String _selectedFilter = 'Semua';
-  final List<String> _filterOptions = ['Semua', 'Belum Bayar', 'Sudah Bayar', 'Terlambat'];
+  final List<String> _filterOptions = [
+    'Semua',
+    'Belum Bayar',
+    'Sudah Bayar',
+    'Terlambat',
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      body: SafeArea(
-        child: Column(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.light,
+        systemNavigationBarDividerColor: Colors.transparent,
+      ),
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8F9FA),
+        body: Column(
           children: [
             _buildHeader(),
             _buildStatistics(),
             _buildFilterTabs(),
-            Expanded(
-              child: _buildTagihanList(),
-            ),
+            Expanded(child: _buildTagihanList()),
           ],
         ),
       ),
@@ -48,15 +59,9 @@ class _DetailIuranPageState extends State<DetailIuranPage> {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF2F80ED),
-            Color(0xFF1E6FD9),
-            Color(0xFF0F5FCC),
-          ],
+          colors: [Color(0xFF2F80ED), Color(0xFF1E6FD9), Color(0xFF0F5FCC)],
         ),
-        borderRadius: const BorderRadius.vertical(
-          bottom: Radius.circular(32),
-        ),
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF2F80ED).withValues(alpha: 0.3),
@@ -67,6 +72,7 @@ class _DetailIuranPageState extends State<DetailIuranPage> {
       ),
       child: Column(
         children: [
+          const SafeArea(child: SizedBox.shrink()),
           Row(
             children: [
               IconButton(
@@ -116,7 +122,8 @@ class _DetailIuranPageState extends State<DetailIuranPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => TambahIuranPage(iuran: widget.iuran),
+                        builder: (context) =>
+                            TambahIuranPage(iuran: widget.iuran),
                       ),
                     );
                   } else if (value == 'delete') {
@@ -148,7 +155,9 @@ class _DetailIuranPageState extends State<DetailIuranPage> {
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          widget.iuran.status == 'aktif' ? 'Nonaktifkan' : 'Aktifkan',
+                          widget.iuran.status == 'aktif'
+                              ? 'Nonaktifkan'
+                              : 'Aktifkan',
                           style: GoogleFonts.poppins(fontSize: 14),
                         ),
                       ],
@@ -158,11 +167,18 @@ class _DetailIuranPageState extends State<DetailIuranPage> {
                     value: 'delete',
                     child: Row(
                       children: [
-                        const Icon(Icons.delete_outline, size: 20, color: Colors.red),
+                        const Icon(
+                          Icons.delete_outline,
+                          size: 20,
+                          color: Colors.red,
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           'Hapus',
-                          style: GoogleFonts.poppins(fontSize: 14, color: Colors.red),
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            color: Colors.red,
+                          ),
                         ),
                       ],
                     ),
@@ -185,7 +201,8 @@ class _DetailIuranPageState extends State<DetailIuranPage> {
               const SizedBox(width: 12),
               _buildInfoChip(
                 Icons.event_repeat_rounded,
-                widget.iuran.tipe[0].toUpperCase() + widget.iuran.tipe.substring(1),
+                widget.iuran.tipe[0].toUpperCase() +
+                    widget.iuran.tipe.substring(1),
               ),
             ],
           ),
@@ -256,9 +273,21 @@ class _DetailIuranPageState extends State<DetailIuranPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _buildStatItem('Total Tagihan', totalTagihan.toString(), Icons.receipt_long_rounded),
-                  _buildStatItem('Sudah Bayar', sudahBayar.toString(), Icons.check_circle_outline_rounded),
-                  _buildStatItem('Belum Bayar', belumBayar.toString(), Icons.pending_outlined),
+                  _buildStatItem(
+                    'Total Tagihan',
+                    totalTagihan.toString(),
+                    Icons.receipt_long_rounded,
+                  ),
+                  _buildStatItem(
+                    'Sudah Bayar',
+                    sudahBayar.toString(),
+                    Icons.check_circle_outline_rounded,
+                  ),
+                  _buildStatItem(
+                    'Belum Bayar',
+                    belumBayar.toString(),
+                    Icons.pending_outlined,
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
@@ -288,8 +317,13 @@ class _DetailIuranPageState extends State<DetailIuranPage> {
                                 borderRadius: BorderRadius.circular(8),
                                 child: LinearProgressIndicator(
                                   value: persentase / 100,
-                                  backgroundColor: Colors.white.withValues(alpha: 0.3),
-                                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                                  backgroundColor: Colors.white.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                  valueColor:
+                                      const AlwaysStoppedAnimation<Color>(
+                                        Colors.white,
+                                      ),
                                   minHeight: 8,
                                 ),
                               ),
@@ -406,9 +440,13 @@ class _DetailIuranPageState extends State<DetailIuranPage> {
                   child: Text(
                     filter,
                     style: GoogleFonts.poppins(
-                      color: isSelected ? Colors.white : const Color(0xFF6B7280),
+                      color: isSelected
+                          ? Colors.white
+                          : const Color(0xFF6B7280),
                       fontSize: 11,
-                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.w500,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -447,11 +485,14 @@ class _DetailIuranPageState extends State<DetailIuranPage> {
         if (_selectedFilter != 'Semua') {
           tagihanList = tagihanList.where((tagihan) {
             if (_selectedFilter == 'Belum Bayar') {
-              return tagihan.status == 'belum_bayar' || tagihan.status == 'Belum Dibayar';
+              return tagihan.status == 'belum_bayar' ||
+                  tagihan.status == 'Belum Dibayar';
             } else if (_selectedFilter == 'Sudah Bayar') {
-              return tagihan.status == 'sudah_bayar' || tagihan.status == 'Lunas';
+              return tagihan.status == 'sudah_bayar' ||
+                  tagihan.status == 'Lunas';
             } else if (_selectedFilter == 'Terlambat') {
-              return tagihan.status == 'terlambat' || tagihan.status == 'Terlambat';
+              return tagihan.status == 'terlambat' ||
+                  tagihan.status == 'Terlambat';
             }
             return true;
           }).toList();
@@ -526,11 +567,7 @@ class _DetailIuranPageState extends State<DetailIuranPage> {
                 color: statusColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(
-                statusIcon,
-                color: statusColor,
-                size: 24,
-              ),
+              child: Icon(statusIcon, color: statusColor, size: 24),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -590,7 +627,10 @@ class _DetailIuranPageState extends State<DetailIuranPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF10B981),
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       minimumSize: Size.zero,
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
@@ -605,9 +645,10 @@ class _DetailIuranPageState extends State<DetailIuranPage> {
                   ),
                 ],
                 // Show "Menunggu Pembayaran" if no payment yet
-                if ((tagihan.status == 'belum_bayar' || tagihan.status == 'Belum Dibayar') &&
+                if ((tagihan.status == 'belum_bayar' ||
+                        tagihan.status == 'Belum Dibayar') &&
                     (tagihan.buktiPembayaran == null ||
-                     tagihan.buktiPembayaran!.isEmpty)) ...[
+                        tagihan.buktiPembayaran!.isEmpty)) ...[
                   const SizedBox(height: 8),
                   Text(
                     'Menunggu\nPembayaran',
@@ -631,11 +672,7 @@ class _DetailIuranPageState extends State<DetailIuranPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.receipt_long_outlined,
-            size: 80,
-            color: Colors.grey[300],
-          ),
+          Icon(Icons.receipt_long_outlined, size: 80, color: Colors.grey[300]),
           const SizedBox(height: 16),
           Text(
             'Belum Ada Tagihan',
@@ -648,10 +685,7 @@ class _DetailIuranPageState extends State<DetailIuranPage> {
           const SizedBox(height: 8),
           Text(
             'Generate tagihan untuk warga',
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: Colors.grey[400],
-            ),
+            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[400]),
           ),
         ],
       ),
@@ -663,11 +697,7 @@ class _DetailIuranPageState extends State<DetailIuranPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.filter_list_off,
-            size: 80,
-            color: Colors.grey[300],
-          ),
+          Icon(Icons.filter_list_off, size: 80, color: Colors.grey[300]),
           const SizedBox(height: 16),
           Text(
             'Tidak Ada Data',
@@ -680,10 +710,7 @@ class _DetailIuranPageState extends State<DetailIuranPage> {
           const SizedBox(height: 8),
           Text(
             'Coba filter lain',
-            style: GoogleFonts.poppins(
-              fontSize: 12,
-              color: Colors.grey[400],
-            ),
+            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[400]),
           ),
         ],
       ),
@@ -724,7 +751,11 @@ class _DetailIuranPageState extends State<DetailIuranPage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                        const Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: Colors.red,
+                        ),
                         const SizedBox(height: 16),
                         Text(
                           'Gagal memuat gambar',
@@ -757,7 +788,10 @@ class _DetailIuranPageState extends State<DetailIuranPage> {
           children: [
             Text(
               'Warga: ${tagihan.userName}',
-              style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600),
+              style: GoogleFonts.poppins(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
@@ -767,7 +801,10 @@ class _DetailIuranPageState extends State<DetailIuranPage> {
             const SizedBox(height: 16),
             Text(
               'Bukti Pembayaran:',
-              style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600),
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             const SizedBox(height: 8),
             if (tagihan.buktiPembayaran != null)
@@ -784,9 +821,7 @@ class _DetailIuranPageState extends State<DetailIuranPage> {
                     tagihan.buktiPembayaran!,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
-                      return const Center(
-                        child: Text('Gagal memuat gambar'),
-                      );
+                      return const Center(child: Text('Gagal memuat gambar'));
                     },
                   ),
                 ),
@@ -812,10 +847,7 @@ class _DetailIuranPageState extends State<DetailIuranPage> {
               backgroundColor: const Color(0xFF10B981),
               foregroundColor: Colors.white,
             ),
-            child: Text(
-              'Verifikasi',
-              style: GoogleFonts.poppins(),
-            ),
+            child: Text('Verifikasi', style: GoogleFonts.poppins()),
           ),
         ],
       ),
@@ -888,10 +920,7 @@ class _DetailIuranPageState extends State<DetailIuranPage> {
               backgroundColor: const Color(0xFF10B981),
               foregroundColor: Colors.white,
             ),
-            child: Text(
-              'Generate',
-              style: GoogleFonts.poppins(),
-            ),
+            child: Text('Generate', style: GoogleFonts.poppins()),
           ),
         ],
       ),
@@ -913,10 +942,7 @@ class _DetailIuranPageState extends State<DetailIuranPage> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  'Generating tagihan...',
-                  style: GoogleFonts.poppins(),
-                ),
+                Text('Generating tagihan...', style: GoogleFonts.poppins()),
               ],
             ),
             duration: const Duration(seconds: 30),
@@ -926,7 +952,9 @@ class _DetailIuranPageState extends State<DetailIuranPage> {
 
       try {
         // Generate tagihan untuk semua warga yang belum punya
-        final count = await _iuranService.generateTagihanForAllUsers(widget.iuran.id);
+        final count = await _iuranService.generateTagihanForAllUsers(
+          widget.iuran.id,
+        );
 
         if (mounted) {
           ScaffoldMessenger.of(context).clearSnackBars();
@@ -1019,10 +1047,7 @@ class _DetailIuranPageState extends State<DetailIuranPage> {
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: Text(
-              'Hapus',
-              style: GoogleFonts.poppins(),
-            ),
+            child: Text('Hapus', style: GoogleFonts.poppins()),
           ),
         ],
       ),
@@ -1060,4 +1085,3 @@ class _DetailIuranPageState extends State<DetailIuranPage> {
     }
   }
 }
-

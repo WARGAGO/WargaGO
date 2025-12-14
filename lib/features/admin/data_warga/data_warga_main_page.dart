@@ -109,187 +109,197 @@ class _DataWargaMainPageState extends State<DataWargaMainPage>
         print('Is Loading: ${wargaProvider.isLoading}');
         print('================================');
 
-        return Scaffold(
-          body: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFFF5F7FA), Color(0xFFFFFFFF)],
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness: Brightness.light,
+            systemNavigationBarColor: Colors.transparent,
+            systemNavigationBarIconBrightness: Brightness.light,
+            systemNavigationBarDividerColor: Colors.transparent,
+          ),
+          child: Scaffold(
+            body: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFFF5F7FA), Color(0xFFFFFFFF)],
+                ),
               ),
-            ),
-            child: Column(
-              children: [
-                // HEADER
-                _buildModernHeader(),
+              child: Column(
+                children: [
+                  // HEADER
+                  _buildModernHeader(),
 
-                // CONTENT
-                Expanded(
-                  child: SingleChildScrollView(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
-                    child: FadeTransition(
-                      opacity: _fadeAnimation,
-                      child: SlideTransition(
-                        position: _slideAnimation,
-                        child: Column(
-                          children: [
-                            // Row 1: Data Penduduk & Data Mutasi
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _buildHorizontalCard(
-                                    context,
-                                    title: 'Data Penduduk',
-                                    subtitle: 'Kelola data warga',
-                                    icon: Icons.groups_3_rounded,
-                                    gradientColors: const [
-                                      Color(0xFF2F80ED),
-                                      Color(0xFF1E6FD9),
-                                    ],
-                                    total: wargaProvider.isLoading
-                                        ? '...'
-                                        : totalWarga.toString(),
-                                    label: 'Total Warga',
-                                    trend: wargaProvider.isLoading
-                                        ? '...'
-                                        : 'Aktif: ${wargaProvider.totalAktif}',
-                                    trendUp: true,
-                                    delay: 0,
-                                    onTap: () => Navigator.push(
+                  // CONTENT
+                  Expanded(
+                    child: SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(),
+                      padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+                      child: FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: SlideTransition(
+                          position: _slideAnimation,
+                          child: Column(
+                            children: [
+                              // Row 1: Data Penduduk & Data Mutasi
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildHorizontalCard(
                                       context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const DataWargaPage(),
+                                      title: 'Data Penduduk',
+                                      subtitle: 'Kelola data warga',
+                                      icon: Icons.groups_3_rounded,
+                                      gradientColors: const [
+                                        Color(0xFF2F80ED),
+                                        Color(0xFF1E6FD9),
+                                      ],
+                                      total: wargaProvider.isLoading
+                                          ? '...'
+                                          : totalWarga.toString(),
+                                      label: 'Total Warga',
+                                      trend: wargaProvider.isLoading
+                                          ? '...'
+                                          : 'Aktif: ${wargaProvider.totalAktif}',
+                                      trendUp: true,
+                                      delay: 0,
+                                      onTap: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const DataWargaPage(),
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 16),
-                                // Data Mutasi Card with StreamBuilder
-                                Expanded(
-                                  child: StreamBuilder<List<dynamic>>(
-                                    stream: _mutasiRepo.getAllMutasi(),
-                                    builder: (context, snapshot) {
-                                      final totalMutasi = snapshot.hasData
-                                          ? snapshot.data!.length
-                                          : 0;
-                                      final totalStr = totalMutasi.toString();
+                                  const SizedBox(width: 16),
+                                  // Data Mutasi Card with StreamBuilder
+                                  Expanded(
+                                    child: StreamBuilder<List<dynamic>>(
+                                      stream: _mutasiRepo.getAllMutasi(),
+                                      builder: (context, snapshot) {
+                                        final totalMutasi = snapshot.hasData
+                                            ? snapshot.data!.length
+                                            : 0;
+                                        final totalStr = totalMutasi.toString();
 
-                                      return _buildHorizontalCard(
-                                        context,
-                                        title: 'Data Mutasi',
-                                        subtitle: 'Riwayat perpindahan',
-                                        icon: Icons
-                                            .swap_horizontal_circle_rounded,
-                                        gradientColors: const [
-                                          Color(0xFF3B8FFF),
-                                          Color(0xFF2F80ED),
-                                        ],
-                                        total: totalStr,
-                                        label: 'Total Mutasi',
-                                        trend: totalMutasi > 0
-                                            ? '+${totalMutasi}'
-                                            : '-',
-                                        trendUp: true,
-                                        delay: 100,
-                                        onTap: () => Navigator.push(
+                                        return _buildHorizontalCard(
                                           context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                const DataMutasiWargaPage(),
+                                          title: 'Data Mutasi',
+                                          subtitle: 'Riwayat perpindahan',
+                                          icon: Icons
+                                              .swap_horizontal_circle_rounded,
+                                          gradientColors: const [
+                                            Color(0xFF3B8FFF),
+                                            Color(0xFF2F80ED),
+                                          ],
+                                          total: totalStr,
+                                          label: 'Total Mutasi',
+                                          trend: totalMutasi > 0
+                                              ? '+${totalMutasi}'
+                                              : '-',
+                                          trendUp: true,
+                                          delay: 100,
+                                          onTap: () => Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const DataMutasiWargaPage(),
+                                            ),
                                           ),
-                                        ),
-                                      );
-                                    },
+                                        );
+                                      },
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
 
-                            // Row 2: Kelola Pengguna & Terima Warga
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: _buildHorizontalCard(
-                                    context,
-                                    title: 'Kelola Pengguna',
-                                    subtitle: 'Manajemen akun user',
-                                    icon: Icons.admin_panel_settings_rounded,
-                                    gradientColors: const [
-                                      Color(0xFF1E6FD9),
-                                      Color(0xFF0F5FCC),
-                                    ],
-                                    total: totalWarga
-                                        .toString(), // Same as warga for now
-                                    label: 'Total User',
-                                    trend: '-',
-                                    trendUp: true,
-                                    delay: 200,
-                                    onTap: () => Navigator.push(
+                              // Row 2: Kelola Pengguna & Terima Warga
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildHorizontalCard(
                                       context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            const KelolaPenggunaPage(),
+                                      title: 'Kelola Pengguna',
+                                      subtitle: 'Manajemen akun user',
+                                      icon: Icons.admin_panel_settings_rounded,
+                                      gradientColors: const [
+                                        Color(0xFF1E6FD9),
+                                        Color(0xFF0F5FCC),
+                                      ],
+                                      total: totalWarga
+                                          .toString(), // Same as warga for now
+                                      label: 'Total User',
+                                      trend: '-',
+                                      trendUp: true,
+                                      delay: 200,
+                                      onTap: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const KelolaPenggunaPage(),
+                                        ),
                                       ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 16),
-                                // Terima Warga Card with StreamBuilder
-                                Expanded(
-                                  child: StreamBuilder<List<dynamic>>(
-                                    stream: _pendingRepo.getAllPendingWarga(),
-                                    builder: (context, snapshot) {
-                                      final totalPending = snapshot.hasData
-                                          ? snapshot.data!.length
-                                          : 0;
-                                      final totalStr = totalPending.toString();
+                                  const SizedBox(width: 16),
+                                  // Terima Warga Card with StreamBuilder
+                                  Expanded(
+                                    child: StreamBuilder<List<dynamic>>(
+                                      stream: _pendingRepo.getAllPendingWarga(),
+                                      builder: (context, snapshot) {
+                                        final totalPending = snapshot.hasData
+                                            ? snapshot.data!.length
+                                            : 0;
+                                        final totalStr = totalPending
+                                            .toString();
 
-                                      return _buildHorizontalCard(
-                                        context,
-                                        title: 'Terima Warga',
-                                        subtitle: 'Persetujuan pendaftar',
-                                        icon: Icons.person_add_alt_1_rounded,
-                                        gradientColors: const [
-                                          Color(0xFF5BA3FF),
-                                          Color(0xFF3B8FFF),
-                                        ],
-                                        total: totalStr,
-                                        label: 'Menunggu',
-                                        trend: totalPending > 0 ? 'New' : '-',
-                                        trendUp: false,
-                                        delay: 300,
-                                        onTap: () => Navigator.push(
+                                        return _buildHorizontalCard(
                                           context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                const TerimaWargaPage(),
+                                          title: 'Terima Warga',
+                                          subtitle: 'Persetujuan pendaftar',
+                                          icon: Icons.person_add_alt_1_rounded,
+                                          gradientColors: const [
+                                            Color(0xFF5BA3FF),
+                                            Color(0xFF3B8FFF),
+                                          ],
+                                          total: totalStr,
+                                          label: 'Menunggu',
+                                          trend: totalPending > 0 ? 'New' : '-',
+                                          trendUp: false,
+                                          delay: 300,
+                                          onTap: () => Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const TerimaWargaPage(),
+                                            ),
                                           ),
-                                        ),
-                                      );
-                                    },
+                                        );
+                                      },
+                                    ),
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 32),
+                                ],
+                              ),
+                              const SizedBox(height: 32),
 
-                            // STATISTIK
-                            _buildStatisticsSection(
-                              totalLakiLaki: totalLakiLaki,
-                              totalPerempuan: totalPerempuan,
-                              totalKeluarga: totalKeluarga,
-                              totalRumah: totalRumah,
-                            ),
-                          ],
+                              // STATISTIK
+                              _buildStatisticsSection(
+                                totalLakiLaki: totalLakiLaki,
+                                totalPerempuan: totalPerempuan,
+                                totalKeluarga: totalKeluarga,
+                                totalRumah: totalRumah,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );

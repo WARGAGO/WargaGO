@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:wargago/core/widgets/admin_app_bottom_navigation.dart';
@@ -36,10 +37,17 @@ class _TerimaWargaPageState extends State<TerimaWargaPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      body: SafeArea(
-        child: Column(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.light,
+        systemNavigationBarDividerColor: Colors.transparent,
+      ),
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8F9FA),
+        body: Column(
           children: [
             // HEADER
             _buildHeader(),
@@ -119,57 +127,62 @@ class _TerimaWargaPageState extends State<TerimaWargaPage>
           ),
         ],
       ),
-      child: Row(
+      child: Column(
         children: [
-          IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
-            style: IconButton.styleFrom(
-              backgroundColor: Colors.white.withValues(alpha: 0.2),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.3),
-                width: 1.5,
+          const SafeArea(child: SizedBox.shrink()),
+          Row(
+            children: [
+              IconButton(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.white.withValues(alpha: 0.2),
+                ),
               ),
-            ),
-            child: const Icon(
-              Icons.person_add_alt_1_rounded,
-              color: Colors.white,
-              size: 28,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Terima Warga",
-                  style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.5,
+              const SizedBox(width: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    width: 1.5,
                   ),
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  "Persetujuan pendaftar baru",
-                  style: GoogleFonts.poppins(
-                    color: Colors.white.withValues(alpha: 0.9),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
+                child: const Icon(
+                  Icons.person_add_alt_1_rounded,
+                  color: Colors.white,
+                  size: 28,
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Terima Warga",
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "Persetujuan pendaftar baru",
+                      style: GoogleFonts.poppins(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),

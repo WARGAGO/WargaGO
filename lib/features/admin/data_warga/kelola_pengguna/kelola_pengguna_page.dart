@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wargago/core/models/user_model.dart';
 
@@ -22,16 +23,29 @@ class KelolaPenggunaPage extends StatefulWidget {
 
 class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
   String _selectedFilter = 'Semua';
-  final List<String> _filterOptions = ['Semua', 'Admin', 'Warga', 'Pending', 'Approved']; // ⭐ Added 'Approved'
+  final List<String> _filterOptions = [
+    'Semua',
+    'Admin',
+    'Warga',
+    'Pending',
+    'Approved',
+  ]; // ⭐ Added 'Approved'
   final UserRepository _userRepository = UserRepository();
   String _searchQuery = '';
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      body: SafeArea(
-        child: Column(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.light,
+        systemNavigationBarDividerColor: Colors.transparent,
+      ),
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8F9FA),
+        body: Column(
           children: [
             // HEADER
             Container(
@@ -58,63 +72,68 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
                   ),
                 ],
               ),
-              child: Row(
+              child: Column(
                 children: [
-                  // Back button
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(
-                      Icons.arrow_back_rounded,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.white.withValues(alpha: 0.2),
-                      padding: const EdgeInsets.all(8),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.3),
-                        width: 1.5,
+                  const SafeArea(child: SizedBox.shrink()),
+                  Row(
+                    children: [
+                      // Back button
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(
+                          Icons.arrow_back_rounded,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.white.withValues(alpha: 0.2),
+                          padding: const EdgeInsets.all(8),
+                        ),
                       ),
-                    ),
-                    child: const Icon(
-                      Icons.people_rounded,
-                      color: Colors.white,
-                      size: 28,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Kelola Pengguna",
-                          style: GoogleFonts.poppins(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.5,
+                      const SizedBox(width: 12),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.3),
+                            width: 1.5,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "Kelola semua akun pengguna",
-                          style: GoogleFonts.poppins(
-                            color: Colors.white.withValues(alpha: 0.9),
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        child: const Icon(
+                          Icons.people_rounded,
+                          color: Colors.white,
+                          size: 28,
                         ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Kelola Pengguna",
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontSize: 22,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.5,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              "Kelola semua akun pengguna",
+                              style: GoogleFonts.poppins(
+                                color: Colors.white.withValues(alpha: 0.9),
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -150,7 +169,10 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
                         decoration: BoxDecoration(
                           gradient: isSelected
                               ? const LinearGradient(
-                                  colors: [Color(0xFF2F80ED), Color(0xFF1E6FD9)],
+                                  colors: [
+                                    Color(0xFF2F80ED),
+                                    Color(0xFF1E6FD9),
+                                  ],
                                 )
                               : null,
                           color: isSelected ? null : Colors.transparent,
@@ -160,9 +182,13 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
                           child: Text(
                             filter,
                             style: GoogleFonts.poppins(
-                              color: isSelected ? Colors.white : const Color(0xFF6B7280),
+                              color: isSelected
+                                  ? Colors.white
+                                  : const Color(0xFF6B7280),
                               fontSize: 13,
-                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.w500,
                             ),
                           ),
                         ),
@@ -177,28 +203,26 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
             _buildSearchBar(),
 
             // LIST
-            Expanded(
-              child: _buildPenggunaList(),
-            ),
+            Expanded(child: _buildPenggunaList()),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const TambahPenggunaPage(),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const TambahPenggunaPage(),
+              ),
+            );
+          },
+          backgroundColor: const Color(0xFF2F80ED),
+          icon: const Icon(Icons.add, color: Colors.white),
+          label: Text(
+            'Tambah Admin',
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
             ),
-          );
-        },
-        backgroundColor: const Color(0xFF2F80ED),
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: Text(
-          'Tambah Admin',
-          style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
           ),
         ),
       ),
@@ -228,13 +252,13 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
         },
         decoration: InputDecoration(
           hintText: 'Cari nama atau email...',
-          hintStyle: GoogleFonts.poppins(
-            color: Colors.grey[400],
-            fontSize: 14,
-          ),
+          hintStyle: GoogleFonts.poppins(color: Colors.grey[400], fontSize: 14),
           prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
         ),
         style: GoogleFonts.poppins(fontSize: 14),
       ),
@@ -276,11 +300,7 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.error_outline,
-                  size: 80,
-                  color: Colors.grey[300],
-                ),
+                Icon(Icons.error_outline, size: 80, color: Colors.grey[300]),
                 const SizedBox(height: 16),
                 Text(
                   'Terjadi kesalahan',
@@ -351,7 +371,10 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
                 if (_selectedFilter == 'Pending') ...[
                   const SizedBox(height: 12),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
                     margin: const EdgeInsets.symmetric(horizontal: 40),
                     decoration: BoxDecoration(
                       color: const Color(0xFF10B981).withValues(alpha: 0.1),
@@ -383,20 +406,28 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
         print('   Filter: $_selectedFilter');
         print('   Total users from stream: ${users.length}');
         for (var user in users) {
-          print('   - ${user.nama} (${user.email}) - Role: ${user.role} - Status: ${user.status}');
+          print(
+            '   - ${user.nama} (${user.email}) - Role: ${user.role} - Status: ${user.status}',
+          );
         }
 
         // Apply additional client-side filtering based on selected filter
         if (_selectedFilter == 'Admin') {
-          users = users.where((user) => user.role.toLowerCase() == 'admin').toList();
+          users = users
+              .where((user) => user.role.toLowerCase() == 'admin')
+              .toList();
         } else if (_selectedFilter == 'Warga') {
-          users = users.where((user) => user.role.toLowerCase() == 'warga').toList();
+          users = users
+              .where((user) => user.role.toLowerCase() == 'warga')
+              .toList();
         } else if (_selectedFilter == 'Pending') {
           users = users.where((user) {
             final status = user.status.toLowerCase();
-            return status == 'pending' || status == 'unverified'; // Pending and unverified
+            return status == 'pending' ||
+                status == 'unverified'; // Pending and unverified
           }).toList();
-        } else if (_selectedFilter == 'Approved') { // ⭐ NEW: Filter for approved users
+        } else if (_selectedFilter == 'Approved') {
+          // ⭐ NEW: Filter for approved users
           users = users.where((user) {
             final status = user.status.toLowerCase();
             return status == 'approved';
@@ -422,11 +453,7 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.search_off,
-                  size: 80,
-                  color: Colors.grey[300],
-                ),
+                Icon(Icons.search_off, size: 80, color: Colors.grey[300]),
                 const SizedBox(height: 16),
                 Text(
                   'Tidak ditemukan',
@@ -463,7 +490,8 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
 
   Widget _buildPenggunaCard(UserModel user) {
     final isAdmin = user.role.toLowerCase() == 'admin';
-    final isPending = user.status.toLowerCase() == 'pending' ||
+    final isPending =
+        user.status.toLowerCase() == 'pending' ||
         user.status.toLowerCase() == 'unverified';
     final isApproved = user.status.toLowerCase() == 'approved';
 
@@ -576,8 +604,12 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
                             ),
                             decoration: BoxDecoration(
                               color: isAdmin
-                                  ? const Color(0xFF2F80ED).withValues(alpha: 0.1)
-                                  : const Color(0xFF10B981).withValues(alpha: 0.1),
+                                  ? const Color(
+                                      0xFF2F80ED,
+                                    ).withValues(alpha: 0.1)
+                                  : const Color(
+                                      0xFF10B981,
+                                    ).withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
@@ -643,10 +675,7 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
                 ),
 
                 const SizedBox(width: 8),
-                Icon(
-                  Icons.chevron_right,
-                  color: Colors.grey[400],
-                ),
+                Icon(Icons.chevron_right, color: Colors.grey[400]),
               ],
             ),
           ),
@@ -655,4 +684,3 @@ class _KelolaPenggunaPageState extends State<KelolaPenggunaPage> {
     );
   }
 }
-

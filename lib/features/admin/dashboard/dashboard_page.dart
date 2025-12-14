@@ -19,8 +19,11 @@ import 'dart:math' as math;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:wargago/core/constants/app_routes.dart';
 
 import 'package:wargago/core/widgets/admin_app_bottom_navigation.dart';
 import 'package:wargago/features/admin/profile/admin_profile_page.dart';
@@ -52,11 +55,37 @@ class DashboardPage extends StatefulWidget {
 
 class _DashboardPageState extends State<DashboardPage> {
   String _userName = 'Admin';
+  final ScrollController _scrollController = ScrollController();
+  Color _statusBarColor = Colors.transparent;
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final currentScroll = _scrollController.offset;
+    final threshold = maxScroll * 0.01;
+
+    final newColor = currentScroll > threshold
+        ? DashboardColors.primaryBlue
+        : Colors.transparent;
+
+    if (_statusBarColor != newColor) {
+      setState(() {
+        _statusBarColor = newColor;
+      });
+    }
   }
 
   Future<void> _loadUserData() async {
@@ -81,8 +110,16 @@ class _DashboardPageState extends State<DashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: _statusBarColor,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.light,
+        systemNavigationBarDividerColor: Colors.transparent,
+      ),
       child: CustomScrollView(
+        controller: _scrollController,
         slivers: [
           // Header section dengan gradient background
           _buildHeader(),
@@ -167,24 +204,26 @@ class _DashboardHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Responsive sizing based on available width
-        final isNarrow = constraints.maxWidth < 360;
+    return SafeArea(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Responsive sizing based on available width
+          final isNarrow = constraints.maxWidth < 360;
 
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            _buildAvatar(context: context, isNarrow: isNarrow),
-            SizedBox(width: isNarrow ? 8 : 12),
-            _buildWelcomeText(isNarrow: isNarrow),
-            SizedBox(width: isNarrow ? 6 : 8),
-            _buildSearchIcon(context, isNarrow: isNarrow),
-            SizedBox(width: isNarrow ? 6 : 8),
-            _buildNotificationIcon(context, isNarrow: isNarrow),
-          ],
-        );
-      },
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _buildAvatar(context: context, isNarrow: isNarrow),
+              SizedBox(width: isNarrow ? 8 : 12),
+              _buildWelcomeText(isNarrow: isNarrow),
+              SizedBox(width: isNarrow ? 6 : 8),
+              _buildSearchIcon(context, isNarrow: isNarrow),
+              SizedBox(width: isNarrow ? 6 : 8),
+              _buildNotificationIcon(context, isNarrow: isNarrow),
+            ],
+          );
+        },
+      ),
     );
   }
 
@@ -194,9 +233,7 @@ class _DashboardHeader extends StatelessWidget {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => const AdminProfilePage(),
-          ),
+          MaterialPageRoute(builder: (context) => const AdminProfilePage()),
         );
       },
       child: Hero(
@@ -1931,14 +1968,7 @@ class _PrimaryActionButton extends StatelessWidget {
           ),
           padding: EdgeInsets.zero,
         ),
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const DashboardDetailPage(),
-            ),
-          );
-        },
+        onPressed: () => context.push(AppRoutes.adminDashboardSelengkapnya),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -1991,14 +2021,7 @@ class _KelolaPollingCard extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const AdminPollListPage(),
-              ),
-            );
-          },
+          onTap: () => context.push(AppRoutes.adminKelolaPolling),
           borderRadius: BorderRadius.circular(20),
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -2068,4 +2091,3 @@ class _KelolaPollingCard extends StatelessWidget {
     );
   }
 }
-

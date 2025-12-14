@@ -1,5 +1,6 @@
 // lib/pages/profile/akun_screen.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -18,7 +19,8 @@ class AkunScreen extends StatefulWidget {
   State<AkunScreen> createState() => _AkunScreenState();
 }
 
-class _AkunScreenState extends State<AkunScreen> with SingleTickerProviderStateMixin {
+class _AkunScreenState extends State<AkunScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
@@ -37,10 +39,10 @@ class _AkunScreenState extends State<AkunScreen> with SingleTickerProviderStateM
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOut));
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+        );
 
     _animationController.forward();
   }
@@ -57,7 +59,9 @@ class _AkunScreenState extends State<AkunScreen> with SingleTickerProviderStateM
     final authProvider = Provider.of<AuthProvider>(context);
     final user = authProvider.userModel;
 
-    print('User data: ${user?.nama ?? "NULL"}, Email: ${user?.email ?? "NULL"}');
+    print(
+      'User data: ${user?.nama ?? "NULL"}, Email: ${user?.email ?? "NULL"}',
+    );
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FD),
@@ -67,6 +71,13 @@ class _AkunScreenState extends State<AkunScreen> with SingleTickerProviderStateM
               slivers: [
                 // Modern App Bar with Gradient
                 SliverAppBar(
+                  systemOverlayStyle: SystemUiOverlayStyle(
+                    statusBarColor: Colors.transparent,
+                    statusBarIconBrightness: Brightness.light,
+                    systemNavigationBarColor: Colors.white,
+                    systemNavigationBarIconBrightness: Brightness.dark,
+                    systemNavigationBarDividerColor: Colors.white,
+                  ),
                   expandedHeight: 170,
                   floating: false,
                   pinned: true,
@@ -78,10 +89,7 @@ class _AkunScreenState extends State<AkunScreen> with SingleTickerProviderStateM
                         gradient: LinearGradient(
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
-                          colors: [
-                            Color(0xFF2F80ED),
-                            Color(0xFF1E5BB8),
-                          ],
+                          colors: [Color(0xFF2F80ED), Color(0xFF1E5BB8)],
                         ),
                       ),
                       child: SafeArea(
@@ -100,7 +108,9 @@ class _AkunScreenState extends State<AkunScreen> with SingleTickerProviderStateM
                                     shape: BoxShape.circle,
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.white.withValues(alpha: 0.3),
+                                        color: Colors.white.withValues(
+                                          alpha: 0.3,
+                                        ),
                                         blurRadius: 20,
                                         spreadRadius: 5,
                                       ),
@@ -111,9 +121,13 @@ class _AkunScreenState extends State<AkunScreen> with SingleTickerProviderStateM
                                     backgroundColor: Colors.white,
                                     child: CircleAvatar(
                                       radius: 35,
-                                      backgroundColor: const Color(0xFF2F80ED).withValues(alpha: 0.2),
+                                      backgroundColor: const Color(
+                                        0xFF2F80ED,
+                                      ).withValues(alpha: 0.2),
                                       child: Text(
-                                        user.nama.isNotEmpty ? user.nama[0].toUpperCase() : 'U',
+                                        user.nama.isNotEmpty
+                                            ? user.nama[0].toUpperCase()
+                                            : 'U',
                                         style: GoogleFonts.poppins(
                                           fontSize: 30,
                                           fontWeight: FontWeight.bold,
@@ -126,7 +140,9 @@ class _AkunScreenState extends State<AkunScreen> with SingleTickerProviderStateM
                                 const SizedBox(height: 10),
                                 // Name
                                 Text(
-                                  user.nama.isNotEmpty ? user.nama : 'Nama Pengguna',
+                                  user.nama.isNotEmpty
+                                      ? user.nama
+                                      : 'Nama Pengguna',
                                   style: GoogleFonts.poppins(
                                     fontSize: 19,
                                     fontWeight: FontWeight.bold,
@@ -195,7 +211,9 @@ class _AkunScreenState extends State<AkunScreen> with SingleTickerProviderStateM
                               ),
                               onTap: () => Navigator.push(
                                 context,
-                                MaterialPageRoute(builder: (_) => const EditProfilScreen()),
+                                MaterialPageRoute(
+                                  builder: (_) => const EditProfilScreen(),
+                                ),
                               ),
                             ),
 
@@ -245,9 +263,8 @@ class _AkunScreenState extends State<AkunScreen> with SingleTickerProviderStateM
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => const Center(
-        child: CircularProgressIndicator(),
-      ),
+      builder: (dialogContext) =>
+          const Center(child: CircularProgressIndicator()),
     );
 
     try {
@@ -269,9 +286,7 @@ class _AkunScreenState extends State<AkunScreen> with SingleTickerProviderStateM
         // Belum terdaftar sebagai seller
         await Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (_) => const SellerRegistrationPage(),
-          ),
+          MaterialPageRoute(builder: (_) => const SellerRegistrationPage()),
         );
       } else {
         // Sudah terdaftar, check status
@@ -280,9 +295,7 @@ class _AkunScreenState extends State<AkunScreen> with SingleTickerProviderStateM
             // Seller sudah diverifikasi → ke halaman produk (seller dashboard)
             await Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => const ProdukSayaScreen(),
-              ),
+              MaterialPageRoute(builder: (_) => const ProdukSayaScreen()),
             );
             break;
 
@@ -295,9 +308,7 @@ class _AkunScreenState extends State<AkunScreen> with SingleTickerProviderStateM
             // Ditolak → ke form pendaftaran (bisa retry)
             await Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => const SellerRegistrationPage(),
-              ),
+              MaterialPageRoute(builder: (_) => const SellerRegistrationPage()),
             );
             break;
 
@@ -352,10 +363,7 @@ class _AkunScreenState extends State<AkunScreen> with SingleTickerProviderStateM
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(
-              'OK',
-              style: GoogleFonts.poppins(color: Colors.orange),
-            ),
+            child: Text('OK', style: GoogleFonts.poppins(color: Colors.orange)),
           ),
         ],
       ),
@@ -383,10 +391,7 @@ class _AkunScreenState extends State<AkunScreen> with SingleTickerProviderStateM
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(
-              'OK',
-              style: GoogleFonts.poppins(color: Colors.red),
-            ),
+            child: Text('OK', style: GoogleFonts.poppins(color: Colors.red)),
           ),
         ],
       ),
@@ -491,11 +496,7 @@ class _AkunScreenState extends State<AkunScreen> with SingleTickerProviderStateM
                     ),
                   ],
                 ),
-                child: Icon(
-                  icon,
-                  color: Colors.white,
-                  size: 28,
-                ),
+                child: Icon(icon, color: Colors.white, size: 28),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -590,7 +591,9 @@ class _AkunScreenState extends State<AkunScreen> with SingleTickerProviderStateM
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: Text(
             'Konfirmasi Keluar',
             style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
@@ -624,7 +627,9 @@ class _AkunScreenState extends State<AkunScreen> with SingleTickerProviderStateM
                   builder: (BuildContext loadingContext) {
                     return const Center(
                       child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2F80ED)),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Color(0xFF2F80ED),
+                        ),
                       ),
                     );
                   },
@@ -635,7 +640,7 @@ class _AkunScreenState extends State<AkunScreen> with SingleTickerProviderStateM
 
                 // Close loading
                 if (context.mounted) {
-                  Navigator.of(context).pop(); // Close loading dialog
+                  context.pop(); // Close loading dialog
 
                   // Navigate to login page using go_router
                   context.go(AppRoutes.login);

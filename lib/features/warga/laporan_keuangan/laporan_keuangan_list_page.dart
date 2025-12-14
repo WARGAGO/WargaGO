@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:wargago/core/models/laporan_keuangan_model.dart';
@@ -9,7 +10,8 @@ class LaporanKeuanganListPage extends StatefulWidget {
   const LaporanKeuanganListPage({super.key});
 
   @override
-  State<LaporanKeuanganListPage> createState() => _LaporanKeuanganListPageState();
+  State<LaporanKeuanganListPage> createState() =>
+      _LaporanKeuanganListPageState();
 }
 
 class _LaporanKeuanganListPageState extends State<LaporanKeuanganListPage> {
@@ -25,72 +27,82 @@ class _LaporanKeuanganListPageState extends State<LaporanKeuanganListPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: Column(
-        children: [
-          // Header
-          _buildHeader(),
-          // Filter
-          _buildFilter(),
-          // List
-          Expanded(
-            child: StreamBuilder<List<LaporanKeuanganModel>>(
-              stream: _service.getLaporanStream(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.light,
+        systemNavigationBarDividerColor: Colors.transparent,
+      ),
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        body: Column(
+          children: [
+            // Header
+            _buildHeader(),
+            // Filter
+            _buildFilter(),
+            // List
+            Expanded(
+              child: StreamBuilder<List<LaporanKeuanganModel>>(
+                stream: _service.getLaporanStream(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-                if (snapshot.hasError) {
-                  return _buildErrorState(snapshot.error.toString());
-                }
+                  if (snapshot.hasError) {
+                    return _buildErrorState(snapshot.error.toString());
+                  }
 
-                final laporanList = snapshot.data ?? [];
+                  final laporanList = snapshot.data ?? [];
 
-                if (laporanList.isEmpty) {
-                  return _buildEmptyState();
-                }
+                  if (laporanList.isEmpty) {
+                    return _buildEmptyState();
+                  }
 
-                // Filter
-                var filteredList = laporanList.where((laporan) {
-                  // Filter by search
-                  if (_searchQuery.isNotEmpty) {
-                    final query = _searchQuery.toLowerCase();
-                    if (!laporan.judul.toLowerCase().contains(query) &&
-                        !laporan.keterangan.toLowerCase().contains(query)) {
+                  // Filter
+                  var filteredList = laporanList.where((laporan) {
+                    // Filter by search
+                    if (_searchQuery.isNotEmpty) {
+                      final query = _searchQuery.toLowerCase();
+                      if (!laporan.judul.toLowerCase().contains(query) &&
+                          !laporan.keterangan.toLowerCase().contains(query)) {
+                        return false;
+                      }
+                    }
+
+                    // Filter by jenis
+                    if (_filterJenis != 'Semua' &&
+                        laporan.jenisLaporan != _filterJenis.toLowerCase()) {
                       return false;
                     }
+
+                    return true;
+                  }).toList();
+
+                  if (filteredList.isEmpty) {
+                    return _buildEmptyState(isFiltered: true);
                   }
 
-                  // Filter by jenis
-                  if (_filterJenis != 'Semua' && laporan.jenisLaporan != _filterJenis.toLowerCase()) {
-                    return false;
-                  }
-
-                  return true;
-                }).toList();
-
-                if (filteredList.isEmpty) {
-                  return _buildEmptyState(isFiltered: true);
-                }
-
-                return RefreshIndicator(
-                  onRefresh: () async {
-                    setState(() {});
-                  },
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(20),
-                    itemCount: filteredList.length,
-                    itemBuilder: (context, index) {
-                      return _buildLaporanCard(filteredList[index]);
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      setState(() {});
                     },
-                  ),
-                );
-              },
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(20),
+                      itemCount: filteredList.length,
+                      itemBuilder: (context, index) {
+                        return _buildLaporanCard(filteredList[index]);
+                      },
+                    ),
+                  );
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -101,11 +113,7 @@ class _LaporanKeuanganListPageState extends State<LaporanKeuanganListPage> {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF2988EA),
-            Color(0xFF1E6FBA),
-            Color(0xFF0F52BA),
-          ],
+          colors: [Color(0xFF2988EA), Color(0xFF1E6FBA), Color(0xFF0F52BA)],
           stops: [0.0, 0.6, 1.0],
         ),
         boxShadow: [
@@ -122,37 +130,36 @@ class _LaporanKeuanganListPageState extends State<LaporanKeuanganListPage> {
           ),
         ],
       ),
-      child: SafeArea(
-        bottom: false,
-        child: Stack(
-          children: [
-            // Decorative circles background
-            Positioned(
-              top: -50,
-              right: -30,
-              child: Container(
-                width: 150,
-                height: 150,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.1),
-                ),
+      child: Stack(
+        children: [
+          // Decorative circles background
+          Positioned(
+            top: -50,
+            right: -30,
+            child: Container(
+              width: 150,
+              height: 150,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.1),
               ),
             ),
-            Positioned(
-              bottom: -30,
-              left: -40,
-              child: Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withValues(alpha: 0.08),
-                ),
+          ),
+          Positioned(
+            bottom: -30,
+            left: -40,
+            child: Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.08),
               ),
             ),
-            // Main content
-            Padding(
+          ),
+          // Main content
+          SafeArea(
+            child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,7 +190,11 @@ class _LaporanKeuanganListPageState extends State<LaporanKeuanganListPage> {
                             borderRadius: BorderRadius.circular(14),
                             child: const Padding(
                               padding: EdgeInsets.all(10),
-                              child: Icon(Icons.arrow_back_rounded, color: Colors.white, size: 24),
+                              child: Icon(
+                                Icons.arrow_back_rounded,
+                                color: Colors.white,
+                                size: 24,
+                              ),
                             ),
                           ),
                         ),
@@ -243,7 +254,10 @@ class _LaporanKeuanganListPageState extends State<LaporanKeuanganListPage> {
                             Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: Colors.white.withValues(alpha: 0.25),
                                     borderRadius: BorderRadius.circular(6),
@@ -254,7 +268,9 @@ class _LaporanKeuanganListPageState extends State<LaporanKeuanganListPage> {
                                       Icon(
                                         Icons.verified_rounded,
                                         size: 14,
-                                        color: Colors.white.withValues(alpha: 0.95),
+                                        color: Colors.white.withValues(
+                                          alpha: 0.95,
+                                        ),
                                       ),
                                       const SizedBox(width: 4),
                                       Text(
@@ -262,7 +278,9 @@ class _LaporanKeuanganListPageState extends State<LaporanKeuanganListPage> {
                                         style: GoogleFonts.poppins(
                                           fontSize: 11,
                                           fontWeight: FontWeight.w600,
-                                          color: Colors.white.withValues(alpha: 0.95),
+                                          color: Colors.white.withValues(
+                                            alpha: 0.95,
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -331,15 +349,18 @@ class _LaporanKeuanganListPageState extends State<LaporanKeuanganListPage> {
                           borderRadius: BorderRadius.circular(16),
                           borderSide: BorderSide.none,
                         ),
-                        contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 16,
+                          horizontal: 20,
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -404,10 +425,7 @@ class _LaporanKeuanganListPageState extends State<LaporanKeuanganListPage> {
       cardGradient = LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [
-          Colors.white,
-          const Color(0xFF10B981).withValues(alpha: 0.03),
-        ],
+        colors: [Colors.white, const Color(0xFF10B981).withValues(alpha: 0.03)],
       );
     } else if (isPengeluaran) {
       jenisColor = const Color(0xFFEF4444);
@@ -416,10 +434,7 @@ class _LaporanKeuanganListPageState extends State<LaporanKeuanganListPage> {
       cardGradient = LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [
-          Colors.white,
-          const Color(0xFFEF4444).withValues(alpha: 0.03),
-        ],
+        colors: [Colors.white, const Color(0xFFEF4444).withValues(alpha: 0.03)],
       );
     } else {
       jenisColor = const Color(0xFF2988EA);
@@ -428,10 +443,7 @@ class _LaporanKeuanganListPageState extends State<LaporanKeuanganListPage> {
       cardGradient = LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [
-          Colors.white,
-          const Color(0xFF2988EA).withValues(alpha: 0.03),
-        ],
+        colors: [Colors.white, const Color(0xFF2988EA).withValues(alpha: 0.03)],
       );
     }
 
@@ -446,7 +458,8 @@ class _LaporanKeuanganListPageState extends State<LaporanKeuanganListPage> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => LaporanKeuanganDetailPage(laporan: laporan),
+                builder: (context) =>
+                    LaporanKeuanganDetailPage(laporan: laporan),
               ),
             );
           },
@@ -525,7 +538,11 @@ class _LaporanKeuanganListPageState extends State<LaporanKeuanganListPage> {
                                 ),
                               ],
                             ),
-                            child: Icon(jenisIcon, color: Colors.white, size: 24),
+                            child: Icon(
+                              jenisIcon,
+                              color: Colors.white,
+                              size: 24,
+                            ),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
@@ -548,12 +565,19 @@ class _LaporanKeuanganListPageState extends State<LaporanKeuanganListPage> {
                                   children: [
                                     // Jenis badge
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 5,
+                                      ),
                                       decoration: BoxDecoration(
-                                        color: jenisColor.withValues(alpha: 0.15),
+                                        color: jenisColor.withValues(
+                                          alpha: 0.15,
+                                        ),
                                         borderRadius: BorderRadius.circular(8),
                                         border: Border.all(
-                                          color: jenisColor.withValues(alpha: 0.3),
+                                          color: jenisColor.withValues(
+                                            alpha: 0.3,
+                                          ),
                                           width: 1,
                                         ),
                                       ),
@@ -570,7 +594,10 @@ class _LaporanKeuanganListPageState extends State<LaporanKeuanganListPage> {
                                     const SizedBox(width: 10),
                                     // Periode badge
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: const Color(0xFFF3F4F6),
                                         borderRadius: BorderRadius.circular(6),
@@ -633,7 +660,9 @@ class _LaporanKeuanganListPageState extends State<LaporanKeuanganListPage> {
                               _buildStatRow(
                                 '💰',
                                 'Total Pemasukan',
-                                currencyFormat.format(laporan.statistik.totalPemasukan),
+                                currencyFormat.format(
+                                  laporan.statistik.totalPemasukan,
+                                ),
                                 const Color(0xFF10B981),
                                 isLarge: isGabungan,
                               ),
@@ -643,7 +672,9 @@ class _LaporanKeuanganListPageState extends State<LaporanKeuanganListPage> {
                               _buildStatRow(
                                 '💸',
                                 'Total Pengeluaran',
-                                currencyFormat.format(laporan.statistik.totalPengeluaran),
+                                currencyFormat.format(
+                                  laporan.statistik.totalPengeluaran,
+                                ),
                                 const Color(0xFFEF4444),
                                 isLarge: isGabungan,
                               ),
@@ -684,7 +715,10 @@ class _LaporanKeuanganListPageState extends State<LaporanKeuanganListPage> {
                         children: [
                           // Date badge
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFFF3F4F6),
                               borderRadius: BorderRadius.circular(8),
@@ -699,7 +733,10 @@ class _LaporanKeuanganListPageState extends State<LaporanKeuanganListPage> {
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  DateFormat('d MMM yyyy', 'id_ID').format(laporan.createdAt),
+                                  DateFormat(
+                                    'd MMM yyyy',
+                                    'id_ID',
+                                  ).format(laporan.createdAt),
                                   style: GoogleFonts.poppins(
                                     fontSize: 11,
                                     fontWeight: FontWeight.w600,
@@ -712,7 +749,10 @@ class _LaporanKeuanganListPageState extends State<LaporanKeuanganListPage> {
                           const Spacer(),
                           // Views badge
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
@@ -759,13 +799,17 @@ class _LaporanKeuanganListPageState extends State<LaporanKeuanganListPage> {
     );
   }
 
-  Widget _buildStatRow(String emoji, String label, String value, Color color, {bool isBold = false, bool isLarge = false}) {
+  Widget _buildStatRow(
+    String emoji,
+    String label,
+    String value,
+    Color color, {
+    bool isBold = false,
+    bool isLarge = false,
+  }) {
     return Row(
       children: [
-        Text(
-          emoji,
-          style: TextStyle(fontSize: isLarge ? 22 : 18),
-        ),
+        Text(emoji, style: TextStyle(fontSize: isLarge ? 22 : 18)),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
@@ -814,10 +858,7 @@ class _LaporanKeuanganListPageState extends State<LaporanKeuanganListPage> {
             isFiltered
                 ? 'Coba ubah filter atau kata kunci'
                 : 'Laporan keuangan akan muncul di sini',
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              color: Colors.grey[500],
-            ),
+            style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[500]),
           ),
         ],
       ),
@@ -845,10 +886,7 @@ class _LaporanKeuanganListPageState extends State<LaporanKeuanganListPage> {
             child: Text(
               error,
               textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                color: Colors.grey[500],
-              ),
+              style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[500]),
             ),
           ),
         ],
@@ -856,4 +894,3 @@ class _LaporanKeuanganListPageState extends State<LaporanKeuanganListPage> {
     );
   }
 }
-
