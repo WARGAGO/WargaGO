@@ -215,17 +215,17 @@ class _EditProdukScreenState extends State<EditProdukScreen> {
       }
 
       // Upload new images to Azure Storage
-      final List<String> newImageUrls = [];
+      final List<String> newImageBlobsName = [];
+      final azureService = AzureBlobStorageService(
+        firebaseToken: firebaseToken,
+      );
       if (_newImages.isNotEmpty) {
-        final azureService = AzureBlobStorageService(
-          firebaseToken: firebaseToken,
-        );
         final timestamp = DateTime.now().millisecondsSinceEpoch;
 
         for (int i = 0; i < _newImages.length; i++) {
           try {
             final fileName =
-                'product_${currentUser.uid}_${timestamp}_${_existingImageUrls.length + i}.jpg';
+                '${_namaController.text.trim().replaceAll(' ', '')}_${currentUser.uid}_${timestamp}_${_existingImageUrls.length + i}.jpg';
             final response = await azureService.uploadImage(
               file: _newImages[i],
               isPrivate: false,
@@ -234,7 +234,7 @@ class _EditProdukScreenState extends State<EditProdukScreen> {
             );
 
             if (response != null) {
-              newImageUrls.add(response.blobName);
+              newImageBlobsName.add(response.blobName);
               if (kDebugMode) {
                 print('✅ New image ${i + 1} uploaded: ${response.blobName}');
               }
@@ -247,8 +247,32 @@ class _EditProdukScreenState extends State<EditProdukScreen> {
         }
       }
 
-      // Combine existing and new image URLs
-      final allImageUrls = [..._existingImageUrls, ...newImageUrls];
+      String getBlobNameFromUrl(String url) =>
+          url.split('public/').last.split('?').first;
+
+      final existingBlobName = _existingImageUrls
+          .map((url) => getBlobNameFromUrl(url))
+          .toList();
+      final allImageUrls = [...existingBlobName, ...newImageBlobsName];
+
+      final imagesToDelete = widget.product.imageUrls
+          .where((url) => !allImageUrls.contains(getBlobNameFromUrl(url)))
+          .toList();
+
+      if (imagesToDelete.isNotEmpty) {
+        for (final url in imagesToDelete) {
+          try {
+            await azureService.deleteFile(
+              blobName: getBlobNameFromUrl(url),
+              isPrivate: false,
+            );
+          } catch (e) {
+            if (kDebugMode) {
+              print('Failed to delete $url: $e');
+            }
+          }
+        }
+      }
 
       if (allImageUrls.isEmpty) {
         throw Exception('Gagal mengupload gambar. Silakan coba lagi.');

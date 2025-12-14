@@ -103,7 +103,6 @@ class _ProdukSayaScreenState extends State<ProdukSayaScreen>
                 _products = products;
                 _isLoading = false;
               });
-              print(_products.first.imageUrls);
               // Auto-reload statistics saat produk berubah
               _loadStatistics();
             }
@@ -282,7 +281,8 @@ class _ProdukSayaScreenState extends State<ProdukSayaScreen>
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   'Dashboard Penjual',
@@ -336,7 +336,7 @@ class _ProdukSayaScreenState extends State<ProdukSayaScreen>
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              'Kelola toko dan produk Anda (Real-time)',
+                              'Kelola toko dan produk Anda',
                               style: GoogleFonts.poppins(
                                 fontSize: 13,
                                 color: Colors.white.withValues(alpha: 0.9),
