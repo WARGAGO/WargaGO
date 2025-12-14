@@ -5,6 +5,7 @@
 // ============================================================================
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:wargago/core/models/BlobStorage/user_images_response.dart';
 
 class ProductModel {
   final String id;
@@ -16,7 +17,9 @@ class ProductModel {
   final int stok;
   final double berat; // dalam kg
   final String kategori;
-  final List<String> imageUrls; // Max 3 gambar
+  List<String> _imageUrls;
+
+  List<String> get imageUrls => _imageUrls; // Max 3 gambar
   final DateTime createdAt;
   final DateTime updatedAt;
   final bool isActive; // Status aktif/nonaktif
@@ -33,13 +36,13 @@ class ProductModel {
     required this.stok,
     required this.berat,
     required this.kategori,
-    required this.imageUrls,
+    required List<String> imageUrls,
     required this.createdAt,
     required this.updatedAt,
     this.isActive = true,
     this.isDeleted = false,
     this.terjual = 0,
-  });
+  }) : _imageUrls = imageUrls;
 
   // Factory constructor from Firestore document
   factory ProductModel.fromMap(Map<String, dynamic> map, String id) {
@@ -57,7 +60,8 @@ class ProductModel {
       createdAt: (map['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       updatedAt: (map['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
       isActive: map['isActive'] ?? true,
-      isDeleted: map['isDeleted'] ?? false, // Default false for existing products
+      isDeleted:
+          map['isDeleted'] ?? false, // Default false for existing products
       terjual: map['terjual'] ?? 0,
     );
   }
@@ -123,5 +127,20 @@ class ProductModel {
   String toString() {
     return 'ProductModel(id: $id, nama: $nama, harga: $harga, stok: $stok, kategori: $kategori)';
   }
-}
 
+  void updateUrls(UserImagesResponse userImagesResponse) {
+    List<String> userBlobName = userImagesResponse.images
+        .map((e) => e.blobName)
+        .toList();
+
+    List<String> userUrl = userImagesResponse.images
+        .map((e) => e.blobUrl)
+        .toList();
+
+    _imageUrls = _imageUrls.map((blobName) {
+      return userBlobName.contains(blobName)
+          ? userUrl[userBlobName.indexOf(blobName)]
+          : blobName;
+    }).toList();
+  }
+}

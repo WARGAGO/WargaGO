@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide AuthProvider;
+import 'package:wargago/core/services/azure_blob_storage_service.dart';
 import 'package:wargago/core/services/product_service.dart';
 import 'package:wargago/core/models/product_model.dart';
 import 'tambah_produk_screen.dart';
@@ -38,15 +39,15 @@ class _ProdukSayaScreenState extends State<ProdukSayaScreen>
 
   // Statistics data (akan di-calculate dari real data)
   Map<String, dynamic> _statistics = {
-    'todaySales': 0,       // Real data: belum ada orders
-    'todayOrders': 0,      // Real data: belum ada orders
-    'totalProducts': 0,    // Real data dari ProductService
-    'activeProducts': 0,   // Real data dari ProductService
-    'totalRevenue': 0,     // Real data: dari orders (future)
-    'totalProfit': 0,      // Real data: dari orders (future)
-    'totalOrders': 0,      // Real data: dari orders (future)
-    'lowStockItems': 0,    // Real data dari ProductService
-    'totalStock': 0,       // Real data dari ProductService
+    'todaySales': 0, // Real data: belum ada orders
+    'todayOrders': 0, // Real data: belum ada orders
+    'totalProducts': 0, // Real data dari ProductService
+    'activeProducts': 0, // Real data dari ProductService
+    'totalRevenue': 0, // Real data: dari orders (future)
+    'totalProfit': 0, // Real data: dari orders (future)
+    'totalOrders': 0, // Real data: dari orders (future)
+    'lowStockItems': 0, // Real data dari ProductService
+    'totalStock': 0, // Real data dari ProductService
   };
 
   // Chart data untuk 7 hari terakhir (akan di-populate dari real orders)
@@ -83,23 +84,37 @@ class _ProdukSayaScreenState extends State<ProdukSayaScreen>
     _productsSubscription = _productService
         .streamProductsBySeller(currentUser.uid)
         .listen(
-      (products) {
-        if (mounted) {
-          setState(() {
-            _products = products;
-            _isLoading = false;
-          });
-          // Auto-reload statistics saat produk berubah
-          _loadStatistics();
-        }
-      },
-      onError: (error) {
-        if (mounted) {
-          setState(() => _isLoading = false);
-        }
-        debugPrint('Error loading products: $error');
-      },
-    );
+          (products) async {
+            if (mounted) {
+              AzureBlobStorageService azureBlobStorageService =
+                  AzureBlobStorageService(firebaseToken: 'xxx');
+              final azureImages = await azureBlobStorageService.getImages(
+                uid: currentUser.uid,
+                filenamePrefix: 'products/',
+                isPrivate: false,
+              );
+              if (azureImages != null) {
+                for (var product in products) {
+                  product.updateUrls(azureImages);
+                }
+              }
+
+              setState(() {
+                _products = products;
+                _isLoading = false;
+              });
+              print(_products.first.imageUrls);
+              // Auto-reload statistics saat produk berubah
+              _loadStatistics();
+            }
+          },
+          onError: (error) {
+            if (mounted) {
+              setState(() => _isLoading = false);
+            }
+            debugPrint('Error loading products: $error');
+          },
+        );
   }
 
   /// Load statistics dari backend API
@@ -122,11 +137,11 @@ class _ProdukSayaScreenState extends State<ProdukSayaScreen>
 
             // Sales statistics (akan diisi dari orders - future enhancement)
             // Untuk sekarang set ke 0 karena belum ada order system
-            'todaySales': 0,      // Belum ada orders
-            'todayOrders': 0,     // Belum ada orders
-            'totalRevenue': 0,    // Belum ada orders
-            'totalProfit': 0,     // Belum ada orders
-            'totalOrders': 0,     // Belum ada orders
+            'todaySales': 0, // Belum ada orders
+            'todayOrders': 0, // Belum ada orders
+            'totalRevenue': 0, // Belum ada orders
+            'totalProfit': 0, // Belum ada orders
+            'totalOrders': 0, // Belum ada orders
           };
         });
       }
@@ -213,9 +228,7 @@ class _ProdukSayaScreenState extends State<ProdukSayaScreen>
             const SizedBox(height: 16),
             Text(
               'Memuat data dashboard...',
-              style: GoogleFonts.poppins(
-                color: const Color(0xFF6B7280),
-              ),
+              style: GoogleFonts.poppins(color: const Color(0xFF6B7280)),
             ),
           ],
         ),
@@ -287,7 +300,9 @@ class _ProdukSayaScreenState extends State<ProdukSayaScreen>
                                     vertical: 4,
                                   ),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF10B981).withValues(alpha: 0.2),
+                                    color: const Color(
+                                      0xFF10B981,
+                                    ).withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
                                       color: const Color(0xFF10B981),
@@ -383,7 +398,9 @@ class _ProdukSayaScreenState extends State<ProdukSayaScreen>
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: const Color(0xFF2F80ED).withValues(alpha: 0.3), // Biru
+                      color: const Color(
+                        0xFF2F80ED,
+                      ).withValues(alpha: 0.3), // Biru
                       blurRadius: 8,
                       offset: const Offset(0, 4),
                     ),
@@ -448,7 +465,9 @@ class _ProdukSayaScreenState extends State<ProdukSayaScreen>
             'Stok Habis',
             '$lowStockItems',
             Icons.warning_amber,
-            lowStockItems > 0 ? const Color(0xFFEF4444) : const Color(0xFF10B981),
+            lowStockItems > 0
+                ? const Color(0xFFEF4444)
+                : const Color(0xFF10B981),
             lowStockItems > 0 ? 'Perlu restock' : 'Stok aman',
             false,
           ),
@@ -500,7 +519,9 @@ class _ProdukSayaScreenState extends State<ProdukSayaScreen>
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2F80ED).withValues(alpha: 0.1), // Biru
+                    color: const Color(
+                      0xFF2F80ED,
+                    ).withValues(alpha: 0.1), // Biru
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Row(
@@ -560,7 +581,10 @@ class _ProdukSayaScreenState extends State<ProdukSayaScreen>
   // Sales Chart (akan berisi data real saat order system sudah ada)
   Widget _buildSalesChart() {
     // Calculate total sales (akan 0 jika belum ada orders)
-    final totalSales = _salesData.fold<int>(0, (sum, item) => sum + (item['sales'] as int));
+    final totalSales = _salesData.fold<int>(
+      0,
+      (sum, item) => sum + (item['sales'] as int),
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -596,7 +620,9 @@ class _ProdukSayaScreenState extends State<ProdukSayaScreen>
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      totalSales > 0 ? '7 hari terakhir' : 'Belum ada data penjualan',
+                      totalSales > 0
+                          ? '7 hari terakhir'
+                          : 'Belum ada data penjualan',
                       style: GoogleFonts.poppins(
                         fontSize: 12,
                         color: const Color(0xFF6B7280),
@@ -616,7 +642,9 @@ class _ProdukSayaScreenState extends State<ProdukSayaScreen>
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    totalSales > 0 ? 'Rp ${_formatCurrency(totalSales)}' : 'Rp 0',
+                    totalSales > 0
+                        ? 'Rp ${_formatCurrency(totalSales)}'
+                        : 'Rp 0',
                     style: GoogleFonts.poppins(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -930,10 +958,7 @@ class _ProdukSayaScreenState extends State<ProdukSayaScreen>
                   );
                 },
                 icon: const Icon(Icons.arrow_forward, size: 18),
-                label: Text(
-                  'Kelola',
-                  style: GoogleFonts.poppins(fontSize: 13),
-                ),
+                label: Text('Kelola', style: GoogleFonts.poppins(fontSize: 13)),
               ),
             ],
           ),
@@ -947,7 +972,9 @@ class _ProdukSayaScreenState extends State<ProdukSayaScreen>
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                itemCount: _products.length > 3 ? 3 : _products.length, // Show max 3
+                itemCount: _products.length > 3
+                    ? 3
+                    : _products.length, // Show max 3
                 itemBuilder: (context, index) {
                   final product = _products[index];
                   return _buildRealProductCard(product);
@@ -1068,10 +1095,10 @@ class _ProdukSayaScreenState extends State<ProdukSayaScreen>
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) =>
                                 const Icon(
-                              Icons.local_grocery_store,
-                              color: Color(0xFF2F80ED),
-                              size: 36,
-                            ),
+                                  Icons.local_grocery_store,
+                                  color: Color(0xFF2F80ED),
+                                  size: 36,
+                                ),
                           ),
                         )
                       : const Icon(
@@ -1113,11 +1140,7 @@ class _ProdukSayaScreenState extends State<ProdukSayaScreen>
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(
-                                  statusIcon,
-                                  size: 12,
-                                  color: statusColor,
-                                ),
+                                Icon(statusIcon, size: 12, color: statusColor),
                                 const SizedBox(width: 4),
                                 Text(
                                   statusText,
@@ -1162,10 +1185,7 @@ class _ProdukSayaScreenState extends State<ProdukSayaScreen>
                 ),
 
                 // Arrow
-                const Icon(
-                  Icons.chevron_right,
-                  color: Color(0xFF9CA3AF),
-                ),
+                const Icon(Icons.chevron_right, color: Color(0xFF9CA3AF)),
               ],
             ),
           ),
@@ -1223,10 +1243,7 @@ class _ProdukSayaScreenState extends State<ProdukSayaScreen>
         icon: const Icon(Icons.add, size: 24),
         label: Text(
           'Tambah Produk',
-          style: GoogleFonts.poppins(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
+          style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600),
         ),
       ),
     );
@@ -1235,8 +1252,8 @@ class _ProdukSayaScreenState extends State<ProdukSayaScreen>
   // Helper untuk format currency
   String _formatCurrency(int amount) {
     return amount.toString().replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (Match m) => '${m[1]}.',
-        );
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]}.',
+    );
   }
 }

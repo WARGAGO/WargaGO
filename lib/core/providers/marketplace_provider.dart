@@ -7,6 +7,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:wargago/core/services/azure_blob_storage_service.dart';
 import '../models/marketplace_product_model.dart';
 import '../repositories/marketplace_repository.dart';
 
@@ -52,7 +53,10 @@ class MarketplaceProvider extends ChangeNotifier {
         print('   Products found after filter: ${filtered.length}');
 
         if (_products.isNotEmpty) {
-          final allCategories = _products.map((p) => p.category).toSet().toList();
+          final allCategories = _products
+              .map((p) => p.category)
+              .toSet()
+              .toList();
           print('   All available categories: $allCategories');
         }
 
@@ -74,18 +78,26 @@ class MarketplaceProvider extends ChangeNotifier {
     // Filter by subcategory (for vegetables)
     if (_selectedSubcategory.isNotEmpty) {
       filtered = filtered
-          .where((product) =>
-              product.productName.toLowerCase().contains(_selectedSubcategory.toLowerCase()) ||
-              product.description.toLowerCase().contains(_selectedSubcategory.toLowerCase()))
+          .where(
+            (product) =>
+                product.productName.toLowerCase().contains(
+                  _selectedSubcategory.toLowerCase(),
+                ) ||
+                product.description.toLowerCase().contains(
+                  _selectedSubcategory.toLowerCase(),
+                ),
+          )
           .toList();
     }
 
     // Filter by search keyword
     if (_searchKeyword.isNotEmpty) {
       filtered = filtered
-          .where((product) => product.productName
-              .toLowerCase()
-              .contains(_searchKeyword.toLowerCase()))
+          .where(
+            (product) => product.productName.toLowerCase().contains(
+              _searchKeyword.toLowerCase(),
+            ),
+          )
           .toList();
     }
 
@@ -125,7 +137,9 @@ class MarketplaceProvider extends ChangeNotifier {
       final words2 = selCat.split(' ');
 
       // Check if all significant words match
-      final intersection = words1.where((w) => words2.contains(w) && w.length > 2).toList();
+      final intersection = words1
+          .where((w) => words2.contains(w) && w.length > 2)
+          .toList();
       if (intersection.length >= 2) {
         return true;
       }
@@ -150,6 +164,12 @@ class MarketplaceProvider extends ChangeNotifier {
     _error = null;
     notifyListeners();
 
+    final blobStorage = AzureBlobStorageService(firebaseToken: 'xxx');
+    final azureImages = await blobStorage.getImages(
+      filenamePrefix: 'products/',
+      isPrivate: false,
+    );
+
     try {
       final result = await _repository.getAllProducts(
         isActive: true,
@@ -162,6 +182,12 @@ class MarketplaceProvider extends ChangeNotifier {
           _products = result.data!;
         } else {
           _products.addAll(result.data!);
+        }
+
+        if (azureImages != null) {
+          for (var product in _products) {
+            product.updateUrls(azureImages);
+          }
         }
 
         // Check if there are more products to load
@@ -278,7 +304,10 @@ class MarketplaceProvider extends ChangeNotifier {
 
       // Show product categories for debugging
       if (_products.isNotEmpty) {
-        final uniqueCategories = _products.map((p) => p.category).toSet().toList();
+        final uniqueCategories = _products
+            .map((p) => p.category)
+            .toSet()
+            .toList();
         print('   Available categories in products: $uniqueCategories');
       }
     }
@@ -426,10 +455,19 @@ class MarketplaceProvider extends ChangeNotifier {
   // GET PRODUCT BY ID
   // ============================================================================
   Future<MarketplaceProductModel?> getProductById(String productId) async {
+    final blobStorage = AzureBlobStorageService(firebaseToken: 'xxx');
+    final azureImages = await blobStorage.getImages(
+      filenamePrefix: 'products/',
+      isPrivate: false,
+    );
+
     try {
       final result = await _repository.getProductById(productId);
 
       if (result.isSuccess && result.data != null) {
+        if (azureImages != null) {
+          result.data!.updateUrls(azureImages);
+        }
         return result.data;
       } else {
         _error = result.error;
@@ -468,4 +506,3 @@ class MarketplaceProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
-
