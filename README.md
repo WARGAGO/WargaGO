@@ -45,7 +45,7 @@ silakan coba app melalui link ini:
 
 👉🏻 [![Android App](https://img.shields.io/badge/Android-App-green?logo=android&logoColor=white)](https://appdistribution.firebase.google.com/pub/i/e13668bbf9f7f66c)
 
-👉🏻 [![Webside](https://img.shields.io/badge/Android-App-green?logo=android&logoColor=white)](https://wargago.github.io/WargaGo-Docs/)
+👉🏻 [![Website](https://img.shields.io/badge/Website-Visit-blue?logo=google-chrome&logoColor=white)](https://wargago.github.io/WargaGo-Docs/)
 
 
 ## Problem
