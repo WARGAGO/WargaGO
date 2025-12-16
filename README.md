@@ -43,7 +43,7 @@ Seluruh komponen berkomunikasi secara mulus, menghubungkan aplikasi Flutter deng
 ## App Demo
 silakan coba app melalui link ini:
 
-👉🏻 [![Android App](https://img.shields.io/badge/Android-App-green?logo=android&logoColor=white)]()
+👉🏻 [![Android App](https://img.shields.io/badge/Android-App-green?logo=android&logoColor=white)](https://appdistribution.firebase.google.com/pub/i/e13668bbf9f7f66c)
 
 ## Problem
 Pengelolaan komunitas/perumahan secara tradisional sering menghadapi tantangan berikut:
@@ -115,26 +115,59 @@ WargaGo mendukung role berikut. Jika implementasi kamu saat ini masih 4 role, ka
 | Ketua RW (opsional) | Operasional RW | Pengumuman RW, monitoring lintas RT, rekap dan validasi |
 
 ---
+## Our Team
+Kami adalah Tim WargaGo, sekelompok developer yang berkolaborasi membangun WargaGo dengan misi bersama untuk mendukung transformasi digital di lingkungan RT/RW di Indonesia.
 
-## Preview
-Letakkan demo media kamu di folder `demo/` lalu tampilkan di sini.
+| No. | Name | GitHub | Role | 
+| --- | --- | --- | --- |
+| 1. | Petrus Tyang Agung Rosario | https://github.com/petrusthelastking | Project lead, Fullstack developer |
+| 2. | Hidayat Widi Saputra | https://github.com/Raruu| Fullstack developer, Machine Learning engineer |
+| 3. | Damar Galih Fitrianto | https://github.com/DmarGalee | Frontend developer |
+| 4. | Rafa Fadil Aras | https://github.com/rafafadilaras | Frontend developer |
 
-- Authentication & Dashboard  
-  `demo/auth_dashboard.webp`
+## 🙏 Acknowledgements
 
-- Keuangan & Mutasi  
-  `demo/keuangan.webp`  
-  `demo/mutasi.webp`
+Kami ingin mengucapkan terima kasih kepada semua pihak yang telah berkontribusi dalam pengembangan **WARGAGO**:
 
-- Agenda  
-  `demo/agenda.gif`
+### 💙 Special Thanks To:
 
-- Manajemen Data Penduduk & Pengguna  
-  `demo/data_management.gif`  
-  `demo/user_management.gif`
+- **Flutter Team** - Untuk framework yang powerful dan ecosystem yang luar biasa
+- **Firebase Team** - Untuk backend services yang reliable dan mudah diintegrasikan
+- **Google Fonts** - Untuk typography yang mempercantik aplikasi kami
+- **Material Design** - Untuk design system yang konsisten dan modern
+- **Open Source Community** - Untuk packages dan libraries yang membantu development kami
 
-Contoh snippet:
-```md
+### 📚 Inspired By:
+
+- **Indonesia's RT/RW System** - Sistem gotong royong yang menjadi fondasi aplikasi ini
+
+### 🎓 Educational Support:
+
+- **Stack Overflow Community** - Untuk solusi teknis dan best practices
+- **Flutter Documentation** - Untuk panduan lengkap dan referensi development
+- **GitHub** - Untuk version control dan collaboration platform
+
+### 🌟 Community & Users:
+
+- **Beta Testers** - Yang telah memberikan feedback berharga
+- **Early Adopters** - Yang percaya dengan visi WARGAGO sejak awal
+- **RT/RW Leaders** - Yang memberikan insight tentang kebutuhan administrasi lingkungan
+
+### 💼 Development Tools:
+
+- **Android Studio** - IDE yang powerful untuk Flutter development
+- **Visual Studio Code** - Editor yang ringan dan extensible
+- **Git** - Version control system yang reliable
+- **Postman** - Untuk API testing dan development
+
+---
+
 <div align="center">
-  <img src="demo/auth_dashboard.webp" width="90%" alt="Auth & Dashboard" />
+
+**Made with ❤️ by WARGAGO Team**
+
+*Empowering Indonesian Communities Through Technology*
+
+**© 2024 WARGAGO. All Rights Reserved.**
+
 </div>
