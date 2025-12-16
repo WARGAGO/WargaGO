@@ -6,22 +6,36 @@ import 'package:wargago/features/sekertaris/notulen/widgets/time_picker_field.da
 import 'package:wargago/features/sekertaris/notulen/widgets/edit_info_card.dart';
 import 'package:wargago/features/sekertaris/notulen/widgets/save_button.dart';
 import 'package:wargago/features/sekertaris/notulen/widgets/cancel_button.dart';
+import 'package:wargago/features/sekertaris/notulen/models/notulen_model.dart';
+import 'package:intl/intl.dart';
 
 /// Halaman untuk mengedit notulen rapat
 class EditNotulenPage extends StatefulWidget {
+  final String id;
   final String date;
   final String time;
   final String title;
   final String location;
   final int attendees;
+  final String type;
+  final String agenda;
+  final String discussion;
+  final String decisionsText;
+  final String actionItems;
 
   const EditNotulenPage({
     super.key,
+    required this.id,
     required this.date,
     required this.time,
     required this.title,
     required this.location,
     required this.attendees,
+    required this.type,
+    required this.agenda,
+    required this.discussion,
+    required this.decisionsText,
+    required this.actionItems,
   });
 
   @override
@@ -78,23 +92,11 @@ class _EditNotulenPageState extends State<EditNotulenPage> {
       minute: int.parse(timeParts[1]),
     );
 
-    // Initialize with dummy data for demo
-    _agendaController = TextEditingController(
-      text: '1. Pembukaan dan sambutan ketua\n'
-          '2. Laporan kegiatan bulan lalu\n'
-          '3. Pembahasan program kerja baru',
-    );
-    _discussionController = TextEditingController(
-      text:
-          'Diskusi mengenai rencana program kerja untuk kuartal pertama 2025...',
-    );
-    _decisionsController = TextEditingController(
-      text: '1. Menyetujui proposal program kerja\n'
-          '2. Mengalokasikan anggaran sebesar Rp 15.000.000',
-    );
-    _actionItemsController = TextEditingController(
-      text: 'Finalisasi proposal program kerja oleh Tim Program',
-    );
+    // Initialize with data from widget
+    _agendaController = TextEditingController(text: widget.agenda);
+    _discussionController = TextEditingController(text: widget.discussion);
+    _decisionsController = TextEditingController(text: widget.decisionsText);
+    _actionItemsController = TextEditingController(text: widget.actionItems);
   }
 
   @override
@@ -161,31 +163,29 @@ class _EditNotulenPageState extends State<EditNotulenPage> {
 
   void _saveChanges() {
     if (_formKey.currentState!.validate()) {
-      // TODO: Update database
-
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle, color: Colors.white),
-              const SizedBox(width: 12),
-              Text(
-                'Perubahan berhasil disimpan',
-                style: GoogleFonts.poppins(),
-              ),
-            ],
-          ),
-          backgroundColor: const Color(0xFF27AE60),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
+      // Hitung jumlah topik dan keputusan dari input
+      final agendaLines = _agendaController.text.split('\n').where((line) => line.trim().isNotEmpty).length;
+      final decisionLines = _decisionsController.text.split('\n').where((line) => line.trim().isNotEmpty).length;
+      
+      // Buat objek NotulenModel yang sudah diedit
+      final updatedNotulen = NotulenModel(
+        id: widget.id,
+        date: DateFormat('dd MMM yyyy', 'id_ID').format(_selectedDate),
+        time: '${_selectedTime.hour.toString().padLeft(2, '0')}:${_selectedTime.minute.toString().padLeft(2, '0')}',
+        title: _titleController.text,
+        location: _locationController.text,
+        attendees: int.parse(_attendeesController.text),
+        topics: agendaLines,
+        decisions: decisionLines,
+        type: widget.type,
+        agenda: _agendaController.text,
+        discussion: _discussionController.text,
+        decisionsText: _decisionsController.text,
+        actionItems: _actionItemsController.text,
       );
 
-      // Kembali ke halaman sebelumnya
-      Navigator.pop(context, true);
+      // Kembalikan data yang sudah diedit ke parent
+      Navigator.pop(context, updatedNotulen);
     }
   }
 

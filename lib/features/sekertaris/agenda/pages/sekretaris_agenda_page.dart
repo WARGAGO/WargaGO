@@ -3,9 +3,10 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:wargago/features/sekertaris/agenda/widgets/agenda_card.dart';
 import 'package:wargago/features/sekertaris/agenda/pages/tambah_agenda_page.dart';
 import 'package:wargago/features/sekertaris/agenda/pages/detail_agenda_page.dart';
+import 'package:wargago/features/sekertaris/agenda/pages/edit_agenda_page.dart';
+import 'package:wargago/features/sekertaris/agenda/models/agenda_model.dart';
 
 /// Halaman Agenda untuk Sekretaris
-/// Menampilkan semua agenda/kegiatan dengan filter dan pencarian
 class SekretarisAgendaPage extends StatefulWidget {
   const SekretarisAgendaPage({super.key});
 
@@ -17,11 +18,115 @@ class _SekretarisAgendaPageState extends State<SekretarisAgendaPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
+  
+  // State Management - List lokal untuk menyimpan data Agenda
+  final List<AgendaModel> _agendaList = [];
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _loadInitialData();
+  }
+  
+  // Load data awal (dummy data untuk demo)
+  void _loadInitialData() {
+    _agendaList.addAll([
+      AgendaModel(
+        id: '1',
+        date: '13 Des 2025',
+        time: '09:00',
+        title: 'Rapat Koordinasi RT',
+        location: 'Balai RW',
+        description: 'Pembahasan program kerja bulan Januari 2026',
+        status: 'upcoming',
+        attendees: 15,
+      ),
+      AgendaModel(
+        id: '2',
+        date: '12 Des 2025',
+        time: '09:00',
+        title: 'Rapat Koordinasi RT',
+        location: 'Balai RW',
+        description: 'Pembahasan program kerja',
+        status: 'today',
+        attendees: 12,
+      ),
+      AgendaModel(
+        id: '3',
+        date: '12 Des 2025',
+        time: '13:00',
+        title: 'Pembuatan Notulen Rapat',
+        location: 'Kantor Sekretariat',
+        description: 'Dokumentasi hasil rapat',
+        status: 'today',
+        attendees: 5,
+      ),
+      AgendaModel(
+        id: '4',
+        date: '12 Des 2025',
+        time: '15:30',
+        title: 'Arsip Surat Masuk',
+        location: 'Kantor Sekretariat',
+        description: 'Pengarsipan dokumen administratif',
+        status: 'completed',
+        attendees: 3,
+      ),
+      AgendaModel(
+        id: '5',
+        date: '15 Des 2025',
+        time: '14:00',
+        title: 'Sosialisasi Program Baru',
+        location: 'Aula Warga',
+        description: 'Pengenalan program kesehatan warga',
+        status: 'upcoming',
+        attendees: 50,
+      ),
+      AgendaModel(
+        id: '6',
+        date: '11 Des 2025',
+        time: '10:00',
+        title: 'Rapat Internal',
+        location: 'Ruang Rapat',
+        description: 'Evaluasi kinerja bulan November',
+        status: 'completed',
+        attendees: 8,
+      ),
+    ]);
+  }
+  
+  // Method untuk menambah agenda baru
+  void _addAgenda(AgendaModel agenda) {
+    setState(() {
+      _agendaList.add(agenda);
+    });
+  }
+  
+  // Method untuk update agenda
+  void _updateAgenda(String id, AgendaModel updatedAgenda) {
+    setState(() {
+      final index = _agendaList.indexWhere((agenda) => agenda.id == id);
+      if (index != -1) {
+        _agendaList[index] = updatedAgenda;
+      }
+    });
+  }
+  
+  // Method untuk menghapus agenda
+  void _deleteAgenda(String id) {
+    setState(() {
+      _agendaList.removeWhere((agenda) => agenda.id == id);
+    });
+  }
+  
+  // Method untuk mengubah status agenda
+  void _updateAgendaStatus(String id, String newStatus) {
+    setState(() {
+      final index = _agendaList.indexWhere((agenda) => agenda.id == id);
+      if (index != -1) {
+        _agendaList[index] = _agendaList[index].copyWith(status: newStatus);
+      }
+    });
   }
 
   @override
@@ -112,9 +217,28 @@ class _SekretarisAgendaPageState extends State<SekretarisAgendaPage>
                                   builder: (context) => const TambahAgendaPage(),
                                 ),
                               );
-                              if (result == true) {
-                                // Refresh data jika berhasil menambah agenda
-                                setState(() {});
+                              // Terima data dari form tambah dan tambahkan ke state
+                              if (result != null && result is AgendaModel) {
+                                _addAgenda(result);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Row(
+                                      children: [
+                                        const Icon(Icons.check_circle, color: Colors.white),
+                                        const SizedBox(width: 12),
+                                        Text(
+                                          'Agenda berhasil ditambahkan',
+                                          style: GoogleFonts.poppins(),
+                                        ),
+                                      ],
+                                    ),
+                                    backgroundColor: const Color(0xFF27AE60),
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                );
                               }
                             },
                           ),
@@ -241,10 +365,20 @@ class _SekretarisAgendaPageState extends State<SekretarisAgendaPage>
   }
 
   Widget _buildAgendaList(String type) {
-    // Dummy data untuk contoh
-    final List<Map<String, dynamic>> agendaItems = _getAgendaByType(type);
+    // Filter agenda berdasarkan tipe dan pencarian
+    List<AgendaModel> filteredAgenda = _agendaList
+        .where((agenda) => agenda.status == type)
+        .toList();
+    
+    // Filter berdasarkan pencarian
+    if (_searchController.text.isNotEmpty) {
+      filteredAgenda = filteredAgenda.where((agenda) =>
+        agenda.title.toLowerCase().contains(_searchController.text.toLowerCase()) ||
+        agenda.location.toLowerCase().contains(_searchController.text.toLowerCase())
+      ).toList();
+    }
 
-    if (agendaItems.isEmpty) {
+    if (filteredAgenda.isEmpty) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -256,7 +390,9 @@ class _SekretarisAgendaPageState extends State<SekretarisAgendaPage>
             ),
             const SizedBox(height: 16),
             Text(
-              'Tidak ada agenda',
+              _searchController.text.isNotEmpty 
+                  ? 'Agenda tidak ditemukan'
+                  : 'Tidak ada agenda',
               style: GoogleFonts.poppins(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -265,7 +401,9 @@ class _SekretarisAgendaPageState extends State<SekretarisAgendaPage>
             ),
             const SizedBox(height: 8),
             Text(
-              'Belum ada kegiatan untuk kategori ini',
+              _searchController.text.isNotEmpty
+                  ? 'Coba kata kunci lain'
+                  : 'Belum ada kegiatan untuk kategori ini',
               style: GoogleFonts.poppins(
                 fontSize: 13,
                 color: Colors.grey.shade400,
@@ -278,108 +416,89 @@ class _SekretarisAgendaPageState extends State<SekretarisAgendaPage>
 
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      itemCount: agendaItems.length,
+      itemCount: filteredAgenda.length,
       itemBuilder: (context, index) {
-        final agenda = agendaItems[index];
+        final agenda = filteredAgenda[index];
         return AgendaCard(
-          date: agenda['date'],
-          time: agenda['time'],
-          title: agenda['title'],
-          location: agenda['location'],
-          description: agenda['description'],
-          status: agenda['status'],
-          attendees: agenda['attendees'],
+          date: agenda.date,
+          time: agenda.time,
+          title: agenda.title,
+          location: agenda.location,
+          description: agenda.description,
+          status: agenda.status,
+          attendees: agenda.attendees,
           onTap: () async {
             final result = await Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => DetailAgendaPage(
-                  date: agenda['date'],
-                  time: agenda['time'],
-                  title: agenda['title'],
-                  location: agenda['location'],
-                  description: agenda['description'],
-                  status: agenda['status'],
-                  attendees: agenda['attendees'],
+                  date: agenda.date,
+                  time: agenda.time,
+                  title: agenda.title,
+                  location: agenda.location,
+                  description: agenda.description,
+                  status: agenda.status,
+                  attendees: agenda.attendees,
                 ),
               ),
             );
-            if (result == true) {
-              // Refresh data jika ada perubahan
-              setState(() {});
+            if (result != null && result is Map<String, dynamic>) {
+              // Handle hasil dari detail page (edit/delete)
+              if (result['action'] == 'delete') {
+                _deleteAgenda(agenda.id);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        const Icon(Icons.check_circle, color: Colors.white),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Agenda berhasil dihapus',
+                          style: GoogleFonts.poppins(),
+                        ),
+                      ],
+                    ),
+                    backgroundColor: const Color(0xFF27AE60),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                );
+              } else if (result['action'] == 'update') {
+                // Update data dari edit
+                _updateAgenda(agenda.id, result['data']);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Row(
+                      children: [
+                        const Icon(Icons.check_circle, color: Colors.white),
+                        const SizedBox(width: 12),
+                        Text(
+                          'Agenda berhasil diperbarui',
+                          style: GoogleFonts.poppins(),
+                        ),
+                      ],
+                    ),
+                    backgroundColor: const Color(0xFF27AE60),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                );
+              }
             }
           },
           onMenuTap: () {
-            _showActionMenu(context, agenda['status']);
+            _showActionMenu(context, agenda);
           },
         );
       },
     );
   }
 
-  List<Map<String, dynamic>> _getAgendaByType(String type) {
-    // Dummy data - nanti akan diganti dengan data dari database
-    final allAgenda = [
-      {
-        'date': '13 Des 2025',
-        'time': '09:00',
-        'title': 'Rapat Koordinasi RT',
-        'location': 'Balai RW',
-        'description': 'Pembahasan program kerja bulan Januari 2026',
-        'status': 'upcoming',
-        'attendees': 15,
-      },
-      {
-        'date': '12 Des 2025',
-        'time': '09:00',
-        'title': 'Rapat Koordinasi RT',
-        'location': 'Balai RW',
-        'description': 'Pembahasan program kerja',
-        'status': 'today',
-        'attendees': 12,
-      },
-      {
-        'date': '12 Des 2025',
-        'time': '13:00',
-        'title': 'Pembuatan Notulen Rapat',
-        'location': 'Kantor Sekretariat',
-        'description': 'Dokumentasi hasil rapat',
-        'status': 'today',
-        'attendees': 5,
-      },
-      {
-        'date': '12 Des 2025',
-        'time': '15:30',
-        'title': 'Arsip Surat Masuk',
-        'location': 'Kantor Sekretariat',
-        'description': 'Pengarsipan dokumen administratif',
-        'status': 'completed',
-        'attendees': 3,
-      },
-      {
-        'date': '15 Des 2025',
-        'time': '14:00',
-        'title': 'Sosialisasi Program Baru',
-        'location': 'Aula Warga',
-        'description': 'Pengenalan program kesehatan warga',
-        'status': 'upcoming',
-        'attendees': 50,
-      },
-      {
-        'date': '11 Des 2025',
-        'time': '10:00',
-        'title': 'Rapat Internal',
-        'location': 'Ruang Rapat',
-        'description': 'Evaluasi kinerja bulan November',
-        'status': 'completed',
-        'attendees': 8,
-      },
-    ];
-
-    return allAgenda.where((agenda) => agenda['status'] == type).toList();
-  }
-
-  void _showActionMenu(BuildContext context, String status) {
+  void _showActionMenu(BuildContext context, AgendaModel agenda) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -418,20 +537,59 @@ class _SekretarisAgendaPageState extends State<SekretarisAgendaPage>
             const SizedBox(height: 20),
 
             // Action Items
-            if (status != 'completed')
+            if (agenda.status != 'completed')
               _buildActionCard(
                 icon: Icons.edit_rounded,
                 label: 'Edit Agenda',
                 subtitle: 'Ubah informasi agenda',
                 color: const Color(0xFF2F80ED),
-                onTap: () {
+                onTap: () async {
                   Navigator.pop(context);
-                  // TODO: Edit agenda
+                  // Navigate ke edit page dengan data lengkap
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditAgendaPage(
+                        id: agenda.id,
+                        date: agenda.date,
+                        time: agenda.time,
+                        title: agenda.title,
+                        location: agenda.location,
+                        description: agenda.description,
+                        status: agenda.status,
+                        attendees: agenda.attendees,
+                      ),
+                    ),
+                  );
+                  
+                  // Terima data yang sudah diedit dan update state
+                  if (result != null && result is AgendaModel) {
+                    _updateAgenda(agenda.id, result);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Row(
+                          children: [
+                            const Icon(Icons.check_circle, color: Colors.white),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Agenda berhasil diperbarui',
+                              style: GoogleFonts.poppins(),
+                            ),
+                          ],
+                        ),
+                        backgroundColor: const Color(0xFF27AE60),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    );
+                  }
                 },
               ),
-            if (status != 'completed') const SizedBox(height: 12),
+            if (agenda.status != 'completed') const SizedBox(height: 12),
             
-            if (status != 'completed')
+            if (agenda.status != 'completed')
               _buildActionCard(
                 icon: Icons.check_circle_rounded,
                 label: 'Tandai Selesai',
@@ -439,14 +597,14 @@ class _SekretarisAgendaPageState extends State<SekretarisAgendaPage>
                 color: const Color(0xFF27AE60),
                 onTap: () {
                   Navigator.pop(context);
-                  _showCompleteConfirmation(context);
+                  _showCompleteConfirmation(context, agenda);
                 },
               ),
             
-            if (status != 'completed') const SizedBox(height: 16),
-            if (status != 'completed')
+            if (agenda.status != 'completed') const SizedBox(height: 16),
+            if (agenda.status != 'completed')
               Divider(color: Colors.grey.shade200, height: 1),
-            if (status != 'completed') const SizedBox(height: 16),
+            if (agenda.status != 'completed') const SizedBox(height: 16),
             
             _buildActionCard(
               icon: Icons.delete_rounded,
@@ -455,7 +613,7 @@ class _SekretarisAgendaPageState extends State<SekretarisAgendaPage>
               color: const Color(0xFFE74C3C),
               onTap: () {
                 Navigator.pop(context);
-                _showDeleteConfirmation(context);
+                _showDeleteConfirmation(context, agenda);
               },
             ),
             
@@ -538,7 +696,7 @@ class _SekretarisAgendaPageState extends State<SekretarisAgendaPage>
     );
   }
 
-  void _showCompleteConfirmation(BuildContext context) {
+  void _showCompleteConfirmation(BuildContext context, AgendaModel agenda) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -572,7 +730,7 @@ class _SekretarisAgendaPageState extends State<SekretarisAgendaPage>
           ],
         ),
         content: Text(
-          'Agenda ini akan ditandai sebagai selesai. Anda masih bisa melihatnya di tab Selesai.',
+          'Agenda "${agenda.title}" akan ditandai sebagai selesai. Anda masih bisa melihatnya di tab Selesai.',
           style: GoogleFonts.poppins(
             fontSize: 14,
             color: Colors.grey.shade700,
@@ -594,6 +752,8 @@ class _SekretarisAgendaPageState extends State<SekretarisAgendaPage>
           ),
           ElevatedButton(
             onPressed: () {
+              // Update status agenda menggunakan state management
+              _updateAgendaStatus(agenda.id, 'completed');
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -638,7 +798,7 @@ class _SekretarisAgendaPageState extends State<SekretarisAgendaPage>
     );
   }
 
-  void _showDeleteConfirmation(BuildContext context) {
+  void _showDeleteConfirmation(BuildContext context, AgendaModel agenda) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -728,6 +888,8 @@ class _SekretarisAgendaPageState extends State<SekretarisAgendaPage>
           ),
           ElevatedButton(
             onPressed: () {
+              // Hapus agenda menggunakan state management
+              _deleteAgenda(agenda.id);
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(

@@ -6,6 +6,8 @@ import 'package:wargago/features/sekertaris/agenda/widgets/time_picker_field.dar
 import 'package:wargago/features/sekertaris/agenda/widgets/add_info_card.dart';
 import 'package:wargago/features/sekertaris/agenda/widgets/save_button.dart';
 import 'package:wargago/features/sekertaris/agenda/widgets/cancel_button.dart';
+import 'package:wargago/features/sekertaris/agenda/models/agenda_model.dart';
+import 'package:intl/intl.dart';
 
 /// Halaman untuk menambahkan agenda kegiatan baru
 class TambahAgendaPage extends StatefulWidget {
@@ -86,31 +88,20 @@ class _TambahAgendaPageState extends State<TambahAgendaPage> {
 
   void _saveAgenda() {
     if (_formKey.currentState!.validate()) {
-      // TODO: Simpan ke database
-      
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle, color: Colors.white),
-              const SizedBox(width: 12),
-              Text(
-                'Agenda berhasil ditambahkan',
-                style: GoogleFonts.poppins(),
-              ),
-            ],
-          ),
-          backgroundColor: const Color(0xFF27AE60),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
+      // Buat objek AgendaModel baru
+      final newAgenda = AgendaModel(
+        id: DateTime.now().millisecondsSinceEpoch.toString(), // Generate ID unik
+        date: DateFormat('dd MMM yyyy', 'id_ID').format(_selectedDate),
+        time: '${_selectedTime.hour.toString().padLeft(2, '0')}:${_selectedTime.minute.toString().padLeft(2, '0')}',
+        title: _titleController.text,
+        location: _locationController.text,
+        description: _descriptionController.text,
+        status: 'upcoming', // Default status
+        attendees: int.parse(_attendeesController.text),
       );
-
-      // Kembali ke halaman sebelumnya
-      Navigator.pop(context, true);
+      
+      // Kembalikan data ke halaman sebelumnya
+      Navigator.pop(context, newAgenda);
     }
   }
 
