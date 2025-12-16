@@ -41,7 +41,9 @@ Sistem ini dibangun dengan arsitektur berbasis cloud yang menggabungkan layanan 
 Seluruh komponen berkomunikasi secara mulus, menghubungkan aplikasi Flutter dengan layanan Firebase dan Azure, menciptakan sistem yang skalabel dengan infrastruktur yang terorganisir rapi.
 
 ## App Demo
+silakan coba app melalui link ini:
 
+👉🏻 [![Android App](https://img.shields.io/badge/Android-App-green?logo=android&logoColor=white)]()
 
 ## Problem
 Pengelolaan komunitas/perumahan secara tradisional sering menghadapi tantangan berikut:
