@@ -5,8 +5,10 @@
 // ============================================================================
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:wargago/core/constants/app_routes.dart';
 import 'package:wargago/core/providers/poll_provider.dart';
 import 'package:wargago/core/models/poll_model.dart';
 import 'package:wargago/features/admin/polling/widgets/admin_poll_card.dart';
@@ -57,99 +59,122 @@ class _AdminPollListPageState extends State<AdminPollListPage>
             // Modern App Bar with Gradient
             SliverAppBar(
               automaticallyImplyLeading: false,
-              expandedHeight: 200,
-              collapsedHeight: 24,
-              toolbarHeight: 24,
+              expandedHeight: 250,
+              collapsedHeight: 90,
+              toolbarHeight: 90,
               floating: false,
               pinned: true,
               elevation: 0,
-              backgroundColor: Colors.transparent,
-              flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
+              backgroundColor: const Color(0xFF3B82F6),
+              flexibleSpace: LayoutBuilder(
+                builder: (context, constraints) {
+                  final double shrinkOffset = constraints.maxHeight - 90;
+                  final bool isCollapsed = shrinkOffset < 100;
+
+                  return Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
+                      ),
                     ),
-                  ),
-                  child: SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Title & Badge
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: Colors.white.withValues(alpha: 0.3),
-                                    width: 2,
+                    child: SafeArea(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Back Button
+                            Material(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(12),
+                              child: InkWell(
+                                onTap: () => context.go(AppRoutes.adminDashboard),
+                                borderRadius: BorderRadius.circular(12),
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  child: const Icon(
+                                    Icons.arrow_back_rounded,
+                                    color: Colors.white,
+                                    size: 24,
                                   ),
                                 ),
-                                child: const Icon(
-                                  Icons.ballot_rounded,
-                                  color: Colors.white,
-                                  size: 28,
-                                ),
                               ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Kelola Polling',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 28,
-                                        fontWeight: FontWeight.w800,
-                                        color: Colors.white,
-                                        height: 1.2,
-                                      ),
+                            ),
+                            const SizedBox(width: 16),
+
+                            // Title & Subtitle
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Kelola Polling',
+                                    style: GoogleFonts.poppins(
+                                      fontSize: isCollapsed ? 20 : 26,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.white,
+                                      height: 1.2,
+                                      letterSpacing: -0.5,
                                     ),
-                                    const SizedBox(height: 4),
+                                  ),
+                                  if (!isCollapsed) ...[
+                                    const SizedBox(height: 6),
                                     Text(
                                       'Manajemen & Monitoring',
                                       style: GoogleFonts.poppins(
                                         fontSize: 14,
-                                        color: Colors.white.withValues(
-                                          alpha: 0.9,
-                                        ),
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.white.withValues(alpha: 0.9),
                                       ),
                                     ),
                                   ],
-                                ),
+                                ],
                               ),
-                              // Moderation Button with Badge
-                              _buildModerationButton(),
-                            ],
-                          ),
-                          const Spacer(),
+                            ),
 
-                          // Search Bar (at bottom of expanded area)
-                          _buildSearchBar(),
-                          const SizedBox(height: 12),
-                        ],
+                            // Moderation Button
+                            _buildModerationButton(),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
               bottom: PreferredSize(
-                preferredSize: const Size.fromHeight(50),
+                preferredSize: const Size.fromHeight(120),
                 child: Container(
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(24),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(28),
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.08),
+                        blurRadius: 10,
+                        offset: const Offset(0, -2),
+                      ),
+                    ],
                   ),
-                  child: _buildModernTabs(),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const SizedBox(height: 4),
+                      // Tabs
+                      _buildModernTabs(),
+                      const SizedBox(height: 8),
+                      // Search Bar - di bawah tabs
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+                        child: _buildSearchBar(),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

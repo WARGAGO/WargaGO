@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
 import 'package:wargago/core/models/user_model.dart';
 import 'package:wargago/core/services/firestore_service.dart';
+import '../helpers/notification_helper.dart';
 
 class AuthProvider with ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -918,6 +919,14 @@ class AuthProvider with ChangeNotifier {
       // Auto login after registration for warga
       _userModel = newUser;
       _isAuthenticated = true;
+
+      // 🔔 KIRIM NOTIFIKASI ke semua admin
+      await NotificationHelper.notifyNewUserRegistration(
+        newUserId: userCredential.user!.uid,
+        userName: nama,
+        userEmail: email,
+      );
+      debugPrint('✅ New user notification sent to admins');
 
       if (kDebugMode) {
         print('=== WARGA REGISTRATION SUCCESS ===');

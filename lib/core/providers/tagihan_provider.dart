@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/tagihan_model.dart';
 import '../services/tagihan_service.dart';
+import '../helpers/notification_helper.dart';
 
 /// Provider untuk mengelola state Tagihan
 class TagihanProvider with ChangeNotifier {
@@ -210,6 +211,16 @@ class TagihanProvider with ChangeNotifier {
       final docId = await _service.createTagihan(tagihan);
       print('✅ [TagihanProvider] Service returned document ID: $docId');
 
+      // 🔔 KIRIM NOTIFIKASI ke keluarga/user
+      await NotificationHelper.notifyNewTagihan(
+        tagihanId: docId,
+        userId: tagihan.keluargaId,
+        jenisIuran: tagihan.jenisIuranName,
+        nominal: tagihan.nominal,
+        periode: tagihan.periode,
+      );
+      debugPrint('✅ Tagihan notification sent to user');
+
       print('🔵 [TagihanProvider] Loading statistics...');
       await loadStatistics();
       print('✅ [TagihanProvider] Statistics loaded');
@@ -269,20 +280,31 @@ class TagihanProvider with ChangeNotifier {
       _error = null;
       notifyListeners();
 
+      // Get tagihan data first untuk notification
+      final tagihanData = _tagihan.firstWhere((t) => t.id == id);
+
       final keuanganId = await _service.markAsLunas(
         id,
         metodePembayaran: metodePembayaran,
         buktiPembayaran: buktiPembayaran,
         catatan: catatan,
         userId: userId,
-      ); // ⭐ FIXED: Proper closing parenthesis
+      );
+
+      // 🔔 KIRIM NOTIFIKASI konfirmasi pembayaran
+      await NotificationHelper.notifyPaymentConfirmation(
+        userId: tagihanData.keluargaId,
+        jenisIuran: tagihanData.jenisIuranName,
+        nominal: tagihanData.nominal,
+      );
+      debugPrint('✅ Payment confirmation notification sent to user');
 
       await loadStatistics();
 
       _isLoading = false;
       notifyListeners();
       debugPrint('✅ Payment successful, keuangan ID: $keuanganId');
-      return true; // ⭐ FIXED: Add missing return statement
+      return true;
     } catch (e) {
       _error = e.toString();
       _isLoading = false;

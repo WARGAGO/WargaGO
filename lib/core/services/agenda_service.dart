@@ -94,16 +94,22 @@ class AgendaService {
     final now = DateTime.now();
     return _firestore
         .collection(_collection)
-        .where('type', isEqualTo: 'kegiatan')
-        .where('isActive', isEqualTo: true)
+        // ⚠️ ONLY 1 WHERE CLAUSE to avoid composite index
         .where('tanggal', isGreaterThanOrEqualTo: Timestamp.fromDate(now))
-        .orderBy('tanggal', descending: false)
-        .limit(limit)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs
+      final list = snapshot.docs
           .map((doc) => AgendaModel.fromFirestore(doc))
+          .where((agenda) =>
+              agenda.type == 'kegiatan' &&
+              agenda.isActive == true) // Filter type & isActive client-side
           .toList();
+
+      // Client-side sorting by tanggal DESCENDING (terbaru di atas)
+      list.sort((a, b) => b.tanggal.compareTo(a.tanggal));
+
+      // Client-side limit
+      return list.take(limit).toList();
     });
   }
 
@@ -112,16 +118,22 @@ class AgendaService {
     final now = DateTime.now();
     return _firestore
         .collection(_collection)
-        .where('type', isEqualTo: 'kegiatan')
-        .where('isActive', isEqualTo: true)
+        // ⚠️ ONLY 1 WHERE CLAUSE to avoid composite index
         .where('tanggal', isLessThan: Timestamp.fromDate(now))
-        .orderBy('tanggal', descending: true)
-        .limit(limit)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs
+      final list = snapshot.docs
           .map((doc) => AgendaModel.fromFirestore(doc))
+          .where((agenda) =>
+              agenda.type == 'kegiatan' &&
+              agenda.isActive == true) // Filter client-side
           .toList();
+
+      // Client-side sorting by tanggal descending (newest first)
+      list.sort((a, b) => b.tanggal.compareTo(a.tanggal));
+
+      // Client-side limit
+      return list.take(limit).toList();
     });
   }
 
@@ -141,13 +153,18 @@ class AgendaService {
 
     query = query
         .where('tanggal', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
-        .where('tanggal', isLessThanOrEqualTo: Timestamp.fromDate(endDate))
-        .orderBy('tanggal', descending: true);
+        .where('tanggal', isLessThanOrEqualTo: Timestamp.fromDate(endDate));
+        // ⚠️ REMOVED: orderBy to avoid composite index
 
     return query.snapshots().map((snapshot) {
-      return snapshot.docs
+      final list = snapshot.docs
           .map((doc) => AgendaModel.fromFirestore(doc))
           .toList();
+
+      // Client-side sorting by tanggal descending
+      list.sort((a, b) => b.tanggal.compareTo(a.tanggal));
+
+      return list;
     });
   }
 

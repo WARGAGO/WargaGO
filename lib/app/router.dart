@@ -209,6 +209,17 @@ class AppRouterConfig {
         },
       ),
 
+      // ========== ADMIN KELOLA POLLING (FULLSCREEN - NO NAVBAR) ==========
+      GoRoute(
+        path: AppRoutes.adminKelolaPolling,
+        name: 'adminKelolaPolling',
+        pageBuilder: (context, state) => PageTransitions.slideFromRight(
+          key: state.pageKey,
+          child: const AdminPollListPage(),
+          duration: const Duration(milliseconds: 350),
+        ),
+      ),
+
       // ========== ADMIN SHELL WITH BOTTOM NAVIGATION ==========
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
@@ -234,15 +245,6 @@ class AppRouterConfig {
                 pageBuilder: (context, state) => PageTransitions.slideFromRight(
                   key: state.pageKey,
                   child: const DashboardDetailPage(),
-                  duration: const Duration(milliseconds: 350),
-                ),
-              ),
-              GoRoute(
-                path: AppRoutes.adminKelolaPolling,
-                name: 'adminKelolaPolling',
-                pageBuilder: (context, state) => PageTransitions.slideFromRight(
-                  key: state.pageKey,
-                  child: const AdminPollListPage(),
                   duration: const Duration(milliseconds: 350),
                 ),
               ),

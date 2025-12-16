@@ -8,9 +8,16 @@ import 'package:flutter/foundation.dart';
 import '../models/order_model.dart';
 import '../models/cart_item_model.dart';
 import '../repositories/order_repository.dart';
+import 'notification_provider.dart';
 
 class OrderProvider extends ChangeNotifier {
   final OrderRepository _repository = OrderRepository();
+  NotificationProvider? _notificationProvider;
+
+  // Set notification provider (called from UI)
+  void setNotificationProvider(NotificationProvider provider) {
+    _notificationProvider = provider;
+  }
 
   // State
   List<OrderModel> _orders = [];
@@ -65,6 +72,26 @@ class OrderProvider extends ChangeNotifier {
       );
 
       if (result.isSuccess) {
+        // Send notification to seller for each product ordered
+        if (_notificationProvider != null && result.data != null) {
+          final orderId = result.data!; // result.data is the orderId (String)
+
+          for (final item in cartItems) {
+            try {
+              await _notificationProvider!.sendNewOrderNotification(
+                sellerId: item.sellerId, // Direct property from CartItemModel
+                orderId: orderId,
+                productName: item.productName, // Direct property from CartItemModel
+                buyerName: buyerName,
+              );
+            } catch (e) {
+              if (kDebugMode) {
+                print('Error sending notification to seller: $e');
+              }
+            }
+          }
+        }
+
         // Reload orders
         await loadMyOrders();
         return true;

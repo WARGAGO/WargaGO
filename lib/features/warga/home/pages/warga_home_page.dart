@@ -13,6 +13,7 @@ import 'package:go_router/go_router.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/providers/auth_provider.dart';
 import '../../../../core/providers/poll_provider.dart';
+import '../../../../core/providers/notification_provider.dart';
 import '../../../../core/constants/app_routes.dart';
 import '../../../../core/services/kyc_service.dart';
 import '../../../../core/enums/kyc_enum.dart';
@@ -20,6 +21,7 @@ import '../widgets/home_app_bar.dart';
 import '../widgets/home_kyc_alert.dart';
 import '../../polling/widgets/home_poll_alert.dart';
 import '../../polling/pages/poll_list_page.dart';
+import '../../test/test_notification_button.dart';
 import '../widgets/home_info_cards.dart';
 import '../widgets/home_quick_access_grid.dart';
 import '../widgets/home_feature_list.dart';
@@ -40,11 +42,19 @@ class _WargaHomePageState extends State<WargaHomePage> {
   @override
   void initState() {
     super.initState();
-    // Load polling data
+    // Load polling data and initialize notifications
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final pollProvider = context.read<PollProvider>();
       pollProvider.loadActiveOfficialPolls();
       pollProvider.loadActiveCommunityPolls();
+
+      // Initialize notification provider
+      final authProvider = context.read<AuthProvider>();
+      final userId = authProvider.userModel?.id;
+      if (userId != null) {
+        final notificationProvider = context.read<NotificationProvider>();
+        notificationProvider.initialize(userId);
+      }
     });
   }
 
@@ -186,7 +196,7 @@ class _WargaHomePageState extends State<WargaHomePage> {
                   child: Column(
                     children: [
                       // 1. App Bar (Header)
-                      HomeAppBar(notificationCount: 3, userName: userName),
+                      HomeAppBar(userName: userName),
 
                       // 2. Scrollable Content (termasuk KYC Alert di dalamnya)
                       Expanded(
@@ -366,10 +376,14 @@ class _WargaHomePageState extends State<WargaHomePage> {
   Scaffold _buildBasicScaffold(String userName, AuthProvider authProvider) {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FD),
+      // Debug: Test notification button
+      floatingActionButton: kDebugMode
+          ? const TestNotificationButton()
+          : null,
       body: SafeArea(
         child: Column(
           children: [
-            HomeAppBar(notificationCount: 3, userName: userName),
+            HomeAppBar(userName: userName),
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () async {

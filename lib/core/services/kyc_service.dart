@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import '../helpers/notification_helper.dart';
 import 'package:wargago/core/enums/kyc_enum.dart';
 import 'package:wargago/core/models/KYC/kk_model.dart';
 import 'package:wargago/core/models/KYC/ktp_model.dart';
@@ -425,6 +426,14 @@ class KYCService {
           'updatedAt': Timestamp.now(),
         });
 
+        // 🔔 KIRIM NOTIFIKASI ke user
+        await NotificationHelper.notifyKYCStatus(
+          userId: kycDoc.userId,
+          documentType: KYCDocumentModel.documentTypeToString(kycDoc.documentType).toUpperCase(),
+          status: 'approved',
+        );
+        debugPrint('✅ KYC approved notification sent to user');
+
         if (kDebugMode) {
           print('✅ KTP approved - User status updated to approved: ${kycDoc.userId}');
           if (hasApprovedKK) {
@@ -481,6 +490,15 @@ class KYCService {
         'status': 'unverified', // Set to unverified so user can re-upload
         'updatedAt': Timestamp.now(),
       });
+
+      // 🔔 KIRIM NOTIFIKASI ke user
+      await NotificationHelper.notifyKYCStatus(
+        userId: kycDoc.userId,
+        documentType: KYCDocumentModel.documentTypeToString(kycDoc.documentType).toUpperCase(),
+        status: 'rejected',
+        rejectionReason: reason,
+      );
+      debugPrint('✅ KYC rejected notification sent to user');
 
       if (kDebugMode) {
         print('✅ Document rejected: $documentId');
