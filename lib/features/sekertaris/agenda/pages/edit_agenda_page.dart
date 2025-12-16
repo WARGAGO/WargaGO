@@ -8,22 +8,28 @@ import 'package:wargago/features/sekertaris/agenda/widgets/edit_info_card.dart';
 import 'package:wargago/features/sekertaris/agenda/widgets/save_button.dart';
 import 'package:wargago/features/sekertaris/agenda/widgets/cancel_button.dart';
 
+import '../models/agenda_model.dart';
+
 /// Halaman untuk mengedit agenda kegiatan
 class EditAgendaPage extends StatefulWidget {
+  final String id;
   final String date;
   final String time;
   final String title;
   final String location;
   final String description;
+  final String status;
   final int attendees;
 
   const EditAgendaPage({
     super.key,
+    required this.id,
     required this.date,
     required this.time,
     required this.title,
     required this.location,
     required this.description,
+    required this.status,
     required this.attendees,
   });
 
@@ -128,31 +134,20 @@ class _EditAgendaPageState extends State<EditAgendaPage> {
 
   void _saveChanges() {
     if (_formKey.currentState!.validate()) {
-      // TODO: Update agenda di database
-      
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle, color: Colors.white),
-              const SizedBox(width: 12),
-              Text(
-                'Agenda berhasil diperbarui',
-                style: GoogleFonts.poppins(),
-              ),
-            ],
-          ),
-          backgroundColor: const Color(0xFF27AE60),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
+      // Buat objek AgendaModel yang sudah diedit
+      final updatedAgenda = AgendaModel(
+        id: widget.id, // Gunakan ID asli dari widget
+        date: DateFormat('dd MMM yyyy', 'id_ID').format(_selectedDate),
+        time: '${_selectedTime.hour.toString().padLeft(2, '0')}:${_selectedTime.minute.toString().padLeft(2, '0')}',
+        title: _titleController.text,
+        location: _locationController.text,
+        description: _descriptionController.text,
+        status: widget.status, // Pertahankan status yang ada
+        attendees: int.parse(_attendeesController.text),
       );
-
-      // Kembali ke halaman sebelumnya
-      Navigator.pop(context, true);
+      
+      // Kembalikan data yang sudah diedit ke parent
+      Navigator.pop(context, updatedAgenda);
     }
   }
 

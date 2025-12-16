@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:wargago/features/sekertaris/notulen/widgets/notulen_card.dart';
 import 'package:wargago/features/sekertaris/notulen/pages/tambah_notulen_page.dart';
 import 'package:wargago/features/sekertaris/notulen/pages/detail_notulen_page.dart';
+import 'package:wargago/features/sekertaris/notulen/pages/edit_notulen_page.dart';
+import 'package:wargago/features/sekertaris/notulen/models/notulen_model.dart';
 
 /// Halaman Notulen untuk Sekretaris
 /// Menampilkan semua notulen rapat dengan filter dan pencarian
@@ -18,10 +20,131 @@ class _SekretarisNotulenPageState extends State<SekretarisNotulenPage>
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
 
+  // State Management - List lokal untuk menyimpan data Notulen
+  final List<NotulenModel> _notulenList = [];
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _loadInitialData();
+  }
+  
+  // Load data awal (dummy data untuk demo)
+  void _loadInitialData() {
+    _notulenList.addAll([
+      NotulenModel(
+        id: '1',
+        date: '10 Des 2024',
+        time: '14:00',
+        title: 'Rapat Koordinasi Bulanan',
+        location: 'Balai Desa',
+        attendees: 25,
+        topics: 3,
+        decisions: 5,
+        type: 'recent',
+        agenda: '1. Pembukaan\n2. Laporan kegiatan\n3. Pembahasan program',
+        discussion: 'Diskusi mengenai program kerja...',
+        decisionsText: '1. Menyetujui proposal\n2. Mengalokasikan anggaran',
+        actionItems: 'Finalisasi proposal oleh Tim Program',
+      ),
+      NotulenModel(
+        id: '2',
+        date: '05 Des 2024',
+        time: '10:00',
+        title: 'Evaluasi Program Kerja',
+        location: 'Kantor RT',
+        attendees: 15,
+        topics: 4,
+        decisions: 3,
+        type: 'recent',
+        agenda: '1. Evaluasi kinerja\n2. Rencana perbaikan',
+        discussion: 'Evaluasi program kerja tahun ini...',
+        decisionsText: '1. Meningkatkan partisipasi warga',
+        actionItems: 'Membuat strategi peningkatan partisipasi',
+      ),
+      NotulenModel(
+        id: '3',
+        date: '28 Nov 2024',
+        time: '15:30',
+        title: 'Rapat Persiapan HUT RI',
+        location: 'Balai Desa',
+        attendees: 30,
+        topics: 5,
+        decisions: 8,
+        type: 'archived',
+        agenda: '1. Konsep acara\n2. Pembagian tugas\n3. Anggaran',
+        discussion: 'Persiapan untuk perayaan HUT RI...',
+        decisionsText: '1. Mengadakan lomba\n2. Mengalokasikan dana',
+        actionItems: 'Koordinasi dengan panitia',
+      ),
+      NotulenModel(
+        id: '4',
+        date: '20 Nov 2024',
+        time: '09:00',
+        title: 'Pembahasan Anggaran Desa',
+        location: 'Kantor Desa',
+        attendees: 20,
+        topics: 6,
+        decisions: 10,
+        type: 'archived',
+        agenda: '1. Review anggaran\n2. Alokasi dana',
+        discussion: 'Pembahasan anggaran untuk program desa...',
+        decisionsText: '1. Menyetujui anggaran',
+        actionItems: 'Dokumentasi anggaran',
+      ),
+      NotulenModel(
+        id: '5',
+        date: '15 Nov 2024',
+        time: '13:00',
+        title: 'Rapat Koordinasi RT/RW',
+        location: 'Balai RT 02',
+        attendees: 18,
+        topics: 4,
+        decisions: 6,
+        type: 'archived',
+        agenda: '1. Koordinasi antar RT\n2. Program bersama',
+        discussion: 'Koordinasi program lintas RT/RW...',
+        decisionsText: '1. Mengadakan kegiatan bersama',
+        actionItems: 'Menyusun jadwal kegiatan',
+      ),
+    ]);
+  }
+  
+  // Method untuk menambah notulen baru
+  void _addNotulen(NotulenModel notulen) {
+    setState(() {
+      _notulenList.add(notulen);
+    });
+  }
+  
+  // Method untuk update notulen
+  void _updateNotulen(String id, NotulenModel updatedNotulen) {
+    setState(() {
+      final index = _notulenList.indexWhere((notulen) => notulen.id == id);
+      if (index != -1) {
+        _notulenList[index] = updatedNotulen;
+      }
+    });
+  }
+  
+  // Method untuk menghapus notulen
+  void _deleteNotulen(String id) {
+    setState(() {
+      _notulenList.removeWhere((notulen) => notulen.id == id);
+    });
+  }
+  
+  // Method untuk mengubah tipe notulen (arsip/aktif)
+  void _toggleArchiveNotulen(String id) {
+    setState(() {
+      final index = _notulenList.indexWhere((notulen) => notulen.id == id);
+      if (index != -1) {
+        final currentType = _notulenList[index].type;
+        final newType = currentType == 'archived' ? 'recent' : 'archived';
+        _notulenList[index] = _notulenList[index].copyWith(type: newType);
+      }
+    });
   }
 
   @override
@@ -112,9 +235,28 @@ class _SekretarisNotulenPageState extends State<SekretarisNotulenPage>
                                   builder: (context) => const TambahNotulenPage(),
                                 ),
                               );
-                              if (result == true) {
-                                // Refresh data jika berhasil menambah notulen
-                                setState(() {});
+                              // Terima data dari form tambah dan tambahkan ke state
+                              if (result != null && result is NotulenModel) {
+                                _addNotulen(result);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Row(
+                                      children: [
+                                        const Icon(Icons.check_circle, color: Colors.white),
+                                        const SizedBox(width: 12),
+                                        Text(
+                                          'Notulen berhasil ditambahkan',
+                                          style: GoogleFonts.poppins(),
+                                        ),
+                                      ],
+                                    ),
+                                    backgroundColor: const Color(0xFF27AE60),
+                                    behavior: SnackBarBehavior.floating,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                );
                               }
                             },
                           ),
@@ -242,70 +384,14 @@ class _SekretarisNotulenPageState extends State<SekretarisNotulenPage>
   }
 
   Widget _buildNotulenList(String type) {
-    // Data dummy untuk notulen
-    final List<Map<String, dynamic>> dummyNotulen = [
-      {
-        'id': '1',
-        'date': '10 Des 2024',
-        'time': '14:00',
-        'title': 'Rapat Koordinasi Bulanan',
-        'location': 'Balai Desa',
-        'attendees': 25,
-        'topics': 3,
-        'decisions': 5,
-        'type': 'recent',
-      },
-      {
-        'id': '2',
-        'date': '05 Des 2024',
-        'time': '10:00',
-        'title': 'Evaluasi Program Kerja',
-        'location': 'Kantor RT',
-        'attendees': 15,
-        'topics': 4,
-        'decisions': 3,
-        'type': 'recent',
-      },
-      {
-        'id': '3',
-        'date': '28 Nov 2024',
-        'time': '15:30',
-        'title': 'Rapat Persiapan HUT RI',
-        'location': 'Balai Desa',
-        'attendees': 30,
-        'topics': 5,
-        'decisions': 8,
-        'type': 'archived',
-      },
-      {
-        'id': '4',
-        'date': '20 Nov 2024',
-        'time': '09:00',
-        'title': 'Pembahasan Anggaran Desa',
-        'location': 'Kantor Desa',
-        'attendees': 20,
-        'topics': 6,
-        'decisions': 10,
-        'type': 'archived',
-      },
-      {
-        'id': '5',
-        'date': '15 Nov 2024',
-        'time': '13:00',
-        'title': 'Rapat Koordinasi RT/RW',
-        'location': 'Balai RT 02',
-        'attendees': 18,
-        'topics': 4,
-        'decisions': 6,
-        'type': 'archived',
-      },
-    ];
-
-    List<Map<String, dynamic>> filteredNotulen = dummyNotulen;
-
-    if (type != 'all') {
-      filteredNotulen = dummyNotulen
-          .where((notulen) => notulen['type'] == type)
+    // Filter notulen berdasarkan tipe
+    List<NotulenModel> filteredNotulen = [];
+    
+    if (type == 'all') {
+      filteredNotulen = List.from(_notulenList);
+    } else {
+      filteredNotulen = _notulenList
+          .where((notulen) => notulen.type == type)
           .toList();
     }
 
@@ -313,12 +399,10 @@ class _SekretarisNotulenPageState extends State<SekretarisNotulenPage>
     if (_searchController.text.isNotEmpty) {
       filteredNotulen = filteredNotulen
           .where((notulen) =>
-              notulen['title']
-                  .toString()
+              notulen.title
                   .toLowerCase()
                   .contains(_searchController.text.toLowerCase()) ||
-              notulen['location']
-                  .toString()
+              notulen.location
                   .toLowerCase()
                   .contains(_searchController.text.toLowerCase()))
           .toList();
@@ -366,27 +450,31 @@ class _SekretarisNotulenPageState extends State<SekretarisNotulenPage>
       itemBuilder: (context, index) {
         final notulen = filteredNotulen[index];
         return NotulenCard(
-          date: notulen['date'],
-          time: notulen['time'],
-          title: notulen['title'],
-          location: notulen['location'],
-          attendees: notulen['attendees'],
-          topics: notulen['topics'],
-          decisions: notulen['decisions'],
-          isArchived: notulen['type'] == 'archived',
+          date: notulen.date,
+          time: notulen.time,
+          title: notulen.title,
+          location: notulen.location,
+          attendees: notulen.attendees,
+          topics: notulen.topics,
+          decisions: notulen.decisions,
+          isArchived: notulen.type == 'archived',
           onTap: () {
             Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => DetailNotulenPage(
-                  date: notulen['date'],
-                  time: notulen['time'],
-                  title: notulen['title'],
-                  location: notulen['location'],
-                  attendees: notulen['attendees'],
-                  topics: notulen['topics'],
-                  decisions: notulen['decisions'],
-                  isArchived: notulen['type'] == 'archived',
+                  date: notulen.date,
+                  time: notulen.time,
+                  title: notulen.title,
+                  location: notulen.location,
+                  attendees: notulen.attendees,
+                  topics: notulen.topics,
+                  decisions: notulen.decisions,
+                  isArchived: notulen.type == 'archived',
+                  agenda: notulen.agenda,
+                  discussion: notulen.discussion,
+                  decisionsText: notulen.decisionsText,
+                  actionItems: notulen.actionItems,
                 ),
               ),
             );
@@ -400,7 +488,7 @@ class _SekretarisNotulenPageState extends State<SekretarisNotulenPage>
   }
 
   void _showMenuBottomSheet(
-      BuildContext context, Map<String, dynamic> notulen) {
+      BuildContext context, NotulenModel notulen) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -439,27 +527,69 @@ class _SekretarisNotulenPageState extends State<SekretarisNotulenPage>
             const SizedBox(height: 20),
 
             // Action Items
-            if (notulen['type'] != 'archived')
+            if (notulen.type != 'archived')
               _buildActionCard(
                 icon: Icons.edit_rounded,
                 label: 'Edit Notulen',
                 subtitle: 'Ubah informasi notulen',
                 color: const Color(0xFF2F80ED),
-                onTap: () {
+                onTap: () async {
                   Navigator.pop(context);
-                  // TODO: Navigate to edit page
+                  // Navigate ke edit page dengan data lengkap
+                  final result = await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditNotulenPage(
+                        id: notulen.id,
+                        date: notulen.date,
+                        time: notulen.time,
+                        title: notulen.title,
+                        location: notulen.location,
+                        attendees: notulen.attendees,
+                        type: notulen.type,
+                        agenda: notulen.agenda,
+                        discussion: notulen.discussion,
+                        decisionsText: notulen.decisionsText,
+                        actionItems: notulen.actionItems,
+                      ),
+                    ),
+                  );
+                  
+                  // Terima data yang sudah diedit dan update state
+                  if (result != null && result is NotulenModel) {
+                    _updateNotulen(notulen.id, result);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Row(
+                          children: [
+                            const Icon(Icons.check_circle, color: Colors.white),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Notulen berhasil diperbarui',
+                              style: GoogleFonts.poppins(),
+                            ),
+                          ],
+                        ),
+                        backgroundColor: const Color(0xFF27AE60),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    );
+                  }
                 },
               ),
             const SizedBox(height: 12),
             
             _buildActionCard(
-              icon: notulen['type'] == 'archived'
+              icon: notulen.type == 'archived'
                   ? Icons.unarchive_rounded
                   : Icons.archive_rounded,
-              label: notulen['type'] == 'archived'
+              label: notulen.type == 'archived'
                   ? 'Keluarkan dari Arsip'
                   : 'Arsipkan Notulen',
-              subtitle: notulen['type'] == 'archived'
+              subtitle: notulen.type == 'archived'
                   ? 'Aktifkan kembali notulen'
                   : 'Simpan ke arsip',
               color: const Color(0xFFF39C12),
@@ -480,7 +610,7 @@ class _SekretarisNotulenPageState extends State<SekretarisNotulenPage>
               color: const Color(0xFFE74C3C),
               onTap: () {
                 Navigator.pop(context);
-                _showDeleteConfirmation(context, notulen['title']);
+                _showDeleteConfirmation(context, notulen);
               },
             ),
             
@@ -564,8 +694,8 @@ class _SekretarisNotulenPageState extends State<SekretarisNotulenPage>
   }
 
   void _showArchiveConfirmation(
-      BuildContext context, Map<String, dynamic> notulen) {
-    final isArchived = notulen['type'] == 'archived';
+      BuildContext context, NotulenModel notulen) {
+    final isArchived = notulen.type == 'archived';
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -601,7 +731,7 @@ class _SekretarisNotulenPageState extends State<SekretarisNotulenPage>
         content: Text(
           isArchived
               ? 'Notulen ini akan dikembalikan ke daftar aktif.'
-              : 'Notulen "${notulen['title']}" akan dipindahkan ke arsip. Anda masih bisa mengaksesnya nanti.',
+              : 'Notulen "${notulen.title}" akan dipindahkan ke arsip. Anda masih bisa mengaksesnya nanti.',
           style: GoogleFonts.poppins(
             fontSize: 14,
             color: Colors.grey.shade700,
@@ -623,6 +753,8 @@ class _SekretarisNotulenPageState extends State<SekretarisNotulenPage>
           ),
           ElevatedButton(
             onPressed: () {
+              // Toggle arsip status menggunakan state management
+              _toggleArchiveNotulen(notulen.id);
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -669,7 +801,7 @@ class _SekretarisNotulenPageState extends State<SekretarisNotulenPage>
     );
   }
 
-  void _showDeleteConfirmation(BuildContext context, String title) {
+  void _showDeleteConfirmation(BuildContext context, NotulenModel notulen) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -731,7 +863,7 @@ class _SekretarisNotulenPageState extends State<SekretarisNotulenPage>
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      title,
+                      notulen.title,
                       style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -790,8 +922,9 @@ class _SekretarisNotulenPageState extends State<SekretarisNotulenPage>
           ),
           ElevatedButton(
             onPressed: () {
+              // Hapus notulen menggunakan state management
+              _deleteNotulen(notulen.id);
               Navigator.pop(context);
-              // TODO: Delete logic
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Row(

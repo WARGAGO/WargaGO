@@ -6,6 +6,8 @@ import 'package:wargago/features/sekertaris/notulen/widgets/time_picker_field.da
 import 'package:wargago/features/sekertaris/notulen/widgets/add_info_card.dart';
 import 'package:wargago/features/sekertaris/notulen/widgets/save_button.dart';
 import 'package:wargago/features/sekertaris/notulen/widgets/cancel_button.dart';
+import 'package:wargago/features/sekertaris/notulen/models/notulen_model.dart';
+import 'package:intl/intl.dart';
 
 /// Halaman untuk menambahkan notulen rapat baru
 class TambahNotulenPage extends StatefulWidget {
@@ -92,31 +94,29 @@ class _TambahNotulenPageState extends State<TambahNotulenPage> {
 
   void _saveNotulen() {
     if (_formKey.currentState!.validate()) {
-      // TODO: Simpan ke database
-
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle, color: Colors.white),
-              const SizedBox(width: 12),
-              Text(
-                'Notulen berhasil ditambahkan',
-                style: GoogleFonts.poppins(),
-              ),
-            ],
-          ),
-          backgroundColor: const Color(0xFF27AE60),
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
+      // Hitung jumlah topik dan keputusan dari input
+      final agendaLines = _agendaController.text.split('\n').where((line) => line.trim().isNotEmpty).length;
+      final decisionLines = _decisionsController.text.split('\n').where((line) => line.trim().isNotEmpty).length;
+      
+      // Buat objek NotulenModel baru
+      final newNotulen = NotulenModel(
+        id: DateTime.now().millisecondsSinceEpoch.toString(), // Generate ID unik
+        date: DateFormat('dd MMM yyyy', 'id_ID').format(_selectedDate),
+        time: '${_selectedTime.hour.toString().padLeft(2, '0')}:${_selectedTime.minute.toString().padLeft(2, '0')}',
+        title: _titleController.text,
+        location: _locationController.text,
+        attendees: int.parse(_attendeesController.text),
+        topics: agendaLines,
+        decisions: decisionLines,
+        type: 'recent', // Default type
+        agenda: _agendaController.text,
+        discussion: _discussionController.text,
+        decisionsText: _decisionsController.text,
+        actionItems: _actionItemsController.text,
       );
 
-      // Kembali ke halaman sebelumnya
-      Navigator.pop(context, true);
+      // Kembalikan data ke halaman sebelumnya
+      Navigator.pop(context, newNotulen);
     }
   }
 
