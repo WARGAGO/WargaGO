@@ -1,105 +1,138 @@
-# 🏘️ Jawara - Aplikasi Manajemen Kampung Digital
+<div align="left">
 
-![Flutter](https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white)
-![Dart](https://img.shields.io/badge/Dart-0175C2?style=for-the-badge&logo=dart&logoColor=white)
+# WargaGo — Community Management App for RT/RW
+<img width="3168" height="1344" alt="banner_WARGAGO 1" src="https://github.com/user-attachments/assets/2e8dbad4-45c3-4897-a6c7-ed52b44c9939" />
 
-Jawara adalah aplikasi manajemen kampung digital yang dirancang untuk memudahkan administrasi dan komunikasi antara admin kampung dengan warga. Aplikasi ini menyediakan berbagai fitur untuk mengelola data warga, kegiatan kampung, keuangan, dan pesan dari warga.
+WARGAGO adalah aplikasi mobile yang powerful namun mudah digunakan, dirancang khusus untuk sistem RT/RW di Indonesia. Aplikasi ini membantu warga dan pengurus lokal untuk mengelola administrasi lingkungan, komunikasi, dan aktivitas sehari-hari—semua dalam satu platform. Baik Anda seorang Ketua RT/RW, pengurus komunitas, atau warga biasa, WARGAGO memudahkan Anda untuk mengelola:
 
----
+- 🧾 Dokumen dan data administrasi warga
+- 💰 Keuangan komunitas dan pembayaran iuran
+- 📅 Agenda, rapat, dan pengumuman penting
+- 🗳️ Polling dan voting untuk keputusan bersama
+- 🛒 Marketplace internal untuk jual-beli antar warga
+- 📊 Dashboard dan laporan keuangan transparan
 
-## 📱 Fitur Utama
+Dibangun dengan pengalaman mobile-first yang lengkap, WARGAGO memberdayakan setiap rumah tangga untuk tetap terinformasi, berkolaborasi, dan mengambil tindakan tanpa kertas atau sistem yang rumit.
 
-### 🔐 Autentikasi
+</div>
 
-- **Splash Screen** - Tampilan pembuka aplikasi
-- **Onboarding** - Pengenalan fitur aplikasi
-- **Pre-Auth** - Layar sebelum autentikasi
-- **Login & Register** - Sistem autentikasi pengguna
+🚀 Coba sekarang<p>
+Coba WargaGo sekarang untuk merasakan pengelolaan RT/RW yang lebih praktis, rapi, dan transparan dalam satu aplikasi.
 
-### 📊 Dashboard
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-- **Overview Keuangan** - Monitoring pemasukan dan pengeluaran kampung
-- **Total Aktivitas** - Melihat kegiatan bulan ini dengan detail per tanggal
-- **Top Penanggung Jawab** - Daftar penanggung jawab kegiatan
-- **Timeline Kegiatan** - Visualisasi jadwal kegiatan
-- **Grafik Performa** - Statistik kategori kegiatan
-- **Aktivitas Bulanan** - Laporan kegiatan per bulan
+<img width="3168" height="1344" alt="banner_WARGAGO 2" src="https://github.com/user-attachments/assets/b65e332f-4a3a-4dd5-84c4-469a25c2630d" />
 
-### 👥 Data Warga
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-- **Data Penduduk** - Manajemen database warga kampung
-- **Profil Lengkap** - Informasi detail setiap warga
-- **Pencarian & Filter** - Cari warga dengan mudah
+## System Architecture
+<img width="2240" height="1920" alt="banner_WARGAGO 3" src="https://github.com/user-attachments/assets/e8b48fe4-75e1-498e-bc67-21dc805ca381" />
 
-### 📬 Notifikasi & Pesan
+Sistem ini dibangun dengan arsitektur berbasis cloud yang menggabungkan layanan Firebase dan Azure untuk memastikan pengembangan yang efisien dan performa yang handal.
 
-- **Notifikasi Pop-up** - Alert pesan masuk dari warga
-- **Pesan dari Warga** - Inbox pesan dengan status:
-  - 🕐 Pending
-  - ✅ Diterima
-  - ❌ Ditolak
-- **Search & Filter** - Cari pesan dengan mudah
+- Flutter (Frontend) Aplikasi seluler dikembangkan menggunakan Flutter untuk dukungan lintas platform (Android & iOS), memastikan pengalaman pengguna yang konsisten dan responsif.
 
-### 📅 Detail Kegiatan
+- Firebase (Backend Services) Menyediakan fungsionalitas backend inti yang ringan dan cepat, mencakup Authentication untuk keamanan login pengguna, Database untuk pengelolaan data, Notifications untuk pemberitahuan real-time, dan App Distribution untuk rilis versi aplikasi.
 
-- **Kalender Kegiatan** - Navigasi per tanggal
-- **Daftar Kegiatan** - Detail waktu, jenis, dan status kegiatan
-- **Status Tracking** - Monitor progress kegiatan (selesai/pending)
+- Microsoft Azure (Storage & ML Services) Digunakan sebagai infrastruktur komputasi utama untuk menyimpan aset file skala besar melalui Cloud Storage dan men-deploy model Machine Learning kustom untuk pemrosesan data cerdas.
 
----
+Seluruh komponen berkomunikasi secara mulus, menghubungkan aplikasi Flutter dengan layanan Firebase dan Azure, menciptakan sistem yang skalabel dengan infrastruktur yang terorganisir rapi.
 
-## 🛠️ Teknologi yang Digunakan
+## App Demo
 
-- **Framework**: Flutter 3.x
-- **Language**: Dart
-- **Font**: Google Fonts (Poppins)
-- **State Management**: StatefulWidget
-- **UI Components**: Material Design
-- **Package Manager**: pub.dev
+
+## Problem
+Pengelolaan komunitas/perumahan secara tradisional sering menghadapi tantangan berikut:
+- Administrasi masih manual (buku/spreadsheet) sehingga rawan duplikasi dan tidak konsisten.
+- Transparansi keuangan sulit dipantau secara real-time.
+- Informasi/pengumuman tidak selalu tersampaikan ke seluruh warga.
+- Verifikasi pembayaran, data, dan pelaporan membutuhkan waktu.
+- Data tersebar dan sulit diakses (chat, kertas, file berbeda).
+- Risiko keamanan data (hilang, tidak ter-backup, atau mudah dimanipulasi).
 
 ---
 
-## 👨‍💻 Tim Pengembang
-
-<<<<<<< HEAD
-| No  | Nama                   | Pengerjaan                                                                                               |
-| --- |------------------------|----------------------------------------------------------------------------------------------------------|
-| 1   | Ahmad Naufal Ilham     | <details><summary>View Demo</summary><img src="demo/naufal.gif" alt="Demo"/></details>                                  |
-| 2   | Diana Rahmawati        | <details><summary>View Demo</summary><img src="demo/diana.gif" alt="Demo"/></details>                                  |
-| 3   | Aryo Adi Putro         | <details><summary>View Demo</summary><img src="demo/aryo_Mutasi.webp"/></details>                 |
-| 4   | Petrus Tyang A.R       | <details><summary>View Demo</summary><img src="demo/Petrus_Keuangan.webp"/></details>             |
-| 5   | Saka Nabil             | <details><summary>View Demo</summary><img src="demo/saka_agenda.gif" alt="Demo" width="400" /></details> |
-| 6   | Vidi Joshubzky Saviola | <details><summary>View Demo</summary><img src="demo/vidi_AuthDashboard.webp" alt="Demo"/></details>      |
-
->>>>>>> origin/master
+## Solution
+WargaGo hadir sebagai solusi terintegrasi:
+- Digitalisasi proses: data warga, iuran, agenda, polling, marketplace dalam satu aplikasi.
+- Transparansi real-time: ringkasan pemasukan/pengeluaran, status tagihan, dan laporan.
+- Notifikasi otomatis: pengumuman, agenda, dan reminder langsung ke perangkat warga.
+- Database terpusat: data tersinkron, mudah diakses sesuai hak akses.
+- Keamanan berlapis: autentikasi, kontrol akses berbasis role, dan pengelolaan data yang terstruktur.
 
 ---
 
-## 🎨 Design System
+## Fitur Utama
 
-### Color Palette
+### 1) Manajemen Data Warga dan KYC
+- Upload dan verifikasi dokumen (KTP, KK) dengan OCR
+- Face detection untuk dukungan proses verifikasi
+- Database penduduk terstruktur per rumah dan keluarga
 
-- **Primary Blue**: `#2F80ED`
-- **Background**: `#FFFFFF`
-- **Text Primary**: `#1F1F1F`
-- **Text Secondary**: `#7A7C89`
-- **Border**: `#E8EAF2`
-- **Success**: `#27AE60`
-- **Error**: `#EB5757`
+### 2) Manajemen Keuangan (Iuran, Tagihan, Mutasi)
+- Kelola iuran warga dan tagihan
+- Pemasukan dan pengeluaran dengan kategori
+- Laporan otomatis dan visualisasi grafik
+- Riwayat mutasi lengkap
+- Ekspor data (Excel, PDF, CSV)
 
-### Typography
+### 3) Agenda dan Kegiatan
+- Pembuatan dan pengelolaan agenda komunitas
+- Reminder otomatis
+- Pencatatan partisipasi/kegiatan (opsional sesuai implementasi)
 
-- **Font Family**: Poppins
-- **Heading**: 18-20px, Bold (700)
-- **Subheading**: 14-16px, SemiBold (600)
-- **Body**: 12-14px, Regular (400)
+### 4) Polling dan Voting
+- Polling untuk keputusan komunitas
+- Hasil real-time
+- Riwayat dan transparansi hasil
+
+### 5) Marketplace Warga
+- Jual beli antar warga (contoh: sayuran)
+- Keranjang belanja dan manajemen pesanan
+- Verifikasi transaksi (sesuai rancangan sistem)
+
+### 6) Dashboard dan Reporting
+- Ringkasan aktivitas dan informasi penting
+- Dashboard berbasis role
+- Monitoring data inti: warga, keuangan, agenda, dan transaksi
 
 ---
 
-## LINK FIGMA
-- https://www.figma.com/design/vvW09bovdPxhaPT09Lm97K/PBL-MOBILE-19-10-2025?node-id=636-4927&t=uwfG3dQnupb324SV-1
+## Roles & Hak Akses
+WargaGo mendukung role berikut. Jika implementasi kamu saat ini masih 4 role, kamu bisa menggabungkan Ketua RT/Ketua RW ke role Admin.
 
+| Role | Fokus | Contoh Akses Utama |
+|------|------|---------------------|
+| Warga | Pengguna komunitas | Profil keluarga, bayar iuran, marketplace, agenda, polling, pengumuman |
+| Bendahara | Keuangan | Kelola iuran/tagihan, verifikasi pembayaran, laporan, ekspor data |
+| Sekretaris | Administrasi & komunikasi | Kelola agenda, broadcast pengumuman, polling/voting, dokumen |
+| Admin | Sistem & data master | Kelola pengguna/role, verifikasi KYC, data rumah/keluarga, monitoring |
+| Ketua RT (opsional) | Operasional RT | Pengumuman RT, validasi data, monitoring kegiatan RT |
+| Ketua RW (opsional) | Operasional RW | Pengumuman RW, monitoring lintas RT, rekap dan validasi |
+
+---
+
+## Preview
+Letakkan demo media kamu di folder `demo/` lalu tampilkan di sini.
+
+- Authentication & Dashboard  
+  `demo/auth_dashboard.webp`
+
+- Keuangan & Mutasi  
+  `demo/keuangan.webp`  
+  `demo/mutasi.webp`
+
+- Agenda  
+  `demo/agenda.gif`
+
+- Manajemen Data Penduduk & Pengguna  
+  `demo/data_management.gif`  
+  `demo/user_management.gif`
+
+Contoh snippet:
+```md
 <div align="center">
-  <p>Made with ❤️ by Kelompok 3</p>
-  <p>© 2025 Jawara. All rights reserved.</p>
+  <img src="demo/auth_dashboard.webp" width="90%" alt="Auth & Dashboard" />
 </div>
