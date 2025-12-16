@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:wargago/core/constants/app_routes.dart';
+import 'package:wargago/core/providers/auth_provider.dart';
 import 'package:wargago/features/sekertaris/profil/widgets/profile_header.dart';
 import 'package:wargago/features/sekertaris/profil/widgets/logout_button.dart';
 
@@ -23,10 +27,7 @@ class _SekretarisProfilePageState extends State<SekretarisProfilePage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF2F80ED),
-              Color(0xFF1E5BA8),
-            ],
+            colors: [Color(0xFF2F80ED), Color(0xFF1E5BA8)],
             stops: [0.0, 0.5],
           ),
         ),
@@ -72,7 +73,7 @@ class _SekretarisProfilePageState extends State<SekretarisProfilePage> {
                           userEmail: 'sekretaris@sekretaris.jawara.com',
                         ),
                         const SizedBox(height: 24),
-                        
+
                         // Info Section
                         Text(
                           'Informasi Akun',
@@ -129,7 +130,7 @@ class _SekretarisProfilePageState extends State<SekretarisProfilePage> {
                           ),
                         ),
                         const SizedBox(height: 32),
-                        
+
                         // Logout Button
                         LogoutButton(
                           onPressed: () {
@@ -165,11 +166,7 @@ class _SekretarisProfilePageState extends State<SekretarisProfilePage> {
             color: const Color(0xFF2F80ED).withAlpha(25),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(
-            icon,
-            color: const Color(0xFF2F80ED),
-            size: 20,
-          ),
+          child: Icon(icon, color: const Color(0xFF2F80ED), size: 20),
         ),
         const SizedBox(width: 16),
         Expanded(
@@ -204,9 +201,7 @@ class _SekretarisProfilePageState extends State<SekretarisProfilePage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         contentPadding: const EdgeInsets.all(24),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -300,28 +295,11 @@ class _SekretarisProfilePageState extends State<SekretarisProfilePage> {
 
   /// Perform Logout
   void _performLogout() {
-    // TODO: Implement actual logout logic (clear auth, navigate to login)
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle, color: Colors.white),
-            const SizedBox(width: 12),
-            Text(
-              'Berhasil keluar dari akun',
-              style: GoogleFonts.poppins(),
-            ),
-          ],
-        ),
-        backgroundColor: const Color(0xFF27AE60),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-    );
-    
-    // TODO: Navigate to login page
-    // Navigator.pushReplacementNamed(context, '/login');
+    // final authProvider = Provider.of<AuthProvider>(context);
+    // await authProvider.signOut();
+    if (mounted) {
+      // context.pop();
+      context.go(AppRoutes.login);
+    }
   }
 }
