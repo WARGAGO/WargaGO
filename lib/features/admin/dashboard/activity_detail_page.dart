@@ -38,144 +38,164 @@ class _ActivityDetailPageState extends State<ActivityDetailPage> {
     [
       {'time': '10.00', 'type': 'Kegiatan Desa', 'title': 'Musyawarah Warga', 'color': Colors.red},
     ],
+    // Tambahan untuk index 6-9 (agar tidak RangeError)
+    [
+      {'time': '14.00', 'type': 'Kegiatan Kebersihan', 'title': 'Kerja Bakti', 'color': Colors.green},
+    ],
+    [
+      {'time': '16.00', 'type': 'Kegiatan Olahraga', 'title': 'Voli RT', 'color': Colors.green},
+    ],
+    [
+      {'time': '09.30', 'type': 'Kegiatan Edukasi', 'title': 'Kelas Komputer', 'color': Colors.red},
+    ],
+    [
+      {'time': '11.00', 'type': 'Kegiatan Sosial', 'title': 'Kunjungan Warga', 'color': Colors.green},
+    ],
   ];
 
   @override
   Widget build(BuildContext context) {
-    return DraggableScrollableSheet(
-      expand: false,
-      initialChildSize: 0.8,
-      minChildSize: 0.4,
-      maxChildSize: 0.95,
-      builder: (context, scrollController) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: ListView(
-            controller: scrollController,
-            padding: const EdgeInsets.all(16),
-            children: [
-              // Garis kecil di atas
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 5,
-                  margin: const EdgeInsets.only(bottom: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-
-              // Judul dan ikon kalender
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Detail Kegiatan',
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
+    return Scaffold(
+      body: DraggableScrollableSheet(
+        initialChildSize: 0.95,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        builder: (context, scrollController) {
+          return Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: ListView(
+              controller: scrollController,
+              padding: const EdgeInsets.all(16),
+              children: [
+                // Garis kecil di atas
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 5,
+                    margin: const EdgeInsets.only(bottom: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  const Icon(Icons.calendar_today_outlined, color: Colors.grey),
-                ],
-              ),
-              const SizedBox(height: 16),
+                ),
 
-              // Baris tanggal
-              SizedBox(
-                height: 70,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: dates.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 10),
-                  itemBuilder: (context, index) {
-                    final date = dates[index];
-                    final day = DateFormat('EEE', 'en_US').format(date); // Mon, Tue
-                    final dateNum = DateFormat('d').format(date);
-                    final isSelected = index == selectedIndex;
+                // Judul dan ikon kalender
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Detail Kegiatan',
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const Icon(Icons.calendar_today_outlined, color: Colors.grey),
+                  ],
+                ),
+                const SizedBox(height: 16),
 
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() => selectedIndex = index);
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        width: 60,
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        decoration: BoxDecoration(
-                          color: isSelected ? const Color(0xFF2F80ED) : Colors.grey[200],
-                          borderRadius: BorderRadius.circular(12),
+                // Baris tanggal
+                SizedBox(
+                  height: 70,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: dates.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: 10),
+                    itemBuilder: (context, index) {
+                      final date = dates[index];
+                      final day = DateFormat('EEE', 'en_US').format(date); // Mon, Tue
+                      final dateNum = DateFormat('d').format(date);
+                      final isSelected = index == selectedIndex;
+
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() => selectedIndex = index);
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          width: 60,
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isSelected ? const Color(0xFF2F80ED) : Colors.grey[200],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                dateNum,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: isSelected ? Colors.white : Colors.black,
+                                ),
+                              ),
+                              Text(
+                                day,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  color: isSelected ? Colors.white : Colors.grey[700],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              dateNum,
-                              style: GoogleFonts.poppins(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: isSelected ? Colors.white : Colors.black,
-                              ),
-                            ),
-                            Text(
-                              day,
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                color: isSelected ? Colors.white : Colors.grey[700],
-                              ),
-                            ),
-                          ],
+                      );
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+                Text(
+                  'Daftar Kegiatan',
+                  style: GoogleFonts.poppins(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Daftar kegiatan berdasarkan tanggal yang dipilih dengan safety check
+                if (selectedIndex >= 0 && selectedIndex < activities.length)
+                  ...activities[selectedIndex].map((item) => _buildActivityItem(
+                        item['time'],
+                        item['type'],
+                        item['title'],
+                        item['color'],
+                      ))
+                else
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32.0),
+                      child: Text(
+                        'Tidak ada kegiatan',
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          color: Colors.grey[600],
                         ),
                       ),
-                    );
-                  },
-                ),
-              ),
-
-              const SizedBox(height: 16),
-              Text(
-                'Daftar Kegiatan',
-                style: GoogleFonts.poppins(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // Daftar kegiatan berdasarkan tanggal yang dipilih
-              ...activities[selectedIndex].map((item) => _buildActivityItem(
-                    item['time'],
-                    item['type'],
-                    item['title'],
-                    item['color'],
-                  )),
-            ],
-          ),
-        );
-      },
+                    ),
+                  ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 
   Widget _buildActivityItem(String time, String type, String title, Color color) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.grey[100],
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE8EAF2)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x11000000),
-            blurRadius: 10,
-            offset: Offset(0, 5),
-          ),
-        ],
       ),
       child: Row(
         children: [

@@ -24,7 +24,9 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:provider/provider.dart';
 import 'package:wargago/core/constants/app_routes.dart';
+import 'package:wargago/core/providers/dashboard_provider.dart';
 
 import 'package:wargago/features/admin/profile/admin_profile_page.dart';
 import 'activity_detail_page.dart';
@@ -38,7 +40,7 @@ import 'widgets/dashboard_styles.dart';
 ///
 /// Menampilkan:
 /// - Header dengan profil dan notifikasi
-/// - Finance Overview (Kas Masuk, Kas Keluar, Total Transaksi)
+/// - Finance Overview (Kas Masuk, Kas Keluar, Kelola Polling)
 /// - Kegiatan (Total Activities, Top Penanggung Jawab)
 /// - Timeline (Sudah Lewat, Hari ini, Akan Datang)
 /// - Category Performance (Chart per kategori)
@@ -61,6 +63,11 @@ class _DashboardPageState extends State<DashboardPage> {
     super.initState();
     _loadUserData();
     _scrollController.addListener(_onScroll);
+
+    // Load dashboard data
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<DashboardProvider>().loadDashboardData();
+    });
   }
 
   @override
@@ -129,8 +136,6 @@ class _DashboardPageState extends State<DashboardPage> {
             padding: DashboardStyles.contentPadding,
             sliver: SliverList(
               delegate: SliverChildListDelegate([
-                const _KelolaPollingCard(),
-                const SizedBox(height: 20),
                 const _ActivitySection(),
                 const SizedBox(height: 20),
                 const _TimelineCard(),
@@ -424,7 +429,7 @@ class _NotificationDot extends StatelessWidget {
 // ============================================================================
 // Menampilkan overview keuangan:
 // - Card Kas Masuk & Kas Keluar (row)
-// - Card Total Transaksi (full width)
+// - Card Kelola Polling (full width) - menggantikan Total Transaksi
 // ============================================================================
 
 class _FinanceOverview extends StatelessWidget {
@@ -432,40 +437,41 @@ class _FinanceOverview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Row untuk Kas Masuk & Kas Keluar
-        Row(
+    return Consumer<DashboardProvider>(
+      builder: (context, dashboardProvider, child) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(
-              child: _FinanceCard(
-                title: 'Kas Masuk',
-                value: '500JT',
-                icon: Icons.account_balance_wallet_outlined,
-                backgroundColor: DashboardColors.incomeBackground,
-              ),
+            // Row untuk Kas Masuk & Kas Keluar
+            Row(
+              children: [
+                Expanded(
+                  child: _FinanceCard(
+                    title: 'Kas Masuk',
+                    value: dashboardProvider.kasMasukFormatted,
+                    icon: Icons.account_balance_wallet_outlined,
+                    backgroundColor: DashboardColors.incomeBackground,
+                    isLoading: dashboardProvider.isLoading,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _FinanceCard(
+                    title: 'Kas Keluar',
+                    value: dashboardProvider.kasKeluarFormatted,
+                    icon: Icons.account_balance_wallet_outlined,
+                    backgroundColor: DashboardColors.outcomeBackground,
+                    isLoading: dashboardProvider.isLoading,
+                  ),
+                ),
+              ],
             ),
-            SizedBox(width: 12),
-            Expanded(
-              child: _FinanceCard(
-                title: 'Kas Keluar',
-                value: '50JT',
-                icon: Icons.account_balance_wallet_outlined,
-                backgroundColor: DashboardColors.outcomeBackground,
-              ),
-            ),
+            const SizedBox(height: 12),
+            // Card Kelola Polling (full width) - menggantikan Total Transaksi
+            const _KelolaPollingWideCard(),
           ],
-        ),
-        SizedBox(height: 12),
-        // Card Total Transaksi (full width)
-        _FinanceWideCard(
-          title: 'Total Transaksi',
-          subtitle: 'Lihat catatan transaksi keseluruhan',
-          value: '100',
-          icon: Icons.receipt_long_outlined,
-        ),
-      ],
+        );
+      },
     );
   }
 }
@@ -482,12 +488,14 @@ class _FinanceCard extends StatelessWidget {
     required this.value,
     required this.icon,
     required this.backgroundColor,
+    this.isLoading = false,
   });
 
   final String title;
   final String value;
   final IconData icon;
   final Color backgroundColor;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -563,15 +571,31 @@ class _FinanceCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Expanded(
-          child: AutoSizeText(
-            value,
-            style: DashboardStyles.cardValue.copyWith(
-              color: DashboardColors.textPrimary,
-            ),
-            maxLines: 1,
-            minFontSize: 20,
-            overflow: TextOverflow.ellipsis,
-          ),
+          child: isLoading
+              ? SizedBox(
+                  height: 32,
+                  child: Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          DashboardColors.textPrimary.withValues(alpha: 0.5),
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+              : AutoSizeText(
+                  value,
+                  style: DashboardStyles.cardValue.copyWith(
+                    color: DashboardColors.textPrimary,
+                  ),
+                  maxLines: 1,
+                  minFontSize: 20,
+                  overflow: TextOverflow.ellipsis,
+                ),
         ),
         _buildArrowButton(),
       ],
@@ -603,146 +627,108 @@ class _FinanceCard extends StatelessWidget {
 }
 
 // ============================================================================
-// FINANCE WIDE CARD WIDGET
+// KELOLA POLLING WIDE CARD WIDGET
 // ============================================================================
-// Card full-width untuk Total Transaksi
+// Card full-width untuk Kelola Polling - menggantikan Total Transaksi
 // ============================================================================
 
-class _FinanceWideCard extends StatelessWidget {
-  const _FinanceWideCard({
-    required this.title,
-    required this.subtitle,
-    required this.value,
-    required this.icon,
-  });
-
-  final String title;
-  final String subtitle;
-  final String value;
-  final IconData icon;
+class _KelolaPollingWideCard extends StatelessWidget {
+  const _KelolaPollingWideCard();
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: DashboardStyles.cardPadding,
-      decoration: _buildDecoration(),
-      child: Row(
-        children: [
-          _buildIconContainer(),
-          const SizedBox(width: 20),
-          _buildTextContent(),
-          const SizedBox(width: 12),
-          _buildValueBadge(),
-        ],
-      ),
-    );
-  }
-
-  /// Build card decoration
-  BoxDecoration _buildDecoration() {
-    return BoxDecoration(
-      gradient: const LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [DashboardColors.incomeBackground, Color(0xFFE8F0FF)],
-      ),
-      borderRadius: DashboardStyles.cardRadius,
-      border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 2),
-      boxShadow: [
-        BoxShadow(
-          color: DashboardColors.primaryBlue.withValues(alpha: 0.12),
-          blurRadius: 16,
-          offset: const Offset(0, 8),
-        ),
-      ],
-    );
-  }
-
-  /// Build icon container dengan gradient
-  Widget _buildIconContainer() {
-    return Container(
-      height: 68,
-      width: 68,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: DashboardColors.primaryGradient,
+          colors: [
+            Color(0xFF60A5FA), // Biru Pastel Medium - lebih gelap sedikit
+            Color(0xFF3B82F6), // Biru Medium - untuk kontras lebih baik
+          ],
         ),
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.3),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
-            color: DashboardColors.primaryBlue.withValues(alpha: 0.25),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
+            color: const Color(0xFF60A5FA).withValues(alpha: 0.25),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
-      child: Icon(icon, color: Colors.white, size: 32),
-    );
-  }
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => context.push(AppRoutes.adminKelolaPolling),
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                // Icon Container
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(
+                    Icons.how_to_vote_rounded,
+                    size: 32,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 16),
 
-  /// Build text content (title & subtitle)
-  Widget _buildTextContent() {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AutoSizeText(
-            title,
-            style: DashboardStyles.cardTitle.copyWith(
-              fontSize: 18,
-              color: DashboardColors.textPrimary,
-            ),
-            maxLines: 1,
-            minFontSize: 14,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 6),
-          AutoSizeText(
-            subtitle,
-            style: DashboardStyles.cardSubtitle.copyWith(
-              color: DashboardColors.textLight,
-            ),
-            maxLines: 2,
-            minFontSize: 10,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
+                // Text Content
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Kelola Polling',
+                        style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Buat & kelola polling RT/RW',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white.withValues(alpha: 0.95),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
-  /// Build value badge dengan gradient
-  Widget _buildValueBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: DashboardColors.primaryGradient,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: DashboardColors.primaryBlue.withValues(alpha: 0.3),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+                // Arrow Icon
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.25),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.arrow_forward_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ],
-      ),
-      child: AutoSizeText(
-        value,
-        style: GoogleFonts.poppins(
-          fontSize: 20,
-          fontWeight: FontWeight.w700,
-          color: Colors.white,
-          letterSpacing: -0.5,
         ),
-        maxLines: 1,
-        minFontSize: 14,
-        overflow: TextOverflow.ellipsis,
       ),
     );
   }
@@ -753,84 +739,90 @@ class _ActivitySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
+    return Consumer<DashboardProvider>(
+      builder: (context, dashboardProvider, child) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              height: 48,
-              width: 48,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFF2F80ED), Color(0xFF1E6FD9)],
-                ),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF2F80ED).withValues(alpha: 0.25),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
+            Row(
+              children: [
+                Container(
+                  height: 48,
+                  width: 48,
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFF2F80ED), Color(0xFF1E6FD9)],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF2F80ED).withValues(alpha: 0.25),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: const Icon(
-                Icons.fact_check_outlined,
-                color: Colors.white,
-                size: 24,
-              ),
+                  child: const Icon(
+                    Icons.fact_check_outlined,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                AutoSizeText(
+                  'Kegiatan',
+                  style: GoogleFonts.poppins(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF1F1F1F),
+                    letterSpacing: -0.5,
+                  ),
+                  maxLines: 1,
+                  minFontSize: 16,
+                ),
+              ],
             ),
-            const SizedBox(width: 14),
-            AutoSizeText(
-              'Kegiatan',
-              style: GoogleFonts.poppins(
-                fontSize: 20,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF1F1F1F),
-                letterSpacing: -0.5,
-              ),
-              maxLines: 1,
-              minFontSize: 16,
+            const SizedBox(height: 18),
+            _ActivityListTile(
+              title: 'Total Activities',
+              value: dashboardProvider.totalKegiatan.toString(),
+              subtitle: 'Lihat total kegiatan dibulan ini',
+              isLoading: dashboardProvider.isLoading,
+              onTap: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.white,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                  ),
+                  builder: (context) => const ActivityDetailPage(),
+                );
+              },
+            ),
+            const SizedBox(height: 14),
+            _ActivityListTile(
+              title: 'Top Penanggung Jawab',
+              value: dashboardProvider.topPJJumlah.toString(),
+              subtitle: dashboardProvider.topPJNama,
+              isLoading: dashboardProvider.isLoading,
+              onTap: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.white,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                  ),
+                  builder: (context) => const PenanggungJawabDetailPage(),
+                );
+              },
             ),
           ],
-        ),
-        const SizedBox(height: 18),
-        _ActivityListTile(
-          title: 'Total Activities',
-          value: '25',
-          subtitle: 'Lihat total kegiatan dibulan ini',
-          onTap: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.white,
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-              ),
-              builder: (context) => const ActivityDetailPage(),
-            );
-          },
-        ),
-        const SizedBox(height: 14),
-        _ActivityListTile(
-          title: 'Top Penanggung Jawab',
-          value: '25',
-          subtitle: 'Check penanggung jawab nya',
-          onTap: () {
-            showModalBottomSheet(
-              context: context,
-              isScrollControlled: true,
-              backgroundColor: Colors.white,
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-              ),
-              builder: (context) => const PenanggungJawabDetailPage(),
-            );
-          },
-        ),
-      ],
+        );
+      },
     );
   }
 }
@@ -840,12 +832,14 @@ class _ActivityListTile extends StatelessWidget {
     required this.title,
     required this.value,
     required this.subtitle,
+    this.isLoading = false,
     this.onTap,
   });
 
   final String title;
   final String value;
   final String subtitle;
+  final bool isLoading;
   final VoidCallback? onTap;
 
   @override
@@ -922,17 +916,26 @@ class _ActivityListTile extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  AutoSizeText(
-                    value,
-                    style: GoogleFonts.poppins(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFF2F80ED),
-                      letterSpacing: -0.5,
-                    ),
-                    maxLines: 1,
-                    minFontSize: 16,
-                  ),
+                  isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2F80ED)),
+                          ),
+                        )
+                      : AutoSizeText(
+                          value,
+                          style: GoogleFonts.poppins(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF2F80ED),
+                            letterSpacing: -0.5,
+                          ),
+                          maxLines: 1,
+                          minFontSize: 16,
+                        ),
                   const SizedBox(height: 6),
                   const Icon(
                     Icons.arrow_forward_rounded,
@@ -954,88 +957,105 @@ class _TimelineCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(26),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: const Color(0xFFE8EAF2), width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF2F80ED).withValues(alpha: 0.08),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [Color(0xFF2F80ED), Color(0xFF1E6FD9)],
-                  ),
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF2F80ED).withValues(alpha: 0.25),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.schedule,
-                  color: Colors.white,
-                  size: 22,
-                ),
-              ),
-              const SizedBox(width: 14),
-              AutoSizeText(
-                'Timeline',
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: const Color(0xFF1F1F1F),
-                  letterSpacing: -0.3,
-                ),
-                maxLines: 1,
-                minFontSize: 16,
+    return Consumer<DashboardProvider>(
+      builder: (context, dashboardProvider, child) {
+        final total = dashboardProvider.totalKegiatan;
+        final sudahLewat = dashboardProvider.sudahLewat;
+        final hariIni = dashboardProvider.hariIni;
+        final akanDatang = dashboardProvider.akanDatang;
+
+        // Calculate progress (avoid division by zero)
+        final progressSudahLewat = total > 0 ? sudahLewat / total : 0.0;
+        final progressHariIni = total > 0 ? hariIni / total : 0.0;
+        final progressAkanDatang = total > 0 ? akanDatang / total : 0.0;
+
+        return Container(
+          padding: const EdgeInsets.all(26),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(26),
+            border: Border.all(color: const Color(0xFFE8EAF2), width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF2F80ED).withValues(alpha: 0.08),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
               ),
             ],
           ),
-          const SizedBox(height: 22),
-          const _TimelineProgressRow(
-            label: 'Sudah Lewat',
-            value: '10 Kegiatan',
-            progress: 1.0,
-            highlight: Color(0xFF10B981),
-            icon: Icons.check_circle,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Color(0xFF2F80ED), Color(0xFF1E6FD9)],
+                      ),
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF2F80ED).withValues(alpha: 0.25),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.schedule,
+                      color: Colors.white,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  AutoSizeText(
+                    'Timeline',
+                    style: GoogleFonts.poppins(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF1F1F1F),
+                      letterSpacing: -0.3,
+                    ),
+                    maxLines: 1,
+                    minFontSize: 16,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 22),
+              _TimelineProgressRow(
+                label: 'Sudah Lewat',
+                value: '$sudahLewat Kegiatan',
+                progress: progressSudahLewat,
+                highlight: const Color(0xFF10B981),
+                icon: Icons.check_circle,
+                isLoading: dashboardProvider.isLoading,
+              ),
+              const SizedBox(height: 16),
+              _TimelineProgressRow(
+                label: 'Hari ini',
+                value: '$hariIni Kegiatan',
+                progress: progressHariIni,
+                highlight: const Color(0xFF2F80ED),
+                icon: Icons.today,
+                isLoading: dashboardProvider.isLoading,
+              ),
+              const SizedBox(height: 16),
+              _TimelineProgressRow(
+                label: 'Akan Datang',
+                value: '$akanDatang Kegiatan',
+                progress: progressAkanDatang,
+                highlight: const Color(0xFFFFA755),
+                icon: Icons.upcoming,
+                isLoading: dashboardProvider.isLoading,
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-          const _TimelineProgressRow(
-            label: 'Hari ini',
-            value: '10 Kegiatan',
-            progress: 0.6,
-            highlight: Color(0xFF2F80ED),
-            icon: Icons.today,
-          ),
-          const SizedBox(height: 16),
-          const _TimelineProgressRow(
-            label: 'Akan Datang',
-            value: '10 Kegiatan',
-            progress: 0.3,
-            highlight: Color(0xFFFFA755),
-            icon: Icons.upcoming,
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -1047,6 +1067,7 @@ class _TimelineProgressRow extends StatelessWidget {
     required this.progress,
     required this.highlight,
     required this.icon,
+    this.isLoading = false,
   });
 
   final String label;
@@ -1054,6 +1075,7 @@ class _TimelineProgressRow extends StatelessWidget {
   final double progress;
   final Color highlight;
   final IconData icon;
+  final bool isLoading;
 
   @override
   Widget build(BuildContext context) {
@@ -1087,16 +1109,25 @@ class _TimelineProgressRow extends StatelessWidget {
                 ),
               ],
             ),
-            AutoSizeText(
-              value,
-              style: GoogleFonts.poppins(
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF7A7C89),
-              ),
-              maxLines: 1,
-              minFontSize: 11,
-            ),
+            isLoading
+                ? const SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF7A7C89)),
+                    ),
+                  )
+                : AutoSizeText(
+                    value,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF7A7C89),
+                    ),
+                    maxLines: 1,
+                    minFontSize: 11,
+                  ),
           ],
         ),
         const SizedBox(height: 12),
@@ -1991,103 +2022,3 @@ class _PrimaryActionButton extends StatelessWidget {
   }
 }
 
-// ============================================================================
-// KELOLA POLLING CARD WIDGET
-// ============================================================================
-// Card menu untuk kelola polling dengan navigasi ke AdminPollListPage
-// ============================================================================
-
-class _KelolaPollingCard extends StatelessWidget {
-  const _KelolaPollingCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF3B82F6), Color(0xFF8B5CF6)],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF3B82F6).withValues(alpha: 0.3),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => context.push(AppRoutes.adminKelolaPolling),
-          borderRadius: BorderRadius.circular(20),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                // Icon Container
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.25),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: const Icon(
-                    Icons.how_to_vote_rounded,
-                    size: 32,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(width: 16),
-
-                // Text Content
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Kelola Polling',
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Buat & kelola polling RT/RW',
-                        style: GoogleFonts.poppins(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white.withValues(alpha: 0.9),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Arrow Icon
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.arrow_forward_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}

@@ -7,15 +7,16 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:wargago/core/constants/app_routes.dart';
+import '../../../../core/providers/notification_provider.dart';
+import '../../../warga/marketplace/pages/notifications_page.dart';
 
 class HomeAppBar extends StatelessWidget {
-  final int notificationCount;
   final String userName;
 
   const HomeAppBar({
     super.key,
-    this.notificationCount = 3,
     this.userName = 'Warga',
   });
 
@@ -67,17 +68,10 @@ class HomeAppBar extends StatelessWidget {
           ),
           Row(
             children: [
-              _buildNotificationButton(
-                onTap: () {
-                  // TODO: Navigate to notifications
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Notifikasi diklik (statis)')),
-                  );
-                },
-              ),
+              _buildNotificationButton(context),
               const SizedBox(width: 12),
               _buildProfileButton(
-                context: context, // Pass context biar bisa Navigator.push
+                context: context,
               ),
             ],
           ),
@@ -86,56 +80,69 @@ class HomeAppBar extends StatelessWidget {
     );
   }
 
-  Widget _buildNotificationButton({required VoidCallback onTap}) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: const Color(0xFFF8F9FD),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Stack(
-          children: [
-            const Center(
-              child: Icon(
-                Icons.notifications_outlined,
-                size: 24,
-                color: Color(0xFF1F2937),
+  Widget _buildNotificationButton(BuildContext context) {
+    return Consumer<NotificationProvider>(
+      builder: (context, notificationProvider, child) {
+        final count = notificationProvider.unreadCount;
+
+        return InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const NotificationsPage(),
               ),
+            );
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8F9FD),
+              borderRadius: BorderRadius.circular(12),
             ),
-            if (notificationCount > 0)
-              Positioned(
-                right: 8,
-                top: 8,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFEF4444),
-                    shape: BoxShape.circle,
+            child: Stack(
+              children: [
+                const Center(
+                  child: Icon(
+                    Icons.notifications_outlined,
+                    size: 24,
+                    color: Color(0xFF1F2937),
                   ),
-                  constraints: const BoxConstraints(
-                    minWidth: 18,
-                    minHeight: 18,
-                  ),
-                  child: Center(
-                    child: Text(
-                      notificationCount > 9 ? '9+' : '$notificationCount',
-                      style: GoogleFonts.poppins(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                        height: 1,
+                ),
+                if (count > 0)
+                  Positioned(
+                    right: 8,
+                    top: 8,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFEF4444),
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 18,
+                        minHeight: 18,
+                      ),
+                      child: Center(
+                        child: Text(
+                          count > 9 ? '9+' : '$count',
+                          style: GoogleFonts.poppins(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                            height: 1,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-          ],
-        ),
-      ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

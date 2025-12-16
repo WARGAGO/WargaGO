@@ -11,6 +11,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../../../../core/models/cart_item_model.dart';
 import '../../../../core/providers/order_provider.dart';
 import '../../../../core/providers/cart_provider.dart';
+import '../../../../core/providers/notification_provider.dart';
 import 'receipt_page.dart';
 import 'dart:async';
 
@@ -110,6 +111,11 @@ class _PaymentPageState extends State<PaymentPage> {
     try {
       // Create order
       final orderProvider = context.read<OrderProvider>();
+      final notificationProvider = context.read<NotificationProvider>();
+
+      // Set notification provider to send notifications
+      orderProvider.setNotificationProvider(notificationProvider);
+
       final success = await orderProvider.createOrder(
         cartItems: widget.selectedItems,
         buyerName: widget.buyerName,

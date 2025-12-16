@@ -8,8 +8,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/providers/cart_provider.dart';
+import '../../../../core/providers/notification_provider.dart';
 import '../pages/cart_page.dart';
 import '../pages/my_orders_page.dart';
+import '../pages/notifications_page.dart';
 
 class MarketplaceAppBar extends StatefulWidget {
   const MarketplaceAppBar({super.key});
@@ -57,12 +59,79 @@ class _MarketplaceAppBarState extends State<MarketplaceAppBar> {
           ),
           Row(
             children: [
+              _buildNotificationButton(context),
+              const SizedBox(width: 8),
               _buildOrdersButton(context),
               const SizedBox(width: 8),
               _buildCartButton(context),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildNotificationButton(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const NotificationsPage()),
+        );
+      },
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: 44,
+        height: 44,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8F9FD),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Consumer<NotificationProvider>(
+          builder: (context, notificationProvider, child) {
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                const Center(
+                  child: Icon(
+                    Icons.notifications_outlined,
+                    size: 24,
+                    color: Colors.black,
+                  ),
+                ),
+                if (notificationProvider.unreadCount > 0)
+                  Positioned(
+                    right: -4,
+                    top: -4,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFEF4444),
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 18,
+                        minHeight: 18,
+                      ),
+                      child: Center(
+                        child: Text(
+                          notificationProvider.unreadCount > 9
+                              ? '9+'
+                              : '${notificationProvider.unreadCount}',
+                          style: GoogleFonts.poppins(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                            height: 1,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }

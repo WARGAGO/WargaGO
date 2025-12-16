@@ -4,6 +4,7 @@ import '../models/poll_option_model.dart';
 import '../models/poll_vote_model.dart';
 import '../models/poll_result_model.dart';
 import '../services/poll_service.dart';
+import '../helpers/notification_helper.dart';
 
 /// Provider untuk state management polling
 class PollProvider with ChangeNotifier {
@@ -78,6 +79,14 @@ class PollProvider with ChangeNotifier {
         poll: poll,
         options: options,
       );
+
+      // 🔔 KIRIM NOTIFIKASI ke semua user
+      await NotificationHelper.notifyNewPoll(
+        pollId: pollId,
+        pollTitle: poll.title,
+        pollType: poll.type,
+      );
+      debugPrint('✅ Poll notification sent to all users');
 
       _successMessage = 'Polling berhasil dibuat!';
       _isCreatingPoll = false;
@@ -301,6 +310,27 @@ class PollProvider with ChangeNotifier {
 
     try {
       await _pollService.closePoll(pollId);
+
+      // 🔔 KIRIM NOTIFIKASI hasil polling ke peserta
+      try {
+        // Use current loaded poll and votes data
+        if (_currentPoll != null && _currentVotes.isNotEmpty) {
+          final participantIds = _currentVotes
+              .map((vote) => vote.userId)
+              .toSet()
+              .toList();
+
+          await NotificationHelper.notifyPollResult(
+            pollId: pollId,
+            pollTitle: _currentPoll!.title,
+            participantIds: participantIds,
+          );
+          debugPrint('✅ Poll result notification sent to ${participantIds.length} participants');
+        }
+      } catch (e) {
+        debugPrint('⚠️ Error sending poll result notification: $e');
+      }
+
       _successMessage = 'Polling berhasil ditutup';
       _isLoading = false;
       notifyListeners();

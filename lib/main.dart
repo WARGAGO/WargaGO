@@ -9,6 +9,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:wargago/core/providers/instance_provider.dart';
 import 'package:wargago/core/services/gemini_service.dart';
+import 'core/providers/notification_provider.dart';
 import 'firebase_options.dart';
 import 'app/app.dart';
 import 'core/providers/auth_provider.dart'; // Our custom AuthProvider
@@ -25,6 +26,7 @@ import 'core/providers/marketplace_provider.dart';
 import 'core/providers/cart_provider.dart';
 import 'core/providers/order_provider.dart';
 import 'core/providers/poll_provider.dart'; // 🗳️ Poll Provider
+import 'core/providers/dashboard_provider.dart'; // 📊 Dashboard Provider
 import 'create_admin.dart'; // ✨ TEMPORARY - Untuk membuat admin2
 
 /// Request storage permissions for export features
@@ -205,6 +207,8 @@ void main() async {
         ChangeNotifierProvider(create: (_) => CartProvider()), // 🛒 Cart Provider
         ChangeNotifierProvider(create: (_) => OrderProvider()), // 📦 Order Provider
         ChangeNotifierProvider(create: (_) => PollProvider()), // 🗳️ Poll Provider
+        ChangeNotifierProvider(create: (_) => DashboardProvider()), // 📊 Dashboard Provider
+        ChangeNotifierProvider(create: (_) => NotificationProvider()), // 🔔 Notification Provider
       ],
       child: const JawaraApp(),
     ),

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/agenda_model.dart';
 import '../services/agenda_service.dart';
+import '../helpers/notification_helper.dart';
 
 /// Provider untuk mengelola state Agenda (Kegiatan & Broadcast)
 class AgendaProvider with ChangeNotifier {
@@ -167,6 +168,15 @@ class AgendaProvider with ChangeNotifier {
       notifyListeners();
 
       await _service.createAgenda(agenda);
+
+      // 🔔 KIRIM NOTIFIKASI ke semua user
+      await NotificationHelper.notifyNewAgenda(
+        agendaId: agenda.id,
+        agendaTitle: agenda.judul, // Correct field name
+        agendaDate: '${agenda.tanggal.day}/${agenda.tanggal.month}/${agenda.tanggal.year}', // Format to string
+        agendaLocation: agenda.lokasi ?? 'Tidak ada lokasi', // Handle null
+      );
+      debugPrint('✅ Agenda notification sent to all users');
 
       // Reload summary setelah create
       await loadSummary();

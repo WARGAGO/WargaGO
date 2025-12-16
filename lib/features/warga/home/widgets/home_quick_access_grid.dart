@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wargago/features/warga/laporan_keuangan/laporan_keuangan_list_page.dart';
 import 'package:wargago/features/warga/polling/pages/poll_list_page.dart';
+import 'package:wargago/features/warga/kegiatan/pages/list_kegiatan_warga_page.dart';
 
 class HomeQuickAccessGrid extends StatelessWidget {
   const HomeQuickAccessGrid({super.key});
@@ -85,7 +86,14 @@ class HomeQuickAccessGrid extends StatelessWidget {
             end: Alignment.bottomRight,
             colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
           ),
-          onTap: () {},
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ListKegiatanWargaPage(),
+              ),
+            );
+          },
         ),
         _QuickAccessCard(
           icon: Icons.report_problem_rounded,

@@ -13,18 +13,34 @@ class DashboardService {
   // ============================================================================
 
   /// Get total kas masuk (pemasukan)
+  /// Menghitung dari tagihan yang sudah dibayar + pemasukan lain
   Future<double> getTotalKasMasuk() async {
     try {
-      final querySnapshot = await _firestore
-          .collection('keuangan')
-          .where('type', isEqualTo: 'pemasukan')
+      double total = 0;
+
+      // 1. Get total dari tagihan yang sudah dibayar
+      final tagihanSnapshot = await _firestore
+          .collection('tagihan')
+          .where('status', isEqualTo: 'Sudah Dibayar')
+          .where('isActive', isEqualTo: true)
           .get();
 
-      double total = 0;
-      for (var doc in querySnapshot.docs) {
+      for (var doc in tagihanSnapshot.docs) {
         final data = doc.data();
-        final amount = data['amount'] ?? 0;
-        total += (amount is int) ? amount.toDouble() : amount;
+        final nominal = (data['nominal'] as num?)?.toDouble() ?? 0;
+        total += nominal;
+      }
+
+      // 2. Get total dari pemasukan lain
+      final pemasukanLainSnapshot = await _firestore
+          .collection('pemasukan_lain')
+          .where('isActive', isEqualTo: true)
+          .get();
+
+      for (var doc in pemasukanLainSnapshot.docs) {
+        final data = doc.data();
+        final nominal = (data['nominal'] as num?)?.toDouble() ?? 0;
+        total += nominal;
       }
 
       return total;
@@ -35,18 +51,20 @@ class DashboardService {
   }
 
   /// Get total kas keluar (pengeluaran)
+  /// Menghitung dari pengeluaran yang sudah terverifikasi
   Future<double> getTotalKasKeluar() async {
     try {
       final querySnapshot = await _firestore
-          .collection('keuangan')
-          .where('type', isEqualTo: 'pengeluaran')
+          .collection('pengeluaran')
+          .where('status', isEqualTo: 'Terverifikasi')
+          .where('isActive', isEqualTo: true)
           .get();
 
       double total = 0;
       for (var doc in querySnapshot.docs) {
         final data = doc.data();
-        final amount = data['amount'] ?? 0;
-        total += (amount is int) ? amount.toDouble() : amount;
+        final nominal = (data['nominal'] as num?)?.toDouble() ?? 0;
+        total += nominal;
       }
 
       return total;
@@ -57,13 +75,35 @@ class DashboardService {
   }
 
   /// Get total semua transaksi
+  /// Menghitung dari tagihan + pemasukan lain + pengeluaran
   Future<int> getTotalTransaksi() async {
     try {
-      final querySnapshot = await _firestore
-          .collection('keuangan')
-          .get();
+      int total = 0;
 
-      return querySnapshot.docs.length;
+      // Count tagihan yang sudah dibayar
+      final tagihanSnapshot = await _firestore
+          .collection('tagihan')
+          .where('status', isEqualTo: 'Sudah Dibayar')
+          .where('isActive', isEqualTo: true)
+          .get();
+      total += tagihanSnapshot.docs.length;
+
+      // Count pemasukan lain
+      final pemasukanLainSnapshot = await _firestore
+          .collection('pemasukan_lain')
+          .where('isActive', isEqualTo: true)
+          .get();
+      total += pemasukanLainSnapshot.docs.length;
+
+      // Count pengeluaran terverifikasi
+      final pengeluaranSnapshot = await _firestore
+          .collection('pengeluaran')
+          .where('status', isEqualTo: 'Terverifikasi')
+          .where('isActive', isEqualTo: true)
+          .get();
+      total += pengeluaranSnapshot.docs.length;
+
+      return total;
     } catch (e) {
       print('Error getTotalTransaksi: $e');
       return 0;
